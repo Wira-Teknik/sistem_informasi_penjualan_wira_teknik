@@ -11,7 +11,7 @@ class DashboardScreen extends StatelessWidget {
     return Scaffold(
       appBar: CustomAppbar(title: "CV.Wira Teknik"),
       body: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16, top: 14),
+        padding: const EdgeInsets.only(left: 16, right: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -95,6 +95,56 @@ class DashboardScreen extends StatelessWidget {
                   style: semiBoldTextStyle.copyWith(color: primaryColor),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView.builder(
+                padding: EdgeInsets.only(left: 1, top: 1, right: 1),
+                itemCount: 10,
+                itemBuilder: (context, index) {
+                  return Container(
+                    width: double.infinity,
+                    height: 62,
+                    padding: const EdgeInsets.all(13),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: whiteColor,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: semiSecondaryColor.withValues(alpha: 0.3),
+                          blurRadius: 0.5,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Delivery Confirmed", style: boldTextStyle),
+                            Text(
+                              "Order P2397DJJ22 delivered",
+                              style: regularTextStyle.copyWith(
+                                color: semiSecondaryColor,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          "Oct 23, 2026",
+                          style: mediumTextStyle.copyWith(
+                            color: semiSecondaryColor,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
