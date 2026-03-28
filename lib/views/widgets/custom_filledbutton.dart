@@ -6,6 +6,7 @@ class CustomFilledbutton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String title;
   final Color? buttonColor;
+  final Color? titleButtonColor;
   final IconData? iconButton;
 
   const CustomFilledbutton({
@@ -14,6 +15,7 @@ class CustomFilledbutton extends StatelessWidget {
     required this.title,
     this.buttonColor,
     this.iconButton,
+    this.titleButtonColor,
   });
 
   @override
@@ -25,7 +27,8 @@ class CustomFilledbutton extends StatelessWidget {
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        fixedSize: WidgetStateProperty.all(const Size(292, 56)),
+        // fixedSize: WidgetStateProperty.all(const Size(292, 56)),
+        padding: WidgetStateProperty.all(EdgeInsets.only(top: 16, bottom: 16)),
         overlayColor: WidgetStateProperty.all(
           backgroundColor.withValues(alpha: 0.1),
         ),
@@ -37,7 +40,10 @@ class CustomFilledbutton extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             title,
-            style: semiBoldTextStyle.copyWith(fontSize: 16, color: whiteColor),
+            style: semiBoldTextStyle.copyWith(
+              fontSize: 16,
+              color: titleButtonColor ?? whiteColor,
+            ),
           ),
         ],
       ),
