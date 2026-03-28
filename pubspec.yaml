@@ -1,0 +1,41 @@
+name: sistem_informasi_penjualan_wira_teknik
+description: "Sistem Informasi Penjualan CV.Wira Teknik."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.5+1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/icons/
+
+  fonts:
+  - family: Poppins
+    fonts:
+      - asset: assets/fonts/poppins/Poppins-Thin.ttf
+        weight: 100
+      - asset: assets/fonts/poppins/Poppins-Light.ttf
+        weight: 300
+      - asset: assets/fonts/poppins/Poppins-Regular.ttf
+        weight: 400
+      - asset: assets/fonts/poppins/Poppins-Medium.ttf
+        weight: 500
+      - asset: assets/fonts/poppins/Poppins-SemiBold.ttf
+        weight: 600
+      - asset: assets/fonts/poppins/Poppins-Bold.ttf
+        weight: 700
+      - asset: assets/fonts/poppins/Poppins-ExtraBold.ttf
+        weight: 800
