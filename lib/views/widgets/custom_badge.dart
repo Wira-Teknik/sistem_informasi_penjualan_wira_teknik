@@ -12,7 +12,7 @@ class CustomBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       label: Text(
         label,
-        style: semiBoldTextStyle.copyWith(fontSize: 12, color: badgeColor),
+        style: boldTextStyle.copyWith(fontSize: 12, color: badgeColor),
       ),
       backgroundColor: badgeColor.withValues(alpha: 0.2),
     );

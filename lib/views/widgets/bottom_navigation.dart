@@ -18,6 +18,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
   final List<Widget> _pages = const [
     DashboardScreen(),
     OrderScreen(),
+    OrderScreen(),
     ProfileScreen(),
   ];
 
@@ -55,12 +56,26 @@ class _BottomNavigationState extends State<BottomNavigation> {
                 ),
                 label: 'DASHBOARD',
               ),
+              // BottomNavigationBarItem(
+              //   icon: ImageIcon(
+              //     AssetImage('assets/icons/audit_icon.png'),
+              //     size: 18,
+              //   ),
+              //   label: 'AUDIT',
+              // ),
               BottomNavigationBarItem(
                 icon: ImageIcon(
                   AssetImage('assets/icons/order_icon.png'),
                   size: 18,
                 ),
                 label: 'PESANAN',
+              ),
+              BottomNavigationBarItem(
+                icon: ImageIcon(
+                  AssetImage('assets/icons/bayar_icon.png'),
+                  size: 18,
+                ),
+                label: 'BAYAR',
               ),
               BottomNavigationBarItem(
                 icon: ImageIcon(

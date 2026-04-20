@@ -31,17 +31,17 @@ class ItemPesananWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "P2397DJJ22",
+                    "P5537XJJ22",
                     style: boldTextStyle.copyWith(fontSize: 16),
                   ),
                   Text(
-                    "PT.Maju Jaya",
-                    style: regularTextStyle.copyWith(color: semiSecondaryColor),
+                    "PT.KIRANA PERMATA",
+                    style: mediumTextStyle.copyWith(color: semiSecondaryColor),
                   ),
                 ],
               ),
               // badge status
-              CustomBadge(label: "Processing", badgeColor: primaryColor),
+              CustomBadge(label: "Pending", badgeColor: primaryColor),
             ],
           ),
 

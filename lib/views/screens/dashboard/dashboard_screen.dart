@@ -170,7 +170,6 @@ class ItemDashboardAdmin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 113,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: whiteColor,
@@ -191,7 +190,7 @@ class ItemDashboardAdmin extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: semiBoldTextStyle.copyWith(
+                style: boldTextStyle.copyWith(
                   fontSize: 12,
                   color: semiSecondaryColor,
                 ),
@@ -204,7 +203,7 @@ class ItemDashboardAdmin extends StatelessWidget {
             style: boldTextStyle.copyWith(fontSize: 16),
             overflow: TextOverflow.ellipsis,
           ),
-          const Spacer(),
+          const SizedBox(height: 12),
 
           Text(
             subtitle,

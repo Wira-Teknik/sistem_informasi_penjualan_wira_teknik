@@ -40,7 +40,7 @@ class CustomFilledbutton extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             title,
-            style: semiBoldTextStyle.copyWith(
+            style: boldTextStyle.copyWith(
               fontSize: 16,
               color: titleButtonColor ?? whiteColor,
             ),

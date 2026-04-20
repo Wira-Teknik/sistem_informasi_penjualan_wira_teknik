@@ -13,10 +13,9 @@ class FilterOrderSection extends StatefulWidget {
 class _FilterOrderSectionState extends State<FilterOrderSection> {
   final List<Map<String, dynamic>> _listFilterOrder = [
     {"name": "All"},
-    {"name": "Processing"},
+    {"name": "Pending"},
     {"name": "Shipped"},
-    {"name": "Shipped"},
-    {"name": "Shipped"},
+    {"name": "Partial"},
     {"name": "Completed"},
   ];
 

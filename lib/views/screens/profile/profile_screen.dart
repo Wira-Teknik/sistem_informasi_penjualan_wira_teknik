@@ -30,7 +30,7 @@ class ProfileScreen extends StatelessWidget {
               style: mediumTextStyle.copyWith(color: semiSecondaryColor),
             ),
             const SizedBox(height: 8),
-            CustomBadge(label: "Owner", badgeColor: primaryColor),
+            CustomBadge(label: "Admin", badgeColor: primaryColor),
             const SizedBox(height: 24),
 
             // menu
@@ -71,6 +71,13 @@ class ProfileScreen extends StatelessWidget {
                     title: "Rekapitulasi Pembayaran",
                     subtitle: "Rekap informasi seluruh pembayaran",
                   ),
+                  const SizedBox(height: 20),
+                  ItemActivityReportWidget(
+                    onTap: () {},
+                    imageSource: "assets/icons/daftar_konsumen.png",
+                    title: "Daftar Konsumen",
+                    subtitle: "Daftar konsumen cv.wira teknik",
+                  ),
                 ],
               ),
             ),
@@ -78,7 +85,7 @@ class ProfileScreen extends StatelessWidget {
 
             // logout button
             CustomFilledbutton(
-              title: "Logout",
+              title: "Keluar",
               iconButton: Icons.logout_rounded,
               buttonColor: redColor,
             ),

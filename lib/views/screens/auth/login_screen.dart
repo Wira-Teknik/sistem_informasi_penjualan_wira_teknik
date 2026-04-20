@@ -63,13 +63,13 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   // email textfield
                   CustomTextfield(
-                    label: "Email Address",
-                    hintText: "yourmail@example.com",
-                    prefixIcon: Icons.email_outlined,
+                    label: "Username",
+                    hintText: "Username",
+                    prefixIcon: Icons.person_outline,
                   ),
                   const SizedBox(height: 16),
 
@@ -80,11 +80,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: Icons.lock_outlined,
                     obscureText: true,
                   ),
-                  const SizedBox(height: 45),
+
+                  TextButton(
+                    onPressed: () {},
+                    child: Text(
+                      "Lupa Password!",
+                      style: mediumTextStyle.copyWith(color: primaryColor),
+                    ),
+                  ),
+                  const SizedBox(height: 19),
 
                   // button login
                   CustomFilledbutton(
-                    title: "Login to Dashboard",
+                    title: "Masuk ke Dashboard",
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,

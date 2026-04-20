@@ -25,7 +25,7 @@ class _OrderScreenState extends State<OrderScreen> {
         child: Column(
           children: [
             CustomTextfield(
-              hintText: "Search orders, customers, or IDs",
+              hintText: "Cari nomor PO, nama perusahaan",
               prefixIcon: Icons.search,
             ),
             const SizedBox(height: 12),
