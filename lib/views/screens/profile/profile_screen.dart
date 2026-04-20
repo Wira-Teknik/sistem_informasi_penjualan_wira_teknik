@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/history_transaction/history_transaction_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
@@ -59,7 +60,14 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 8),
 
                   ItemActivityReportWidget(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HistoryTransactionScreen(),
+                        ),
+                      );
+                    },
                     imageSource: "assets/icons/history_icon.png",
                     title: "Laporan Riwayat Transaksi",
                     subtitle: "Lihat semua aktivitas transaksi",

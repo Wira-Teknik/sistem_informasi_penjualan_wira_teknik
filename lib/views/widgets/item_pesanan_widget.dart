@@ -12,7 +12,7 @@ class ItemPesananWidget extends StatelessWidget {
       margin: const EdgeInsets.only(left: 1, right: 1, top: 1, bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: whiteColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(

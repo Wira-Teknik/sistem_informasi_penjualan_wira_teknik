@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="sistem_informasi_penjualan_wira_teknik"
+        android:label="SIP Wira Teknik"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

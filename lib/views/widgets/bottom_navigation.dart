@@ -3,6 +3,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_cons
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/dashboard/dashboard_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/order/order_screen.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment/payment_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/profile/profile_screen.dart';
 
 class BottomNavigation extends StatefulWidget {
@@ -18,7 +19,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
   final List<Widget> _pages = const [
     DashboardScreen(),
     OrderScreen(),
-    OrderScreen(),
+    PaymentScreen(),
     ProfileScreen(),
   ];
 
