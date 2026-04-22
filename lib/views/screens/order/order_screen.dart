@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/order/add_order_screen.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/order/detail_order_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/filter_order_section.dart';
@@ -42,7 +43,17 @@ class _OrderScreenState extends State<OrderScreen> {
               child: ListView.builder(
                 itemCount: 10,
                 itemBuilder: (context, index) {
-                  return ItemPesananWidget();
+                  return ItemPesananWidget(
+                    onTap: () {
+                      // navigasi ke detail pesanan
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailOrderScreen(),
+                        ),
+                      );
+                    },
+                  );
                 },
               ),
             ),

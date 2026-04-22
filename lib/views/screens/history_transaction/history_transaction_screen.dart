@@ -32,6 +32,7 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
       body: Padding(
         padding: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CustomTextfield(
               hintText: "Cari nomor PO",

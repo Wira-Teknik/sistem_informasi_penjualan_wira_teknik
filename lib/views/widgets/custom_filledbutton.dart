@@ -8,6 +8,8 @@ class CustomFilledbutton extends StatelessWidget {
   final Color? buttonColor;
   final Color? titleButtonColor;
   final IconData? iconButton;
+  final double buttonRadius;
+  final double buttonTitleSize;
 
   const CustomFilledbutton({
     super.key,
@@ -16,6 +18,8 @@ class CustomFilledbutton extends StatelessWidget {
     this.buttonColor,
     this.iconButton,
     this.titleButtonColor,
+    this.buttonRadius = 8,
+    this.buttonTitleSize = 16,
   });
 
   @override
@@ -25,10 +29,19 @@ class CustomFilledbutton extends StatelessWidget {
       style: ButtonStyle(
         backgroundColor: WidgetStateProperty.all(buttonColor ?? primaryColor),
         shape: WidgetStateProperty.all(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(buttonRadius),
+          ),
         ),
         // fixedSize: WidgetStateProperty.all(const Size(292, 56)),
-        padding: WidgetStateProperty.all(EdgeInsets.only(top: 16, bottom: 16)),
+        padding: WidgetStateProperty.all(
+          EdgeInsets.only(
+            top: 16,
+            bottom: 16,
+            left: iconButton != null ? 14 : 12,
+            right: 12,
+          ),
+        ),
         overlayColor: WidgetStateProperty.all(
           backgroundColor.withValues(alpha: 0.1),
         ),
@@ -37,11 +50,11 @@ class CustomFilledbutton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (iconButton != null) Icon(iconButton, color: whiteColor, size: 24),
-          const SizedBox(width: 8),
+          if (iconButton != null) const SizedBox(width: 8),
           Text(
             title,
             style: boldTextStyle.copyWith(
-              fontSize: 16,
+              fontSize: buttonTitleSize,
               color: titleButtonColor ?? whiteColor,
             ),
           ),
