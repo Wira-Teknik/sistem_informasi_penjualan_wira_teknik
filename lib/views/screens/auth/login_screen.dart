@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/auth/email_sender_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/bottom_navigation.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
@@ -82,7 +83,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
 
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EmailSenderScreen(),
+                        ),
+                      );
+                    },
                     child: Text(
                       "Lupa Password!",
                       style: mediumTextStyle.copyWith(color: primaryColor),
