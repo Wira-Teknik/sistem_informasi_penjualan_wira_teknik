@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment_recap/payment_recap_detail_total_paid_screen.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment_recap/payment_recap_detail_total_pendapatan_screen.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment_recap/payment_recap_detail_total_pesanan_screen.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment_recap/payment_recap_detail_total_unpaid_screen.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/card_recap_item.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 
@@ -29,46 +34,82 @@ class PaymentRecapScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             // card total pendapatan
-            CardRecapItem(
-              iconSource: "assets/icons/total_pendapatan_icon.png",
-              title: "TOTAL PENDAPATAN",
-              value: "Rp 45.200.000",
-              valueColor: primaryColor,
-              isArrowIconVisible: true,
-              arrowIconColor: primaryColor,
+            InkWell(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const PaymentRecapDetailTotalPendapatanScreen(),
+                ),
+              ),
+              child: CardRecapItem(
+                iconSource: "assets/icons/total_pendapatan_icon.png",
+                title: "TOTAL PENDAPATAN",
+                value: "Rp 45.200.000",
+                valueColor: primaryColor,
+                isArrowIconVisible: true,
+                arrowIconColor: primaryColor,
+              ),
             ),
             const SizedBox(height: 10),
 
             // card total pesanan
-            CardRecapItem(
-              iconSource: "assets/icons/rekap_pesanan_icon.png",
-              title: "TOTAL PESANAN",
-              value: "142 Orders",
-              valueColor: secondaryColor,
-              isArrowIconVisible: true,
-              arrowIconColor: secondaryColor,
+            InkWell(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const PaymentRecapDetailTotalPesananScreen(),
+                ),
+              ),
+              child: CardRecapItem(
+                iconSource: "assets/icons/rekap_pesanan_icon.png",
+                title: "TOTAL PESANAN",
+                value: "142 Orders",
+                valueColor: secondaryColor,
+                isArrowIconVisible: true,
+                arrowIconColor: secondaryColor,
+              ),
             ),
             const SizedBox(height: 10),
 
             // card total unpaid
-            CardRecapItem(
-              iconSource: "assets/icons/total_unpaid_icon.png",
-              title: "TOTAL UNPAID",
-              value: "Rp 12.800.000",
-              valueColor: redColor,
-              isArrowIconVisible: true,
-              arrowIconColor: redColor,
+            InkWell(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const PaymentRecapDetailTotalUnpaidScreen(),
+                ),
+              ),
+              child: CardRecapItem(
+                iconSource: "assets/icons/total_unpaid_icon.png",
+                title: "TOTAL UNPAID",
+                value: "Rp 12.800.000",
+                valueColor: redColor,
+                isArrowIconVisible: true,
+                arrowIconColor: redColor,
+              ),
             ),
             const SizedBox(height: 10),
 
             // card total paid
-            CardRecapItem(
-              iconSource: "assets/icons/total_paid_icon.png",
-              title: "TOTAL PAID",
-              value: "Rp 32.400.000",
-              valueColor: greenColor,
-              isArrowIconVisible: true,
-              arrowIconColor: greenColor,
+            InkWell(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const PaymentRecapDetailTotalPaidScreen(),
+                ),
+              ),
+              child: CardRecapItem(
+                iconSource: "assets/icons/total_paid_icon.png",
+                title: "TOTAL PAID",
+                value: "Rp 32.400.000",
+                valueColor: greenColor,
+                isArrowIconVisible: true,
+                arrowIconColor: greenColor,
+              ),
             ),
             const SizedBox(height: 20),
 
@@ -214,76 +255,6 @@ class PaymentRecapScreen extends StatelessWidget {
             const SizedBox(height: 80),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class CardRecapItem extends StatelessWidget {
-  final String iconSource;
-  final String title;
-  final String value;
-  final bool isArrowIconVisible;
-  final Color valueColor;
-  final Color arrowIconColor;
-  const CardRecapItem({
-    super.key,
-    required this.iconSource,
-    required this.title,
-    required this.value,
-    this.isArrowIconVisible = false,
-    required this.valueColor,
-    this.arrowIconColor = primaryColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: whiteColor,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: semiSecondaryColor.withValues(alpha: 0.5),
-            blurRadius: 0.5,
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Image.asset(iconSource, width: 48, height: 48),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: boldTextStyle.copyWith(
-                  fontSize: 12,
-                  color: semiSecondaryColor,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: boldTextStyle.copyWith(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: valueColor,
-                ),
-              ),
-            ],
-          ),
-          Spacer(),
-          if (isArrowIconVisible)
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              color: arrowIconColor,
-              size: 16,
-            ),
-        ],
       ),
     );
   }
