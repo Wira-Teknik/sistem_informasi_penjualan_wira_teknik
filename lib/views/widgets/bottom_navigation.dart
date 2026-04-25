@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/audit/audit_screen.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/dashboard/dashboard_screen.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/dashboard/admin_dashboard_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/order/order_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment/payment_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/profile/profile_screen.dart';
@@ -18,7 +18,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = const [
-    DashboardScreen(),
+    AdminDashboardScreen(),
     AuditScreen(),
     OrderScreen(),
     PaymentScreen(),
