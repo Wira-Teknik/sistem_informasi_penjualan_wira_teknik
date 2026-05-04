@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/customer/add_customer_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 
@@ -156,7 +157,12 @@ class CustomerScreen extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddCustomerScreen()),
+          );
+        },
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadiusGeometry.circular(12),
         ),

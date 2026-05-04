@@ -23,28 +23,27 @@ class AddOrderScreen extends StatelessWidget {
                 Image.asset("assets/icons/order_detail_icon.png", width: 16),
                 const SizedBox(width: 8),
                 Text(
-                  "ORDER DETAILS",
+                  "DETAIL PESANAN",
                   style: semiBoldTextStyle.copyWith(color: semiSecondaryColor),
                 ),
               ],
             ),
             const SizedBox(height: 16),
 
-            CustomTextfield(
-              label: "Transaction Number",
-              prefixIcon: Icons.tag,
-              hintText: "Enter Transaction Number",
-            ),
+            CustomTextfield(label: "Nomor Transaksi", prefixIcon: Icons.tag),
             const SizedBox(height: 16),
 
             CustomTextfield(
-              label: "PO Number",
-              prefixIcon: Icons.content_paste_rounded,
+              label: "Nomor PO",
+              prefixIcon: Icons.content_paste_outlined,
               hintText: "Enter PO Number",
             ),
             const SizedBox(height: 16),
 
-            CustomTextfield(label: "Order Date", prefixIcon: Icons.tag),
+            CustomTextfield(
+              label: "Tanggal Pesan",
+              prefixIcon: Icons.calendar_today_outlined,
+            ),
             const SizedBox(height: 24),
 
             // Customer Information
@@ -56,7 +55,7 @@ class AddOrderScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  "CUSTOMER INFORMATION",
+                  "INFORMASI KONSUMEN",
                   style: semiBoldTextStyle.copyWith(color: semiSecondaryColor),
                 ),
               ],
@@ -64,29 +63,29 @@ class AddOrderScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             CustomTextfield(
-              label: "Customer Name",
-              prefixIcon: Icons.co_present_rounded,
-              hintText: 'Your Name...',
+              label: "Nama Konsumen",
+              prefixIcon: Icons.badge_outlined,
+              hintText: 'PT....',
             ),
             const SizedBox(height: 16),
 
             CustomTextfield(
-              label: "Phone Number",
-              prefixIcon: Icons.phone_rounded,
+              label: "Nomor Telepon",
+              prefixIcon: Icons.phone_outlined,
               hintText: "08....",
             ),
             const SizedBox(height: 16),
 
             CustomTextfield(
-              label: "Email Address",
-              prefixIcon: Icons.mail_rounded,
+              label: "Alamat Email",
+              prefixIcon: Icons.mail_outline_outlined,
               hintText: "email@mail.com",
             ),
             const SizedBox(height: 16),
 
             CustomTextfield(
-              label: "Delivery Address",
-              prefixIcon: Icons.mail_rounded,
+              label: "Alamat Pengiriman",
+              prefixIcon: Icons.location_on_outlined,
             ),
             const SizedBox(height: 24),
 
@@ -96,19 +95,19 @@ class AddOrderScreen extends StatelessWidget {
                 Image.asset("assets/icons/order_items_icon.png", width: 16),
                 const SizedBox(width: 8),
                 Text(
-                  "ORDER ITEMS",
+                  "BARANG PESANAN",
                   style: semiBoldTextStyle.copyWith(color: semiSecondaryColor),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            CustomTextfield(label: "Item Name", hintText: "Enter item name"),
+            CustomTextfield(label: "Nama Barang", hintText: "Enter item name"),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: CustomTextfield(
-                    label: "Price",
+                    label: "Harga",
                     hintText: "100",
                     prefixIcon: Icons.money_rounded,
                   ),
@@ -116,7 +115,7 @@ class AddOrderScreen extends StatelessWidget {
                 const SizedBox(width: 12),
                 SizedBox(
                   width: 126,
-                  child: CustomTextfield(label: "Qty", hintText: "1"),
+                  child: CustomTextfield(label: "Jumlah", hintText: "1"),
                 ),
               ],
             ),
@@ -126,12 +125,12 @@ class AddOrderScreen extends StatelessWidget {
 
             // buttons
             CustomFilledbutton(
-              title: "Save Order",
+              title: "Buat Pesanan",
               iconButton: Icons.save_rounded,
             ),
             const SizedBox(height: 12),
             CustomFilledbutton(
-              title: "Cancel",
+              title: "Batalkan",
               buttonColor: semiSecondaryColor.withValues(alpha: 0.1),
               titleButtonColor: semiSecondaryColor,
             ),

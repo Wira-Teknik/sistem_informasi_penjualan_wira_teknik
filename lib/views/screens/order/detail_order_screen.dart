@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/delivery/add_delivery_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
@@ -355,8 +356,13 @@ class DetailOrderScreen extends StatelessWidget {
             CustomFilledbutton(
               title: "Buat Pengiriman",
               iconButton: Icons.edit_note_rounded,
+              buttonRadius: 12,
               onPressed: () {
                 // aksi buat pengiriman
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddDeliveryScreen()),
+                );
               },
             ),
             const SizedBox(height: 60),
