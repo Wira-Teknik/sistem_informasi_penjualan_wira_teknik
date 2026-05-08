@@ -62,7 +62,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               message: 'Password berhasil diubah, silakan login kembali',
               icons: Icons.check_circle_outline_outlined,
             ),
-            backgroundColor: Colors.transparent,
+            backgroundColor: whiteColor,
           ),
         );
 

@@ -107,7 +107,7 @@ class AuthRepositoryImpl implements AuthRepository {
   ) async {
     try {
       final response = await _dio.post(
-        AppStrings.verifyCodeEndpoint,
+        AppStrings.forgotPasswordResetEndpoint,
         data: {
           'confirm_password': confirmPassword,
           'new_password': newPassword,
