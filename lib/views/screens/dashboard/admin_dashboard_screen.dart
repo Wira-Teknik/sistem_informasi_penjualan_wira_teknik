@@ -3,15 +3,15 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_cons
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 
-class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+class AdminDashboardScreen extends StatelessWidget {
+  const AdminDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppbar(title: "CV.Wira Teknik"),
-      body: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16, top: 14),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(left: 16, right: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -96,6 +96,56 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            ListView.builder(
+              padding: EdgeInsets.only(left: 1, top: 1, right: 1),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 10,
+              itemBuilder: (context, index) {
+                return Container(
+                  width: double.infinity,
+                  height: 62,
+                  padding: const EdgeInsets.all(13),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: whiteColor,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: semiSecondaryColor.withValues(alpha: 0.3),
+                        blurRadius: 0.5,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Delivery Confirmed", style: boldTextStyle),
+                          Text(
+                            "Order P2397DJJ22 delivered",
+                            style: regularTextStyle.copyWith(
+                              color: semiSecondaryColor,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        "Oct 23, 2026",
+                        style: mediumTextStyle.copyWith(
+                          color: semiSecondaryColor,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -120,7 +170,6 @@ class ItemDashboardAdmin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 113,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: whiteColor,
@@ -141,7 +190,7 @@ class ItemDashboardAdmin extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: semiBoldTextStyle.copyWith(
+                style: boldTextStyle.copyWith(
                   fontSize: 12,
                   color: semiSecondaryColor,
                 ),
@@ -154,7 +203,7 @@ class ItemDashboardAdmin extends StatelessWidget {
             style: boldTextStyle.copyWith(fontSize: 16),
             overflow: TextOverflow.ellipsis,
           ),
-          const Spacer(),
+          const SizedBox(height: 12),
 
           Text(
             subtitle,

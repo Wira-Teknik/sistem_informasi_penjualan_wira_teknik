@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/login_viewmodel.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/customer/customer_screen.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/history_transaction/history_transaction_screen.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment_recap/payment_recap_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(loginViewModelProvider);
+    final role = state.user?.role ?? 'admin';
+    final username = state.user?.name;
+    final email = state.user?.email;
+
     return Scaffold(
       appBar: CustomAppbar(title: "Profil"),
       body: Padding(
@@ -23,14 +33,14 @@ class ProfileScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // user info
-            Text("Wira", style: boldTextStyle.copyWith(fontSize: 24)),
+            Text(username!, style: boldTextStyle.copyWith(fontSize: 24)),
             const SizedBox(height: 8),
             Text(
-              "wirateknik@mail.com",
+              email!,
               style: mediumTextStyle.copyWith(color: semiSecondaryColor),
             ),
             const SizedBox(height: 8),
-            CustomBadge(label: "Owner", badgeColor: primaryColor),
+            CustomBadge(label: role.toUpperCase(), badgeColor: primaryColor),
             const SizedBox(height: 24),
 
             // menu
@@ -59,18 +69,49 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 8),
 
                   ItemActivityReportWidget(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HistoryTransactionScreen(),
+                        ),
+                      );
+                    },
                     imageSource: "assets/icons/history_icon.png",
                     title: "Laporan Riwayat Transaksi",
                     subtitle: "Lihat semua aktivitas transaksi",
                   ),
                   const SizedBox(height: 20),
+
                   ItemActivityReportWidget(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PaymentRecapScreen(),
+                        ),
+                      );
+                    },
                     imageSource: "assets/icons/recap_icon.png",
                     title: "Rekapitulasi Pembayaran",
                     subtitle: "Rekap informasi seluruh pembayaran",
                   ),
+                  const SizedBox(height: 20),
+
+                  if (role == "admin")
+                    ItemActivityReportWidget(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CustomerScreen(),
+                          ),
+                        );
+                      },
+                      imageSource: "assets/icons/daftar_konsumen.png",
+                      title: "Daftar Konsumen",
+                      subtitle: "Daftar konsumen cv.wira teknik",
+                    ),
                 ],
               ),
             ),
@@ -78,9 +119,21 @@ class ProfileScreen extends StatelessWidget {
 
             // logout button
             CustomFilledbutton(
-              title: "Logout",
+              title: "Keluar",
               iconButton: Icons.logout_rounded,
               buttonColor: redColor,
+              onPressed: () async {
+                ref.read(loginViewModelProvider.notifier).logout().then((
+                  value,
+                ) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    // ignore: use_build_context_synchronously
+                    context,
+                    "/login",
+                    ModalRoute.withName("/"),
+                  );
+                });
+              },
             ),
             const SizedBox(height: 24),
             Text(
