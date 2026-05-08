@@ -1,29 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/login_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/audit/audit_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/dashboard/admin_dashboard_screen.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/dashboard/owner_dashboard_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/order/order_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment/payment_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/profile/profile_screen.dart';
 
-class BottomNavigation extends StatefulWidget {
+class BottomNavigation extends ConsumerStatefulWidget {
   const BottomNavigation({super.key});
 
   @override
-  State<BottomNavigation> createState() => _BottomNavigationState();
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _BottomNavigationState();
 }
 
-class _BottomNavigationState extends State<BottomNavigation> {
+class _BottomNavigationState extends ConsumerState<BottomNavigation> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    AdminDashboardScreen(),
-    AuditScreen(),
-    OrderScreen(),
-    PaymentScreen(),
-    ProfileScreen(),
-  ];
+  // Definisi item & halaman per role
+  List<Widget> _getPages(String role) {
+    if (role == 'owner') {
+      return const [OwnerDashboardScreen(), AuditScreen(), ProfileScreen()];
+    }
+
+    // admin — tanpa AuditScreen
+    return const [
+      AdminDashboardScreen(),
+      OrderScreen(),
+      PaymentScreen(),
+      ProfileScreen(),
+    ];
+  }
+
+  List<BottomNavigationBarItem> _getNavItems(String role) {
+    const dashboard = BottomNavigationBarItem(
+      icon: ImageIcon(AssetImage('assets/icons/dashboard_icon.png'), size: 18),
+      label: 'DASHBOARD',
+    );
+    const audit = BottomNavigationBarItem(
+      icon: ImageIcon(AssetImage('assets/icons/audit_icon.png'), size: 18),
+      label: 'AUDIT',
+    );
+    const order = BottomNavigationBarItem(
+      icon: ImageIcon(AssetImage('assets/icons/order_icon.png'), size: 18),
+      label: 'PESANAN',
+    );
+    const payment = BottomNavigationBarItem(
+      icon: ImageIcon(AssetImage('assets/icons/bayar_icon.png'), size: 18),
+      label: 'BAYAR',
+    );
+    const profile = BottomNavigationBarItem(
+      icon: ImageIcon(AssetImage('assets/icons/profile_icon.png'), size: 18),
+      label: 'PROFIL',
+    );
+
+    if (role == 'owner') {
+      return [dashboard, audit, order, payment, profile];
+    }
+
+    // admin — tanpa audit
+    return [dashboard, order, payment, profile];
+  }
 
   void _onTap(int index) {
     if (_currentIndex == index) return;
@@ -32,8 +73,19 @@ class _BottomNavigationState extends State<BottomNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(loginViewModelProvider);
+
+    // Fallback ke 'admin' jika role null
+    final role = state.user?.role ?? 'admin';
+
+    final pages = _getPages(role);
+    final navItems = _getNavItems(role);
+
+    // Pastikan index tidak out of range saat role berubah
+    final safeIndex = _currentIndex.clamp(0, pages.length - 1);
+
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      body: IndexedStack(index: safeIndex, children: pages),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: backgroundColor,
@@ -42,7 +94,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(18),
           child: BottomNavigationBar(
-            currentIndex: _currentIndex,
+            currentIndex: safeIndex,
             onTap: _onTap,
             type: BottomNavigationBarType.fixed,
             backgroundColor: whiteColor,
@@ -51,43 +103,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
             unselectedItemColor: semiSecondaryColor.withValues(alpha: 0.6),
             selectedLabelStyle: boldTextStyle.copyWith(fontSize: 10),
             unselectedLabelStyle: boldTextStyle.copyWith(fontSize: 10),
-            items: const [
-              BottomNavigationBarItem(
-                icon: ImageIcon(
-                  AssetImage('assets/icons/dashboard_icon.png'),
-                  size: 18,
-                ),
-                label: 'DASHBOARD',
-              ),
-              BottomNavigationBarItem(
-                icon: ImageIcon(
-                  AssetImage('assets/icons/audit_icon.png'),
-                  size: 18,
-                ),
-                label: 'AUDIT',
-              ),
-              BottomNavigationBarItem(
-                icon: ImageIcon(
-                  AssetImage('assets/icons/order_icon.png'),
-                  size: 18,
-                ),
-                label: 'PESANAN',
-              ),
-              BottomNavigationBarItem(
-                icon: ImageIcon(
-                  AssetImage('assets/icons/bayar_icon.png'),
-                  size: 18,
-                ),
-                label: 'BAYAR',
-              ),
-              BottomNavigationBarItem(
-                icon: ImageIcon(
-                  AssetImage('assets/icons/profile_icon.png'),
-                  size: 18,
-                ),
-                label: 'PROFIL',
-              ),
-            ],
+            items: navItems,
           ),
         ),
       ),
