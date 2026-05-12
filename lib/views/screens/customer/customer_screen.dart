@@ -162,6 +162,7 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
                   .deleteCustomer(customer.id);
 
               if (success && mounted) {
+                // ignore: use_build_context_synchronously
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: CustomInfoMessageWidget(

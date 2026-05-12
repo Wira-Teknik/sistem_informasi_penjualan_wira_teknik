@@ -20,7 +20,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
       if (next.isSuccess) {
         // Sudah ada sesi → langsung ke dashboard
-        Navigator.pushReplacementNamed(context, '/bottom_navigation');
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/bottom_navigation',
+          (route) => false,
+        );
       } else {
         // Belum login → ke halaman login
         Navigator.pushReplacementNamed(context, '/login');

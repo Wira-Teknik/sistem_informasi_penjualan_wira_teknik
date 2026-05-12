@@ -3,8 +3,13 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_cons
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 
 class FilterOrderSection extends StatefulWidget {
+  final int activeFilter;
   final void Function(int index) onFilterChanged;
-  const FilterOrderSection({super.key, required this.onFilterChanged});
+  const FilterOrderSection({
+    super.key,
+    required this.onFilterChanged,
+    required this.activeFilter,
+  });
 
   @override
   State<FilterOrderSection> createState() => _FilterOrderSectionState();
@@ -14,8 +19,8 @@ class _FilterOrderSectionState extends State<FilterOrderSection> {
   final List<Map<String, dynamic>> _listFilterOrder = [
     {"name": "All"},
     {"name": "Pending"},
-    {"name": "Shipped"},
     {"name": "Partial"},
+    {"name": "Shipped"},
     {"name": "Completed"},
   ];
 

@@ -10,6 +10,7 @@ class AppStrings {
   static const verifyCodeEndpoint = '/auth/forgot-password/verify';
   static const forgotPasswordResetEndpoint = '/auth/forgot-password/reset';
   static const customersEndpoint = '/customers';
+  static const ordersEndpoint = '/orders';
 
   // Secure storage keys
   static const tokenKey = 'token';
