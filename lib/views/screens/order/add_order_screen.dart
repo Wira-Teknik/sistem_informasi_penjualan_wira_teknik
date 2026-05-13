@@ -6,9 +6,9 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_const
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/validators.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_order_request_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_model.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/customer_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/order_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_customer_picker_sheet_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info_message_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
@@ -66,6 +66,14 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
     _itemPriceController.dispose();
     _itemQtyController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(orderViewModelProvider.notifier).fetchNextTransactionNo();
+    });
   }
 
   // Pilih tanggal
@@ -129,7 +137,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
     setState(() => _items.removeAt(index));
   }
 
-  Future<void> _onBuatPesanan() async {
+  Future<void> _onBuatPesanan(String transactionNumber) async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_items.isEmpty) {
@@ -138,6 +146,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
     }
 
     final request = AddOrderRequest(
+      transactionNumber: transactionNumber,
       poNo: _poNoController.text.trim(),
       orderDate: _orderDateController.text.trim(),
       recipientName: _nameController.text.trim(),
@@ -202,11 +211,16 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
                 ),
                 const SizedBox(height: 16),
 
+                Text("Nomor Transaksi", style: semiBoldTextStyle),
+                const SizedBox(height: 8),
+                _buildTrxNoField(state),
+                const SizedBox(height: 16),
+
                 CustomTextfield(
                   controller: _poNoController,
                   label: "Nomor PO",
-                  prefixIcon: Icons.content_paste_outlined,
-                  hintText: "PO-2026-001",
+                  prefixIcon: Icons.assignment_outlined,
+                  hintText: "Masukkan Nomor PO",
                   validator: (v) =>
                       v == null || v.isEmpty ? 'Nomor PO wajib diisi' : null,
                 ),
@@ -217,7 +231,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
                   controller: _orderDateController,
                   label: "Tanggal Pesan",
                   prefixIcon: Icons.calendar_today_outlined,
-                  hintText: "Pilih tanggal",
+                  hintText: "Pilih Tanggal",
                   readOnly: true,
                   onTap: _pickDate,
                   validator: (v) =>
@@ -234,14 +248,14 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
 
                 // Tombol pilih dari daftar customer
                 Text("Nama Konsumen", style: semiBoldTextStyle),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 GestureDetector(
                   onTap: () {
                     showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
-                      builder: (context) => _CustomerPickerSheet(
+                      builder: (context) => CustomCustomerPickerSheetWidget(
                         selectedCustomer: _selectedCustomer,
                         onSelected: (customer) {
                           _fillFromCustomer(
@@ -496,36 +510,11 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
 
                 // Error dari API
                 if (state.errorMessage != null)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            state.errorMessage!,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  CustomInfoMessageWidget(
+                    color: redColor,
+                    message: state.errorMessage!,
+                    icons: Icons.error_outline,
                   ),
-
                 const SizedBox(height: 14),
 
                 // Tombol submit
@@ -536,7 +525,8 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
                     : CustomFilledbutton(
                         title: "Buat Pesanan",
                         iconButton: Icons.save_rounded,
-                        onPressed: _onBuatPesanan,
+                        onPressed: () =>
+                            _onBuatPesanan(state.nextTransactionNo!),
                       ),
                 const SizedBox(height: 12),
 
@@ -557,6 +547,65 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
     );
   }
 
+  Widget _buildTrxNoField(OrderState state) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: semiSecondaryColor.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: semiSecondaryColor.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.tag_rounded, color: secondaryColor, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Loading saat fetch
+                state.isLoadingTrxNo
+                    ? SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: secondaryColor,
+                        ),
+                      )
+                    : Text(
+                        state.nextTransactionNo ?? '-',
+                        style: mediumTextStyle.copyWith(
+                          color: state.nextTransactionNo != null
+                              ? secondaryColor
+                              : semiSecondaryColor,
+                        ),
+                      ),
+              ],
+            ),
+          ),
+          // Tombol refresh nomor transaksi
+          state.nextTransactionNo != null
+              ? SizedBox()
+              : GestureDetector(
+                  onTap: state.isLoadingTrxNo
+                      ? null
+                      : () => ref
+                            .read(orderViewModelProvider.notifier)
+                            .fetchNextTransactionNo(),
+                  child: Icon(
+                    Icons.refresh_rounded,
+                    color: state.isLoadingTrxNo
+                        ? semiSecondaryColor.withValues(alpha: 0.3)
+                        : primaryColor,
+                    size: 20,
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(String iconPath, String title) {
     return Row(
       children: [
@@ -567,146 +616,6 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
           style: semiBoldTextStyle.copyWith(color: semiSecondaryColor),
         ),
       ],
-    );
-  }
-}
-
-class _CustomerPickerSheet extends ConsumerStatefulWidget {
-  final CustomerModel? selectedCustomer;
-  final ValueChanged<CustomerModel> onSelected;
-
-  const _CustomerPickerSheet({
-    required this.selectedCustomer,
-    required this.onSelected,
-  });
-
-  @override
-  ConsumerState<_CustomerPickerSheet> createState() =>
-      _CustomerPickerSheetState();
-}
-
-class _CustomerPickerSheetState extends ConsumerState<_CustomerPickerSheet> {
-  final _searchController = TextEditingController();
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(customerViewModelProvider);
-
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: semiSecondaryColor.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Text(
-                  "Pilih Konsumen",
-                  style: boldTextStyle.copyWith(fontSize: 16),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Icon(Icons.close_rounded, color: semiSecondaryColor),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Search
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: CustomTextfield(
-              controller: _searchController,
-              hintText: "Cari nama konsumen",
-              prefixIcon: Icons.search,
-              onChanged: (value) =>
-                  ref.read(customerViewModelProvider.notifier).search(value),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // List customer
-          Expanded(
-            child: state.isLoading
-                ? Center(child: CircularProgressIndicator(color: primaryColor))
-                : state.filteredCustomers.isEmpty
-                ? Center(
-                    child: Text(
-                      'Konsumen tidak ditemukan',
-                      style: regularTextStyle.copyWith(
-                        color: semiSecondaryColor,
-                      ),
-                    ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: state.filteredCustomers.length,
-                    separatorBuilder: (_, _) => Divider(
-                      color: semiSecondaryColor.withValues(alpha: 0.1),
-                    ),
-                    itemBuilder: (context, index) {
-                      final customer = state.filteredCustomers[index];
-                      final isSelected =
-                          widget.selectedCustomer?.id == customer.id;
-
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: CircleAvatar(
-                          backgroundColor: primaryColor.withValues(alpha: 0.1),
-                          child: Text(
-                            customer.customerName[0].toUpperCase(),
-                            style: boldTextStyle.copyWith(color: primaryColor),
-                          ),
-                        ),
-                        title: Text(
-                          customer.customerName,
-                          style: semiBoldTextStyle,
-                        ),
-                        subtitle: Text(
-                          customer.customerEmail,
-                          style: regularTextStyle.copyWith(
-                            fontSize: 12,
-                            color: semiSecondaryColor,
-                          ),
-                        ),
-                        trailing: isSelected
-                            ? Icon(
-                                Icons.check_circle_rounded,
-                                color: primaryColor,
-                              )
-                            : null,
-                        onTap: () => widget.onSelected(customer),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
     );
   }
 }

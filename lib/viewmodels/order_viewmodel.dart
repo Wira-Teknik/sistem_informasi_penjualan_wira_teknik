@@ -6,40 +6,51 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/order_r
 class OrderState {
   final bool isLoading;
   final bool isRefreshing;
+  final bool isSubmitting;
+  final bool isLoadingTrxNo;
   final List<OrderModel> orders;
   final List<OrderModel> filteredOrders;
   final String? errorMessage;
-  final bool isSubmitting;
+  final String? nextTransactionNo;
   final int activeFilter;
 
   const OrderState({
     this.isLoading = false,
     this.isRefreshing = false,
+    this.isSubmitting = false,
+    this.isLoadingTrxNo = false,
     this.orders = const [],
     this.filteredOrders = const [],
     this.errorMessage,
-    this.isSubmitting = false,
+    this.nextTransactionNo,
     this.activeFilter = 0,
   });
 
   OrderState copyWith({
     bool? isLoading,
     bool? isRefreshing,
+    bool? isSubmitting,
+    bool? isLoadingTrxNo,
     List<OrderModel>? orders,
     List<OrderModel>? filteredOrders,
     String? errorMessage,
+    String? nextTransactionNo,
     int? activeFilter,
-    bool? isSubmitting,
     bool clearError = false,
+    bool clearTrxNo = false,
   }) {
     return OrderState(
       isLoading: isLoading ?? this.isLoading,
       isRefreshing: isRefreshing ?? this.isRefreshing,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
+      isLoadingTrxNo: isLoadingTrxNo ?? this.isLoadingTrxNo,
       orders: orders ?? this.orders,
       filteredOrders: filteredOrders ?? this.filteredOrders,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      nextTransactionNo: clearTrxNo
+          ? null
+          : (nextTransactionNo ?? this.nextTransactionNo),
       activeFilter: activeFilter ?? this.activeFilter,
-      isSubmitting: isSubmitting ?? this.isSubmitting,
     );
   }
 }
@@ -99,7 +110,8 @@ class OrderViewModel extends StateNotifier<OrderState> {
     try {
       await _repository.addOrder(request);
       state = state.copyWith(isSubmitting: false);
-      await loadOrders(); // refresh list setelah tambah
+      clearNextTransactionNo();
+      await loadOrders();
       return true;
     } on Exception catch (e) {
       state = state.copyWith(
@@ -108,6 +120,28 @@ class OrderViewModel extends StateNotifier<OrderState> {
       );
       return false;
     }
+  }
+
+  // Ambil nomor transaksi berikutnya
+  Future<void> fetchNextTransactionNo() async {
+    state = state.copyWith(isLoadingTrxNo: true, clearError: true);
+    try {
+      final result = await _repository.getNextTransactionNo();
+      state = state.copyWith(
+        isLoadingTrxNo: false,
+        nextTransactionNo: result.transactionNo,
+      );
+    } on Exception catch (e) {
+      state = state.copyWith(
+        isLoadingTrxNo: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+    }
+  }
+
+  // Reset nomor transaksi setelah order dibuat
+  void clearNextTransactionNo() {
+    state = state.copyWith(clearTrxNo: true);
   }
 
   // Filter by status

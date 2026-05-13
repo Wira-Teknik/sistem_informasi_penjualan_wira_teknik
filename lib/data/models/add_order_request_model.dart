@@ -17,6 +17,7 @@ class AddOrderItemRequest {
 }
 
 class AddOrderRequest {
+  final String transactionNumber;
   final String poNo;
   final String orderDate;
   final String recipientName;
@@ -26,6 +27,7 @@ class AddOrderRequest {
   final List<AddOrderItemRequest> items;
 
   const AddOrderRequest({
+    required this.transactionNumber,
     required this.poNo,
     required this.orderDate,
     required this.recipientName,
@@ -36,12 +38,13 @@ class AddOrderRequest {
   });
 
   Map<String, dynamic> toJson() => {
+    'transaction_no': transactionNumber,
     'po_no': poNo,
     'order_date': orderDate,
     'recipient_name': recipientName,
-    'recipient_email': recipientEmail,
-    'recipient_phone': recipientPhone,
     'recipient_address': recipientAddress,
+    'recipient_phone': recipientPhone,
+    'recipient_email': recipientEmail,
     'items': items.map((e) => e.toJson()).toList(),
   };
 }

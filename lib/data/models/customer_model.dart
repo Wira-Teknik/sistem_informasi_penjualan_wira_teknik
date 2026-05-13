@@ -4,8 +4,8 @@ class CustomerModel {
   final String customerEmail;
   final String customerPhone;
   final String customerAddress;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   const CustomerModel({
     required this.id,
@@ -13,8 +13,8 @@ class CustomerModel {
     required this.customerEmail,
     required this.customerPhone,
     required this.customerAddress,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory CustomerModel.fromJson(Map<String, dynamic> json) => CustomerModel(
@@ -23,8 +23,12 @@ class CustomerModel {
     customerEmail: json['customer_email'],
     customerPhone: json['customer_phone'],
     customerAddress: json['customer_address'],
-    createdAt: DateTime.parse(json['created_at']),
-    updatedAt: DateTime.parse(json['updated_at']),
+    createdAt: json['created_at'] != null
+        ? DateTime.parse(json['created_at'])
+        : null,
+    updatedAt: json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'])
+        : null,
   );
 
   Map<String, dynamic> toJson() => {
@@ -33,7 +37,7 @@ class CustomerModel {
     'customer_email': customerEmail,
     'customer_phone': customerPhone,
     'customer_address': customerAddress,
-    'created_at': createdAt.toIso8601String(),
-    'updated_at': updatedAt.toIso8601String(),
+    'created_at': createdAt?.toIso8601String(),
+    'updated_at': updatedAt?.toIso8601String(),
   };
 }
