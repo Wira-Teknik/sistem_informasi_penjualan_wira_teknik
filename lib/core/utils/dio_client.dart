@@ -89,6 +89,7 @@ class _ErrorInterceptor extends Interceptor {
       401 => 'Email atau password salah',
       403 => 'Akses ditolak',
       404 => 'Data tidak ditemukan',
+      413 => 'Ukuran file gambar terlalu besar. Harap kompres gambar Anda.',
       422 => response?.data?['message'] ?? 'Data tidak valid',
       500 => 'Terjadi kesalahan pada server',
       _ => 'Terjadi kesalahan (${response?.statusCode})',

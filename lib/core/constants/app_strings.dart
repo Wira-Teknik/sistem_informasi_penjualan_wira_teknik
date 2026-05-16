@@ -3,6 +3,7 @@ class AppStrings {
 
   static const appName = 'Wira Teknik';
   static const baseUrl = 'https://wirateknik.backendify.my.id/api/v1';
+  static const imageUrl = 'https://wirateknik.backendify.my.id';
 
   // endpoint
   static const loginEndpoint = '/auth/login';
@@ -11,6 +12,8 @@ class AppStrings {
   static const forgotPasswordResetEndpoint = '/auth/forgot-password/reset';
   static const customersEndpoint = '/customers';
   static const ordersEndpoint = '/orders';
+  static const shipmentsEndpoint = '/shipments';
+  static const attachmentsEndpoint = '/attachments';
 
   // Secure storage keys
   static const tokenKey = 'token';

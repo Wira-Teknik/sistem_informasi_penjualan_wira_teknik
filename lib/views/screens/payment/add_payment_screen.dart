@@ -3,7 +3,6 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_cons
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_upload_proof_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/menunggu_pembayaran_widget.dart';
 
 class AddPaymentScreen extends StatelessWidget {
@@ -33,7 +32,7 @@ class AddPaymentScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // unggah bukti bayar
-            CustomUploadProofWidget(label: "Unggah Bukti Bayar", onTap: () {}),
+            // CustomUploadProofWidget(label: "Unggah Bukti Bayar", onTap: () {}),
             const SizedBox(height: 16),
 
             // menunggu pembayaran

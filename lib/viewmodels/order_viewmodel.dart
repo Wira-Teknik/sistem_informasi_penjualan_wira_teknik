@@ -8,6 +8,7 @@ class OrderState {
   final bool isRefreshing;
   final bool isSubmitting;
   final bool isLoadingTrxNo;
+  final bool isRefreshingDetail;
   final List<OrderModel> orders;
   final List<OrderModel> filteredOrders;
   final String? errorMessage;
@@ -19,6 +20,7 @@ class OrderState {
     this.isRefreshing = false,
     this.isSubmitting = false,
     this.isLoadingTrxNo = false,
+    this.isRefreshingDetail = false,
     this.orders = const [],
     this.filteredOrders = const [],
     this.errorMessage,
@@ -31,6 +33,7 @@ class OrderState {
     bool? isRefreshing,
     bool? isSubmitting,
     bool? isLoadingTrxNo,
+    bool? isRefreshingDetail,
     List<OrderModel>? orders,
     List<OrderModel>? filteredOrders,
     String? errorMessage,
@@ -44,6 +47,7 @@ class OrderState {
       isRefreshing: isRefreshing ?? this.isRefreshing,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isLoadingTrxNo: isLoadingTrxNo ?? this.isLoadingTrxNo,
+      isRefreshingDetail: isRefreshingDetail ?? this.isRefreshingDetail,
       orders: orders ?? this.orders,
       filteredOrders: filteredOrders ?? this.filteredOrders,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -192,7 +196,25 @@ class OrderViewModel extends StateNotifier<OrderState> {
     }
   }
 
-  // Ganti 1 order di list berdasarkan id
+  Future<OrderModel?> refreshDetail(String orderId) async {
+    state = state.copyWith(isRefreshingDetail: true, clearError: true);
+    try {
+      final updatedOrder = await _repository.getOrderDetail(orderId);
+
+      // Update juga di list agar konsisten
+      _updateOrderLocally(updatedOrder);
+
+      state = state.copyWith(isRefreshingDetail: false);
+      return updatedOrder;
+    } on Exception catch (e) {
+      state = state.copyWith(
+        isRefreshingDetail: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return null;
+    }
+  }
+
   void _updateOrderLocally(OrderModel updatedOrder) {
     final updatedList = state.orders.map((o) {
       return o.id == updatedOrder.id ? updatedOrder : o;

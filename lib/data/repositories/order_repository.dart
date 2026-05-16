@@ -12,6 +12,7 @@ abstract class OrderRepository {
   Future<OrderModel> updateOrder(String id, Map<String, dynamic> data);
   Future<void> addOrder(AddOrderRequest request);
   Future<NextTrxModel> getNextTransactionNo();
+  Future<OrderModel> getOrderDetail(String orderId);
 }
 
 class OrderRepositoryImpl implements OrderRepository {
@@ -60,6 +61,16 @@ class OrderRepositoryImpl implements OrderRepository {
       return NextTrxModel.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(e.error ?? 'Gagal mengambil nomor transaksi');
+    }
+  }
+
+  @override
+  Future<OrderModel> getOrderDetail(String orderId) async {
+    try {
+      final response = await _dio.get('/orders/$orderId');
+      return OrderModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      throw Exception(e.error ?? 'Gagal memuat detail pesanan');
     }
   }
 }

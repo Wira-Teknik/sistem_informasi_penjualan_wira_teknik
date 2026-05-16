@@ -1,57 +1,77 @@
 import "package:flutter/material.dart";
 import "package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart";
 import "package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart";
-
-// Model
-class ShippingItem {
-  final String name;
-  final int price;
-  bool isSelected;
-  int quantity;
-
-  ShippingItem({
-    required this.name,
-    required this.price,
-    this.isSelected = false,
-    this.quantity = 1,
-  });
-}
+import "package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart";
 
 class BarangDikirimWidget extends StatefulWidget {
-  const BarangDikirimWidget({super.key});
+  final List<OrderItemModel> items; // ← dari order.items
+  final ValueChanged<Map<String, int>> onItemsChanged; // ← {orderItemId: qty}
+
+  const BarangDikirimWidget({
+    super.key,
+    required this.items,
+    required this.onItemsChanged,
+  });
 
   @override
   State<BarangDikirimWidget> createState() => _BarangDikirimWidgetState();
 }
 
 class _BarangDikirimWidgetState extends State<BarangDikirimWidget> {
-  final List<ShippingItem> items = [
-    ShippingItem(
-      name: 'Industrial Bearing 6205',
-      price: 1100000,
-      isSelected: false,
-    ),
-    ShippingItem(
-      name: 'Conveyor Belt AAA 100398',
-      price: 550000,
-      isSelected: false,
-    ),
-    ShippingItem(
-      name: 'Chuck Mesin Bubut 320MM 3 Gigi',
-      price: 350000,
-      isSelected: false,
-    ),
-  ];
+  // Simpan status selected dan qty per item berdasarkan id
+  late Map<String, bool> _selected;
+  late Map<String, int> _quantities;
 
-  bool get isAllSelected => items.every((e) => e.isSelected);
+  @override
+  void initState() {
+    super.initState();
+    // Default semua dipilih, qty = remainingQty
+    _selected = {for (final item in widget.items) item.id: true};
+    _quantities = {for (final item in widget.items) item.id: item.remainingQty};
+    // Notify parent dengan data awal
+    WidgetsBinding.instance.addPostFrameCallback((_) => _notifyParent());
+  }
+
+  // Kirim data ke parent — hanya item yang dipilih
+  void _notifyParent() {
+    final result = <String, int>{};
+    for (final item in widget.items) {
+      if (_selected[item.id] == true) {
+        result[item.id] = _quantities[item.id] ?? 0;
+      }
+    }
+    widget.onItemsChanged(result);
+  }
+
+  bool get isAllSelected => _selected.values.every((v) => v == true);
 
   void _toggleAll() {
     setState(() {
       final selectAll = !isAllSelected;
-      for (var item in items) {
-        item.isSelected = selectAll;
+      for (final key in _selected.keys) {
+        _selected[key] = selectAll;
       }
     });
+    _notifyParent();
+  }
+
+  void _toggleItem(String id, bool value) {
+    setState(() => _selected[id] = value);
+    _notifyParent();
+  }
+
+  void _increment(String id, int maxQty) {
+    final current = _quantities[id] ?? 0;
+    if (current >= maxQty) return; // tidak boleh melebihi remainingQty
+    setState(() => _quantities[id] = current + 1);
+    _notifyParent();
+  }
+
+  void _decrement(String id) {
+    final current = _quantities[id] ?? 1;
+    if (current <= 1) return;
+    setState(() => _quantities[id] = current - 1);
+    _notifyParent();
   }
 
   @override
@@ -59,12 +79,11 @@ class _BarangDikirimWidgetState extends State<BarangDikirimWidget> {
     return Container(
       decoration: BoxDecoration(
         color: whiteColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: semiSecondaryColor.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: semiSecondaryColor.withValues(alpha: 0.5),
+            blurRadius: 0.5,
           ),
         ],
       ),
@@ -115,22 +134,37 @@ class _BarangDikirimWidgetState extends State<BarangDikirimWidget> {
 
           Divider(height: 1, color: semiSecondaryColor.withValues(alpha: 0.1)),
 
+          // Item kosong
+          if (widget.items.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Center(
+                child: Text(
+                  'Tidak ada barang',
+                  style: regularTextStyle.copyWith(color: semiSecondaryColor),
+                ),
+              ),
+            ),
+
           // Item list
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: items.length,
+            itemCount: widget.items.length,
             separatorBuilder: (_, _) =>
                 const Divider(height: 1, color: Color(0xFFEEEEEE)),
             itemBuilder: (context, index) {
+              final item = widget.items[index];
+              final isSelected = _selected[item.id] ?? false;
+              final qty = _quantities[item.id] ?? 1;
+
               return _ShippingItemTile(
-                item: items[index],
-                onChanged: (val) =>
-                    setState(() => items[index].isSelected = val),
-                onIncrement: () => setState(() => items[index].quantity++),
-                onDecrement: () => setState(() {
-                  if (items[index].quantity > 1) items[index].quantity--;
-                }),
+                item: item,
+                isSelected: isSelected,
+                quantity: qty,
+                onChanged: (val) => _toggleItem(item.id, val),
+                onIncrement: () => _increment(item.id, item.remainingQty),
+                onDecrement: () => _decrement(item.id),
               );
             },
           ),
@@ -140,22 +174,25 @@ class _BarangDikirimWidgetState extends State<BarangDikirimWidget> {
   }
 }
 
-// Tile per item
 class _ShippingItemTile extends StatelessWidget {
   const _ShippingItemTile({
     required this.item,
+    required this.isSelected,
+    required this.quantity,
     required this.onChanged,
     required this.onIncrement,
     required this.onDecrement,
   });
 
-  final ShippingItem item;
+  final OrderItemModel item;
+  final bool isSelected;
+  final int quantity;
   final ValueChanged<bool> onChanged;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
 
-  String _formatRupiah(int value) {
-    return 'Rp ${value.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
+  String _formatRupiah(double value) {
+    return 'Rp ${value.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
   }
 
   @override
@@ -167,37 +204,37 @@ class _ShippingItemTile extends StatelessWidget {
         children: [
           // Checkbox
           GestureDetector(
-            onTap: () => onChanged(!item.isSelected),
+            onTap: () => onChanged(!isSelected),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               width: 22,
               height: 22,
               decoration: BoxDecoration(
-                color: item.isSelected ? primaryColor : Colors.transparent,
+                color: isSelected ? primaryColor : Colors.transparent,
                 border: Border.all(
-                  color: item.isSelected
+                  color: isSelected
                       ? primaryColor
                       : semiSecondaryColor.withValues(alpha: 0.3),
                   width: 2,
                 ),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: item.isSelected
+              child: isSelected
                   ? const Icon(Icons.check, color: whiteColor, size: 14)
                   : null,
             ),
           ),
           const SizedBox(width: 12),
 
-          // Name, price, qty
+          // Info barang
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.name.toUpperCase(), style: semiBoldTextStyle),
+                Text(item.productName.toUpperCase(), style: semiBoldTextStyle),
                 const SizedBox(height: 4),
                 Text(
-                  _formatRupiah(item.price),
+                  _formatRupiah(item.unitPrice),
                   style: boldTextStyle.copyWith(
                     color: primaryColor,
                     fontSize: 12,
@@ -212,7 +249,7 @@ class _ShippingItemTile extends StatelessWidget {
                     _QtyButton(
                       icon: Icons.remove,
                       onTap: onDecrement,
-                      isActive: item.isSelected,
+                      isActive: isSelected,
                       color: whiteColor,
                       iconColor: secondaryColor,
                     ),
@@ -220,7 +257,7 @@ class _ShippingItemTile extends StatelessWidget {
                     SizedBox(
                       width: 24,
                       child: Text(
-                        '${item.quantity}',
+                        '$quantity',
                         style: boldTextStyle,
                         textAlign: TextAlign.center,
                       ),
@@ -229,7 +266,7 @@ class _ShippingItemTile extends StatelessWidget {
                     _QtyButton(
                       icon: Icons.add,
                       onTap: onIncrement,
-                      isActive: item.isSelected,
+                      isActive: isSelected,
                       color: primaryColor,
                       iconColor: whiteColor,
                     ),
@@ -244,7 +281,6 @@ class _ShippingItemTile extends StatelessWidget {
   }
 }
 
-// Tombol + dan -
 class _QtyButton extends StatelessWidget {
   const _QtyButton({
     required this.icon,
