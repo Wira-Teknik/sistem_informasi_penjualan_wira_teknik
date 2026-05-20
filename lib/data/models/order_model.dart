@@ -112,6 +112,9 @@ class OrderModel {
   final String recipientAddress;
   final List<OrderItemModel> items;
   final List<ShipmentModel> shipments;
+  final int totalAmountToPay;
+  final int remainingBalance;
+  final String paymentStatus;
   final String createdAt;
   final String updatedAt;
 
@@ -127,6 +130,9 @@ class OrderModel {
     required this.recipientAddress,
     required this.items,
     required this.shipments,
+    required this.totalAmountToPay,
+    required this.remainingBalance,
+    required this.paymentStatus,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -154,6 +160,9 @@ class OrderModel {
           (json['shipments'] as List? ?? []) // ← null safety
               .map((e) => ShipmentModel.fromJson(e))
               .toList(),
+      totalAmountToPay: json['total_amount_to_pay'] ?? 0,
+      remainingBalance: json['remaining_balance'] ?? 0,
+      paymentStatus: json['payment_status'] ?? '',
       createdAt: json['created_at'] ?? '',
       updatedAt: json['updated_at'] ?? '',
     );

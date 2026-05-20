@@ -138,7 +138,7 @@ class ItemPesananWidget extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      _formatRupiah(order.totalAmount),
+                      _formatRupiah(order.totalAmountToPay.toDouble()),
                       style: boldTextStyle.copyWith(
                         color: primaryColor,
                         fontSize: 16,
