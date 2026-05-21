@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_recap_detail_pendapatan_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/card_recap_item.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
@@ -8,20 +11,66 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_text
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/filter_recap_total_pendapatan_section.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/item_recap_widget.dart';
 
-class PaymentRecapDetailTotalPendapatanScreen extends StatefulWidget {
-  const PaymentRecapDetailTotalPendapatanScreen({super.key});
+class PaymentRecapDetailTotalPendapatanScreen extends ConsumerStatefulWidget {
+  // ← Parameter dari payment_recap_screen
+  final DateTime? startDate;
+  final DateTime? endDate;
+
+  const PaymentRecapDetailTotalPendapatanScreen({
+    super.key,
+    this.startDate,
+    this.endDate,
+  });
 
   @override
-  State<PaymentRecapDetailTotalPendapatanScreen> createState() =>
+  ConsumerState<PaymentRecapDetailTotalPendapatanScreen> createState() =>
       _PaymentRecapDetailTotalPendapatanScreenState();
 }
 
 class _PaymentRecapDetailTotalPendapatanScreenState
-    extends State<PaymentRecapDetailTotalPendapatanScreen> {
-  int _activeFilter = 0;
+    extends ConsumerState<PaymentRecapDetailTotalPendapatanScreen> {
+  final _searchController = TextEditingController();
+
+  // Key provider dengan parameter tanggal dari screen sebelumnya
+  late final _providerKey = (
+    startDate: widget.startDate,
+    endDate: widget.endDate,
+  );
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  String _formatRupiah(int value) {
+    return NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(value);
+  }
+
+  String _formatDateDisplay(DateTime? date) {
+    if (date == null) return '-';
+    return DateFormat('d MMM yyyy').format(date);
+  }
+
+  Color _paymentStatusColor(String status) {
+    return switch (status.toLowerCase()) {
+      'paid' => greenColor,
+      'partial' => orangeColor,
+      'unpaid' => redColor,
+      _ => semiSecondaryColor,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(
+      paymentRecapDetailPendapatanViewModelProvider(_providerKey),
+    );
+
     return Scaffold(
       appBar: CustomAppbar(
         title: 'Detail Total Pendapatan',
@@ -32,78 +81,152 @@ class _PaymentRecapDetailTotalPendapatanScreenState
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // periode waktu
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Periode Waktu',
-                      style: boldTextStyle.copyWith(
-                        fontSize: 10,
-                        color: semiSecondaryColor,
+      body: RefreshIndicator(
+        color: primaryColor,
+        onRefresh: () => ref
+            .read(
+              paymentRecapDetailPendapatanViewModelProvider(
+                _providerKey,
+              ).notifier,
+            )
+            .refresh(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Periode waktu
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Periode Waktu',
+                        style: boldTextStyle.copyWith(
+                          fontSize: 10,
+                          color: semiSecondaryColor,
+                        ),
                       ),
-                    ),
-                    Text('1 Jan 2026 - 31 Jan 2026', style: semiBoldTextStyle),
-                  ],
-                ),
-                Spacer(),
-                CustomBadge(label: "142 Orders", badgeColor: primaryColor),
-              ],
-            ),
-            const SizedBox(height: 14),
-
-            // card info
-            CardRecapItem(
-              iconSource: "assets/icons/total_pendapatan_icon.png",
-              title: "TOTAL PENDAPATAN",
-              value: "Rp 45.200.000",
-              valueColor: primaryColor,
-            ),
-            const SizedBox(height: 10),
-
-            // search bar
-            CustomTextfield(
-              hintText: "Cari berdasarkan konsumen",
-              prefixIcon: Icons.search,
-            ),
-            const SizedBox(height: 10),
-
-            // filter
-            FilterRecapTotalPendapatanSection(
-              onFilterChanged: (index) {
-                // update data di parent tanpa rebuild seluruh halaman
-                setState(() => _activeFilter = index);
-              },
-            ),
-            const SizedBox(height: 10),
-
-            // list item
-            Expanded(
-              child: ListView.builder(
-                itemCount: 10,
-                itemBuilder: (context, index) {
-                  return ItemRecapWidget(
-                    noPO: "P5537XJJ22",
-                    namaKonsumen: "PT.KIRANA PERMATA",
-                    tanggal: "Oct 23, 2026",
-                    jumlahTotal: "Rp 2.000.000",
-                    badgeName: "Unpaid",
-                    badgeColor: redColor,
-                  );
-                },
+                      Text(
+                        widget.startDate == null && widget.endDate == null
+                            ? 'Semua Waktu'
+                            : '${_formatDateDisplay(widget.startDate)} - ${_formatDateDisplay(widget.endDate)}',
+                        style: semiBoldTextStyle,
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  CustomBadge(
+                    label: "${state.data?.totalPesananCount ?? 0} Orders",
+                    badgeColor: primaryColor,
+                  ),
+                ],
               ),
+              const SizedBox(height: 14),
+
+              // Card info
+              CardRecapItem(
+                iconSource: "assets/icons/total_pendapatan_icon.png",
+                title: "TOTAL PENDAPATAN",
+                value: _formatRupiah(state.data?.totalPendapatan ?? 0),
+                valueColor: primaryColor,
+              ),
+              const SizedBox(height: 10),
+
+              // Search
+              CustomTextfield(
+                controller: _searchController,
+                hintText: "Cari berdasarkan konsumen",
+                prefixIcon: Icons.search,
+                onChanged: (value) => ref
+                    .read(
+                      paymentRecapDetailPendapatanViewModelProvider(
+                        _providerKey,
+                      ).notifier,
+                    )
+                    .search(value),
+              ),
+              const SizedBox(height: 10),
+
+              // Filter
+              FilterRecapTotalPendapatanSection(
+                activeFilter: state.activeFilter,
+                onFilterChanged: (index) => ref
+                    .read(
+                      paymentRecapDetailPendapatanViewModelProvider(
+                        _providerKey,
+                      ).notifier,
+                    )
+                    .setFilter(index),
+              ),
+              const SizedBox(height: 10),
+
+              // Content
+              Expanded(child: _buildContent(state)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(PaymentRecapDetailPendapatanState state) {
+    if (state.isLoading) {
+      return Center(child: CircularProgressIndicator(color: primaryColor));
+    }
+
+    if (state.errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 12),
+            Text(
+              state.errorMessage!,
+              style: regularTextStyle.copyWith(color: semiSecondaryColor),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => ref
+                  .read(
+                    paymentRecapDetailPendapatanViewModelProvider(
+                      _providerKey,
+                    ).notifier,
+                  )
+                  .loadDetail(),
+              child: const Text('Coba Lagi'),
             ),
           ],
         ),
-      ),
+      );
+    }
+
+    if (state.filteredItems.isEmpty) {
+      return Center(
+        child: Text(
+          'Tidak ada data pendapatan',
+          style: regularTextStyle.copyWith(color: semiSecondaryColor),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: state.filteredItems.length,
+      itemBuilder: (context, index) {
+        final item = state.filteredItems[index];
+        return ItemRecapWidget(
+          noPO: item.poNo,
+          namaKonsumen: item.customerName,
+          tanggal: item.date,
+          jumlahTotal: _formatRupiah(item.totalAmount),
+          badgeName: item.paymentStatus,
+          badgeColor: _paymentStatusColor(item.paymentStatus),
+        );
+      },
     );
   }
 }

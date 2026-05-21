@@ -2,50 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 
-class FilterRecapTotalPesananSection extends StatefulWidget {
-  final void Function(int index) onFilterChanged;
+class FilterRecapTotalPesananSection extends StatelessWidget {
+  final int activeFilter;
+  final void Function(int) onFilterChanged;
+
   const FilterRecapTotalPesananSection({
     super.key,
+    required this.activeFilter,
     required this.onFilterChanged,
   });
 
-  @override
-  State<FilterRecapTotalPesananSection> createState() =>
-      _FilterRecapTotalPesananSectionState();
-}
-
-class _FilterRecapTotalPesananSectionState
-    extends State<FilterRecapTotalPesananSection> {
-  final List<Map<String, dynamic>> _listFilter = [
-    {"name": "All"},
-    {"name": "Pending"},
-    {"name": "Shipped"},
-    {"name": "Completed"},
+  static const List<String> _filters = [
+    'All',
+    'Pending',
+    'Partial',
+    'Shipped',
+    'Completed',
   ];
-
-  int _selectedFilterIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: _listFilter.asMap().entries.map((entry) {
+        children: _filters.asMap().entries.map((entry) {
           final index = entry.key;
-          final e = entry.value;
-          final isSelected = _selectedFilterIndex == index;
+          final isSelected = activeFilter == index;
           return Padding(
             padding: const EdgeInsets.only(right: 4),
             child: FilterChip(
-              onSelected: (value) {
-                setState(() {
-                  _selectedFilterIndex = index;
-                });
-                widget.onFilterChanged(index);
-              },
+              onSelected: (_) => onFilterChanged(index),
               label: Text(
-                e["name"].toString(),
+                entry.value,
                 style: semiBoldTextStyle.copyWith(
                   fontSize: 12,
                   color: isSelected ? whiteColor : semiSecondaryColor,

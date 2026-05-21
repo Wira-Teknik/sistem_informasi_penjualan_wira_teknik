@@ -137,8 +137,10 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  const PaymentRecapDetailTotalPendapatanScreen(),
+              builder: (context) => PaymentRecapDetailTotalPendapatanScreen(
+                startDate: state.startDate, // ← dari state viewmodel
+                endDate: state.endDate, // ← dari state viewmodel
+              ),
             ),
           ),
           child: CardRecapItem(
@@ -157,8 +159,10 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  const PaymentRecapDetailTotalPesananScreen(),
+              builder: (context) => PaymentRecapDetailTotalPesananScreen(
+                startDate: state.startDate, // ← dari state viewmodel
+                endDate: state.endDate, // ← dari state viewmodel
+              ),
             ),
           ),
           child: CardRecapItem(
@@ -177,7 +181,10 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const PaymentRecapDetailTotalUnpaidScreen(),
+              builder: (context) => PaymentRecapDetailTotalUnpaidScreen(
+                startDate: state.startDate,
+                endDate: state.endDate,
+              ),
             ),
           ),
           child: CardRecapItem(
