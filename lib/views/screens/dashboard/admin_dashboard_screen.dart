@@ -1,154 +1,185 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/dashboard_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/dashboard_viewmodel.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/activity_item_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 
-class AdminDashboardScreen extends StatelessWidget {
+class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
 
+  String _formatRupiah(int value) {
+    return NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(value);
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(dashboardViewModelProvider);
+
     return Scaffold(
       appBar: CustomAppbar(title: "CV.Wira Teknik"),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(left: 16, right: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // welcome text
-            Text(
-              "Selamat datang Admin!",
-              style: mediumTextStyle.copyWith(color: semiSecondaryColor),
-            ),
-            Text("Dashboard", style: boldTextStyle.copyWith(fontSize: 24)),
-            const SizedBox(height: 20),
+      body: RefreshIndicator(
+        color: primaryColor,
+        onRefresh: () =>
+            ref.read(dashboardViewModelProvider.notifier).refresh(),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(left: 16, right: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Selamat datang Admin!",
+                style: mediumTextStyle.copyWith(color: semiSecondaryColor),
+              ),
+              Text("Dashboard", style: boldTextStyle.copyWith(fontSize: 24)),
+              const SizedBox(height: 20),
 
-            // card monitoring
-            Wrap(
-              direction: Axis.horizontal,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              alignment: WrapAlignment.center,
-              runSpacing: 16,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      flex: 1,
-                      child: ItemDashboardAdmin(
-                        iconSource: "assets/icons/total_pesanan_icon.png",
-                        title: "TOTAL PESANAN",
-                        count: "1284",
-                        subtitle: "Pesanan",
-                      ),
-                    ),
-                    const SizedBox(width: 18),
-                    Flexible(
-                      flex: 1,
-                      child: ItemDashboardAdmin(
-                        iconSource: "assets/icons/dikirim_icon.png",
-                        title: "DIKIRIM",
-                        count: "24",
-                        subtitle: "Dalam Perjalanan",
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      flex: 1,
-                      child: ItemDashboardAdmin(
-                        iconSource: "assets/icons/pesanan_selesai_icon.png",
-                        title: "PESANAN SELESAI",
-                        count: "1110",
-                        subtitle: "Selesai",
-                      ),
-                    ),
-                    const SizedBox(width: 18),
-                    Flexible(
-                      flex: 1,
-                      child: ItemDashboardAdmin(
-                        iconSource: "assets/icons/belum_bayar_icon.png",
-                        title: "BELUM BAYAR",
-                        count: "Rp 12.300.000",
-                        subtitle: "8 invoices",
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-
-            // recent activity
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Aktivitas Terakhir",
-                  style: boldTextStyle.copyWith(fontSize: 18),
-                ),
-                Text(
-                  "Lihat Semua",
-                  style: semiBoldTextStyle.copyWith(color: primaryColor),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ListView.builder(
-              padding: EdgeInsets.only(left: 1, top: 1, right: 1),
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 10,
-              itemBuilder: (context, index) {
-                return Container(
-                  width: double.infinity,
-                  height: 62,
-                  padding: const EdgeInsets.all(13),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: whiteColor,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: semiSecondaryColor.withValues(alpha: 0.3),
-                        blurRadius: 0.5,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Delivery Confirmed", style: boldTextStyle),
-                          Text(
-                            "Order P2397DJJ22 delivered",
-                            style: regularTextStyle.copyWith(
-                              color: semiSecondaryColor,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        "Oct 23, 2026",
-                        style: mediumTextStyle.copyWith(
-                          color: semiSecondaryColor,
-                          fontSize: 10,
+              // Loading
+              if (state.isLoading)
+                const SizedBox(
+                  height: 200,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              // Error
+              else if (state.errorMessage != null)
+                SizedBox(
+                  height: 200,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 40,
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(
+                          state.errorMessage!,
+                          style: regularTextStyle.copyWith(
+                            color: semiSecondaryColor,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed: () => ref
+                              .read(dashboardViewModelProvider.notifier)
+                              .loadDashboard(),
+                          child: const Text('Coba Lagi'),
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              },
+                )
+              // Data
+              else if (state.data != null)
+                _buildCards(state.data!),
+
+              const SizedBox(height: 30),
+
+              // Aktivitas Terakhir
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Aktivitas Terakhir",
+                    style: boldTextStyle.copyWith(fontSize: 18),
+                  ),
+                  Text(
+                    "Lihat Semua",
+                    style: semiBoldTextStyle.copyWith(color: primaryColor),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              if (state.isLoading)
+                const SizedBox()
+              else
+                ListView.builder(
+                  padding: const EdgeInsets.only(left: 1, top: 1, right: 1),
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: state.data?.aktivitasTerakhir.length ?? 0,
+                  itemBuilder: (context, index) {
+                    final activity = state.data!.aktivitasTerakhir[index];
+                    return ActivityItem(activity: activity);
+                  },
+                ),
+
+              const SizedBox(height: 60),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCards(DashboardModel data) {
+    return Wrap(
+      direction: Axis.horizontal,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      alignment: WrapAlignment.center,
+      runSpacing: 16,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: ItemDashboardAdmin(
+                iconSource: "assets/icons/total_pesanan_icon.png",
+                title: "TOTAL PESANAN",
+                count: "${data.totalPesananCount}",
+                subtitle: "Pesanan",
+              ),
+            ),
+            const SizedBox(width: 18),
+            Flexible(
+              child: ItemDashboardAdmin(
+                iconSource: "assets/icons/dikirim_icon.png",
+                title: "DIKIRIM",
+                count: "${data.dikirimCount}",
+                subtitle: "Dalam Perjalanan",
+              ),
             ),
           ],
         ),
-      ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: ItemDashboardAdmin(
+                iconSource: "assets/icons/pesanan_selesai_icon.png",
+                title: "PESANAN SELESAI",
+                count: "${data.pesananSelesaiCount}",
+                subtitle: "Selesai",
+              ),
+            ),
+            const SizedBox(width: 18),
+            Flexible(
+              child: ItemDashboardAdmin(
+                iconSource: "assets/icons/belum_bayar_icon.png",
+                title: "BELUM BAYAR",
+                count: NumberFormat.currency(
+                  locale: 'id_ID',
+                  symbol: 'Rp ',
+                  decimalDigits: 0,
+                ).format(data.belumBayarAmount),
+                subtitle: "${data.belumBayarCount} invoices",
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

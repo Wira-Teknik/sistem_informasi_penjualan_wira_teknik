@@ -2,49 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 
-class FilterHistoryTransactionSection extends StatefulWidget {
-  final void Function(int index) onFilterChanged;
+class FilterHistoryTransactionSection extends StatelessWidget {
+  final int activeFilter;
+  final void Function(int) onFilterChanged;
+
   const FilterHistoryTransactionSection({
     super.key,
+    required this.activeFilter,
     required this.onFilterChanged,
   });
 
-  @override
-  State<FilterHistoryTransactionSection> createState() =>
-      _FilterHistoryTransactionSectionState();
-}
-
-class _FilterHistoryTransactionSectionState
-    extends State<FilterHistoryTransactionSection> {
-  final List<Map<String, dynamic>> _listFilterOrder = [
+  static const List<Map<String, String>> _filters = [
     {"name": "All"},
-    {"name": "Paid"},
+    {"name": "Unpaid"},
     {"name": "Partial"},
+    {"name": "Paid"},
   ];
-
-  int _selectedFilterOrderIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: _listFilterOrder.asMap().entries.map((entry) {
+        children: _filters.asMap().entries.map((entry) {
           final index = entry.key;
-          final e = entry.value;
-          final isSelected = _selectedFilterOrderIndex == index;
+          final filter = entry.value;
+          final isSelected = activeFilter == index;
+
           return Padding(
             padding: const EdgeInsets.only(right: 4),
             child: FilterChip(
-              onSelected: (value) {
-                setState(() {
-                  _selectedFilterOrderIndex = index;
-                });
-                widget.onFilterChanged(index);
-              },
+              onSelected: (_) => onFilterChanged(index),
               label: Text(
-                e["name"].toString(),
+                filter["name"]!,
                 style: semiBoldTextStyle.copyWith(
                   fontSize: 12,
                   color: isSelected ? whiteColor : semiSecondaryColor,

@@ -14,6 +14,7 @@ class AppStrings {
   static const ordersEndpoint = '/orders';
   static const shipmentsEndpoint = '/shipments';
   static const attachmentsEndpoint = '/attachments';
+  static const dashboardEndpoint = '/dashboard';
 
   // Secure storage keys
   static const tokenKey = 'token';
