@@ -6,6 +6,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_const
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_viewmodel.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment/detail_payment_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
@@ -116,12 +117,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             formatRupiah: _formatRupiah,
             formatDate: _formatDate,
             onOrderTap: (order) {
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(
-              //     builder: (context) => DetailPaymentScreen(order: order),
-              //   ),
-              // );
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailPaymentScreen(
+                    billing: state.filteredBillings[index],
+                  ),
+                ),
+              );
             },
           );
         },

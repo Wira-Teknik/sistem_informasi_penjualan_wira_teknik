@@ -59,7 +59,7 @@ class _BottomNavigationState extends ConsumerState<BottomNavigation> {
     );
 
     if (role == 'owner') {
-      return [dashboard, audit, order, payment, profile];
+      return [dashboard, audit, profile];
     }
 
     // admin — tanpa audit

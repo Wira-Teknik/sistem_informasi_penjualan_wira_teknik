@@ -1,3 +1,36 @@
+class InvoiceModel {
+  final String id;
+  final String shipmentId;
+  final String invoiceNo;
+  final int totalAmount;
+  final int remainingBalance;
+  final String paymentStatus;
+  final String createdAt;
+  final String updatedAt;
+
+  const InvoiceModel({
+    required this.id,
+    required this.shipmentId,
+    required this.invoiceNo,
+    required this.totalAmount,
+    required this.remainingBalance,
+    required this.paymentStatus,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory InvoiceModel.fromJson(Map<String, dynamic> json) => InvoiceModel(
+    id: json['id'] ?? '',
+    shipmentId: json['shipment_id'] ?? '',
+    invoiceNo: json['invoice_no'] ?? '',
+    totalAmount: (json['total_amount'] as num? ?? 0).toInt(),
+    remainingBalance: (json['remaining_balance'] as num? ?? 0).toInt(),
+    paymentStatus: json['payment_status'] ?? '',
+    createdAt: json['created_at'] ?? '',
+    updatedAt: json['updated_at'] ?? '',
+  );
+}
+
 class ShipmentItemModel {
   final String id;
   final String shipmentId;
@@ -33,6 +66,7 @@ class ShipmentModel {
   final String? receivedDate;
   final String shippingStatus;
   final List<ShipmentItemModel> items;
+  final InvoiceModel? invoice;
   final String createdAt;
   final String updatedAt;
 
@@ -43,22 +77,50 @@ class ShipmentModel {
     this.receivedDate,
     required this.shippingStatus,
     required this.items,
+    this.invoice,
     required this.createdAt,
     required this.updatedAt,
   });
 
   factory ShipmentModel.fromJson(Map<String, dynamic> json) => ShipmentModel(
-    id: json['id'],
-    orderId: json['order_id'],
-    shippingDate: json['shipping_date'],
-    receivedDate: json['received_date'],
-    shippingStatus: json['shipping_status'],
-    items: (json['items'] as List)
+    id: json['id'] ?? '',
+    orderId: json['order_id'] ?? '',
+    shippingDate: json['shipping_date'] ?? '',
+    receivedDate: json['received_date'], // nullable
+    shippingStatus: json['shipping_status'] ?? '',
+    items: (json['items'] as List? ?? [])
         .map((e) => ShipmentItemModel.fromJson(e))
         .toList(),
-    createdAt: json['created_at'],
-    updatedAt: json['updated_at'],
+    invoice: json['invoice'] != null
+        ? InvoiceModel.fromJson(json['invoice'])
+        : null,
+    createdAt: json['created_at'] ?? '',
+    updatedAt: json['updated_at'] ?? '',
   );
+
+  ShipmentModel copyWith({
+    String? id,
+    String? orderId,
+    String? shippingDate,
+    String? receivedDate,
+    String? shippingStatus,
+    List<ShipmentItemModel>? items,
+    InvoiceModel? invoice,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return ShipmentModel(
+      id: id ?? this.id,
+      orderId: orderId ?? this.orderId,
+      shippingDate: shippingDate ?? this.shippingDate,
+      receivedDate: receivedDate ?? this.receivedDate,
+      shippingStatus: shippingStatus ?? this.shippingStatus,
+      items: items ?? this.items,
+      invoice: invoice ?? this.invoice,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 class OrderItemModel {

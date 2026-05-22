@@ -2,45 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 
-class FilterPaymentSection extends StatefulWidget {
-  final void Function(int index) onFilterChanged;
-  const FilterPaymentSection({super.key, required this.onFilterChanged});
+class FilterPaymentSection extends StatelessWidget {
+  final int activeFilter;
+  final void Function(int) onFilterChanged;
 
-  @override
-  State<FilterPaymentSection> createState() => _FilterPaymentSectionState();
-}
+  const FilterPaymentSection({
+    super.key,
+    required this.activeFilter,
+    required this.onFilterChanged,
+  });
 
-class _FilterPaymentSectionState extends State<FilterPaymentSection> {
-  final List<Map<String, dynamic>> _listFilterOrder = [
-    {"name": "All"},
-    {"name": "Paid"},
-    {"name": "Partial"},
-    {"name": "Unpaid"},
-  ];
-
-  int _selectedFilterOrderIndex = 0;
+  static const List<String> _filters = ['Semua', 'Unpaid', 'Partial', 'Paid'];
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: _listFilterOrder.asMap().entries.map((entry) {
+        children: _filters.asMap().entries.map((entry) {
           final index = entry.key;
-          final e = entry.value;
-          final isSelected = _selectedFilterOrderIndex == index;
+          final isSelected = activeFilter == index;
           return Padding(
             padding: const EdgeInsets.only(right: 4),
             child: FilterChip(
-              onSelected: (value) {
-                setState(() {
-                  _selectedFilterOrderIndex = index;
-                });
-                widget.onFilterChanged(index);
-              },
+              onSelected: (_) => onFilterChanged(index),
               label: Text(
-                e["name"].toString(),
+                entry.value,
                 style: semiBoldTextStyle.copyWith(
                   fontSize: 12,
                   color: isSelected ? whiteColor : semiSecondaryColor,

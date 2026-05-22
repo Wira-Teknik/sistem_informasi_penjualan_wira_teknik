@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_payment_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/payment_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/payment_repository.dart';
@@ -7,6 +8,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/payment
 class PaymentState {
   final bool isLoading;
   final bool isRefreshing;
+  final bool isSubmitting; // ← tambah
   final List<PaymentModel> payments;
   final List<PaymentModel> filteredPayments;
   final List<CustomerBillingModel> billings;
@@ -16,6 +18,7 @@ class PaymentState {
   const PaymentState({
     this.isLoading = false,
     this.isRefreshing = false,
+    this.isSubmitting = false, // ← tambah
     this.payments = const [],
     this.filteredPayments = const [],
     this.billings = const [],
@@ -26,6 +29,7 @@ class PaymentState {
   PaymentState copyWith({
     bool? isLoading,
     bool? isRefreshing,
+    bool? isSubmitting,
     List<PaymentModel>? payments,
     List<PaymentModel>? filteredPayments,
     List<CustomerBillingModel>? billings,
@@ -36,6 +40,7 @@ class PaymentState {
     return PaymentState(
       isLoading: isLoading ?? this.isLoading,
       isRefreshing: isRefreshing ?? this.isRefreshing,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
       payments: payments ?? this.payments,
       filteredPayments: filteredPayments ?? this.filteredPayments,
       billings: billings ?? this.billings,
@@ -151,6 +156,22 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
 
     // Gabung: exact → startsWith → contains
     return [...exact, ...startsWith, ...contains];
+  }
+
+  Future<bool> addPayment(AddPaymentRequest request) async {
+    state = state.copyWith(isSubmitting: true, clearError: true);
+    try {
+      await _repository.addPayment(request);
+      state = state.copyWith(isSubmitting: false);
+      await loadBillings();
+      return true;
+    } on Exception catch (e) {
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return false;
+    }
   }
 
   @override
