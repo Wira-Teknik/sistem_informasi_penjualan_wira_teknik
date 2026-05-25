@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_shipment_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/shipment_viewmodel.dart';
@@ -14,7 +15,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_uplo
 import 'package:intl/intl.dart';
 
 class AddDeliveryScreen extends ConsumerStatefulWidget {
-  final OrderModel order; // ← terima order dari detail screen
+  final OrderModel order;
 
   const AddDeliveryScreen({super.key, required this.order});
 
@@ -82,14 +83,14 @@ class _AddDeliveryScreenState extends ConsumerState<AddDeliveryScreen> {
     // Validasi file
     final fileError = _validateFiles();
     if (fileError != null) {
-      _showSnackbar(fileError, isError: true);
+      showSnackbar(context, fileError, isError: true);
       return;
     }
 
     // Validasi items
     final itemError = _validateItems();
     if (itemError != null) {
-      _showSnackbar(itemError, isError: true);
+      showSnackbar(context, itemError, isError: true);
       return;
     }
 
@@ -114,22 +115,9 @@ class _AddDeliveryScreenState extends ConsumerState<AddDeliveryScreen> {
         );
 
     if (success && mounted) {
-      _showSnackbar('Pengiriman berhasil dibuat', isError: false);
+      showSnackbar(context, 'Pengiriman berhasil dibuat', isError: false);
       Navigator.pop(context, true);
     }
-  }
-
-  void _showSnackbar(String message, {required bool isError}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: CustomInfoMessageWidget(
-          color: isError ? redColor : greenColor,
-          message: message,
-          icons: isError ? Icons.error_outline_outlined : Icons.check_rounded,
-        ),
-        backgroundColor: whiteColor,
-      ),
-    );
   }
 
   @override
@@ -203,34 +191,10 @@ class _AddDeliveryScreenState extends ConsumerState<AddDeliveryScreen> {
 
                 // Error dari API
                 if (state.errorMessage != null)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            state.errorMessage!,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  CustomInfoMessageWidget(
+                    color: redColor,
+                    message: state.errorMessage!,
+                    icons: Icons.error_outline,
                   ),
 
                 const SizedBox(height: 24),

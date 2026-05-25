@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment/detail_payment_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refresh_error_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
@@ -25,23 +26,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  String _formatRupiah(int value) {
-    return NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    ).format(value);
-  }
-
-  String _formatDate(String dateStr) {
-    try {
-      final date = DateTime.parse(dateStr);
-      return DateFormat('MMM dd, yyyy').format(date);
-    } catch (_) {
-      return dateStr;
-    }
   }
 
   @override
@@ -76,23 +60,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
     if (state.errorMessage != null) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 12),
-            Text(
-              state.errorMessage!,
-              style: regularTextStyle.copyWith(color: semiSecondaryColor),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () =>
-                  ref.read(paymentViewModelProvider.notifier).loadBillings(),
-              child: const Text('Coba Lagi'),
-            ),
-          ],
+        child: CustomRefreshErrorWidget(
+          message: state.errorMessage!,
+          onPressed: () =>
+              ref.read(paymentViewModelProvider.notifier).loadBillings(),
         ),
       );
     }
@@ -114,8 +85,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         itemBuilder: (context, index) {
           return _CustomerBillingCard(
             billing: state.filteredBillings[index],
-            formatRupiah: _formatRupiah,
-            formatDate: _formatDate,
+            formatRupiah: formatRupiah,
+            formatDate: formatDate,
             onOrderTap: (order) {
               Navigator.push(
                 context,

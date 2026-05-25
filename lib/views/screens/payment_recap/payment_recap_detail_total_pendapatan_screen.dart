@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_recap_detail_pendapatan_viewmodel.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/card_recap_item.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/item_card_recap.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
@@ -41,19 +41,6 @@ class _PaymentRecapDetailTotalPendapatanScreenState
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  String _formatRupiah(int value) {
-    return NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    ).format(value);
-  }
-
-  String _formatDateDisplay(DateTime? date) {
-    if (date == null) return '-';
-    return DateFormat('d MMM yyyy').format(date);
   }
 
   Color _paymentStatusColor(String status) {
@@ -112,7 +99,7 @@ class _PaymentRecapDetailTotalPendapatanScreenState
                       Text(
                         widget.startDate == null && widget.endDate == null
                             ? 'Semua Waktu'
-                            : '${_formatDateDisplay(widget.startDate)} - ${_formatDateDisplay(widget.endDate)}',
+                            : '${formatDateDisplay(widget.startDate)} - ${formatDateDisplay(widget.endDate)}',
                         style: semiBoldTextStyle,
                       ),
                     ],
@@ -127,10 +114,10 @@ class _PaymentRecapDetailTotalPendapatanScreenState
               const SizedBox(height: 14),
 
               // Card info
-              CardRecapItem(
+              ItemCardRecap(
                 iconSource: "assets/icons/total_pendapatan_icon.png",
                 title: "TOTAL PENDAPATAN",
-                value: _formatRupiah(state.data?.totalPendapatan ?? 0),
+                value: formatRupiah(state.data?.totalPendapatan ?? 0),
                 valueColor: primaryColor,
               ),
               const SizedBox(height: 10),
@@ -222,7 +209,7 @@ class _PaymentRecapDetailTotalPendapatanScreenState
           noPO: item.poNo,
           namaKonsumen: item.customerName,
           tanggal: item.date,
-          jumlahTotal: _formatRupiah(item.totalAmount),
+          jumlahTotal: formatRupiah(item.totalAmount),
           badgeName: item.paymentStatus,
           badgeColor: _paymentStatusColor(item.paymentStatus),
         );

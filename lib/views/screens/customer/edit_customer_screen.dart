@@ -10,7 +10,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 
 class EditCustomerScreen extends ConsumerStatefulWidget {
-  final CustomerModel customer; // ← terima data customer yang akan diedit
+  final CustomerModel customer;
 
   const EditCustomerScreen({super.key, required this.customer});
 
@@ -135,7 +135,7 @@ class _EditCustomerScreenState extends ConsumerState<EditCustomerScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        if (state.isSubmitting) return; // cegah back saat loading
+        if (state.isSubmitting) return;
 
         final canLeave = await _onBackPressed();
         if (canLeave && context.mounted) {
@@ -204,34 +204,10 @@ class _EditCustomerScreenState extends ConsumerState<EditCustomerScreen> {
 
                 // Error dari API
                 if (state.errorMessage != null)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            state.errorMessage!,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  CustomInfoMessageWidget(
+                    color: redColor,
+                    message: state.errorMessage!,
+                    icons: Icons.error_outline,
                   ),
 
                 const SizedBox(height: 12),

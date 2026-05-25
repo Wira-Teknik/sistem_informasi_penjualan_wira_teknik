@@ -119,7 +119,7 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
           backgroundColor: whiteColor,
         ),
       );
-      Navigator.pop(context, true); // ← return true agar detail tau ada update
+      Navigator.pop(context, true);
     }
   }
 
@@ -242,34 +242,10 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
 
                 // Error dari API
                 if (state.errorMessage != null)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            state.errorMessage!,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  CustomInfoMessageWidget(
+                    color: redColor,
+                    message: state.errorMessage!,
+                    icons: Icons.error_outline,
                   ),
 
                 const SizedBox(height: 24),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/validators.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_order_request_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_model.dart';
@@ -108,15 +109,15 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
     final qty = int.tryParse(_itemQtyController.text.trim());
 
     if (name.isEmpty) {
-      _showSnackbar('Nama barang wajib diisi', isError: true);
+      showSnackbar(context, 'Nama barang wajib diisi', isError: true);
       return;
     }
     if (price == null || price <= 0) {
-      _showSnackbar('Harga tidak valid', isError: true);
+      showSnackbar(context, 'Harga tidak valid', isError: true);
       return;
     }
     if (qty == null || qty <= 0) {
-      _showSnackbar('Jumlah tidak valid', isError: true);
+      showSnackbar(context, 'Jumlah tidak valid', isError: true);
       return;
     }
 
@@ -141,7 +142,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_items.isEmpty) {
-      _showSnackbar('Tambahkan minimal 1 barang', isError: true);
+      showSnackbar(context, 'Tambahkan minimal 1 barang', isError: true);
       return;
     }
 
@@ -161,30 +162,9 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
         .addOrder(request);
 
     if (success && mounted) {
-      _showSnackbar('Pesanan berhasil dibuat', isError: false);
+      showSnackbar(context, 'Pesanan berhasil dibuat', isError: false);
       Navigator.pop(context);
     }
-  }
-
-  void _showSnackbar(String message, {required bool isError}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: CustomInfoMessageWidget(
-          color: isError ? redColor : greenColor,
-          message: message,
-          icons: isError ? Icons.error_outline_outlined : Icons.check_rounded,
-        ),
-        backgroundColor: whiteColor,
-      ),
-    );
-  }
-
-  // Format angka rupiah saat mengetik
-  String _formatNumber(String value) {
-    final clean = value.replaceAll('.', '');
-    if (clean.isEmpty) return '';
-    final number = int.tryParse(clean) ?? 0;
-    return NumberFormat('#,###', 'id_ID').format(number);
   }
 
   @override
@@ -366,7 +346,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
                         prefixIcon: Icons.money_rounded,
                         keyboardType: TextInputType.number,
                         onChanged: (value) {
-                          final formatted = _formatNumber(value);
+                          final formatted = formatNumberRupiah(value);
                           if (formatted != value) {
                             _itemPriceController.value = TextEditingValue(
                               text: formatted,

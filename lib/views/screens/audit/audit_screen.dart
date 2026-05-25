@@ -6,6 +6,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/models/audit_model.d
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/audit_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refresh_error_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 
 class AuditScreen extends ConsumerStatefulWidget {
@@ -68,25 +69,9 @@ class _AuditScreenState extends ConsumerState<AuditScreen> {
 
     // Error
     if (state.errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 12),
-            Text(
-              state.errorMessage!,
-              style: regularTextStyle.copyWith(color: semiSecondaryColor),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () =>
-                  ref.read(auditViewModelProvider.notifier).loadAudit(),
-              child: const Text('Coba Lagi'),
-            ),
-          ],
-        ),
+      return CustomRefreshErrorWidget(
+        message: state.errorMessage!,
+        onPressed: () => ref.read(auditViewModelProvider.notifier).loadAudit(),
       );
     }
 

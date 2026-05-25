@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/dashboard_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/dashboard_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/activity_item_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refresh_error_widget.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
-
-  String _formatRupiah(int value) {
-    return NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    ).format(value);
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,6 +20,7 @@ class AdminDashboardScreen extends ConsumerWidget {
       appBar: CustomAppbar(title: "CV.Wira Teknik"),
       body: RefreshIndicator(
         color: primaryColor,
+        backgroundColor: whiteColor,
         onRefresh: () =>
             ref.read(dashboardViewModelProvider.notifier).refresh(),
         child: SingleChildScrollView(
@@ -50,35 +44,11 @@ class AdminDashboardScreen extends ConsumerWidget {
                 )
               // Error
               else if (state.errorMessage != null)
-                SizedBox(
-                  height: 200,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 40,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          state.errorMessage!,
-                          style: regularTextStyle.copyWith(
-                            color: semiSecondaryColor,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: () => ref
-                              .read(dashboardViewModelProvider.notifier)
-                              .loadDashboard(),
-                          child: const Text('Coba Lagi'),
-                        ),
-                      ],
-                    ),
-                  ),
+                CustomRefreshErrorWidget(
+                  message: state.errorMessage!,
+                  onPressed: () => ref
+                      .read(dashboardViewModelProvider.notifier)
+                      .loadDashboard(),
                 )
               // Data
               else if (state.data != null)
@@ -169,11 +139,7 @@ class AdminDashboardScreen extends ConsumerWidget {
               child: ItemDashboardAdmin(
                 iconSource: "assets/icons/belum_bayar_icon.png",
                 title: "BELUM BAYAR",
-                count: NumberFormat.currency(
-                  locale: 'id_ID',
-                  symbol: 'Rp ',
-                  decimalDigits: 0,
-                ).format(data.belumBayarAmount),
+                count: formatRupiah(data.belumBayarAmount),
                 subtitle: "${data.belumBayarCount} invoices",
               ),
             ),

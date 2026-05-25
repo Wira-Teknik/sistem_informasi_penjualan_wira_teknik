@@ -33,10 +33,13 @@ class ProfileScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // user info
-            Text(username!, style: boldTextStyle.copyWith(fontSize: 24)),
+            Text(
+              username ?? 'Username',
+              style: boldTextStyle.copyWith(fontSize: 24),
+            ),
             const SizedBox(height: 8),
             Text(
-              email!,
+              email ?? 'Email',
               style: mediumTextStyle.copyWith(color: semiSecondaryColor),
             ),
             const SizedBox(height: 8),

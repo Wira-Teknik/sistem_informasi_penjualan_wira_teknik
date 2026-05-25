@@ -1,17 +1,19 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_recap_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment_recap/payment_recap_detail_total_paid_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment_recap/payment_recap_detail_total_pendapatan_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment_recap/payment_recap_detail_total_pesanan_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment_recap/payment_recap_detail_total_unpaid_screen.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/card_recap_item.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refresh_error_widget.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/item_card_recap.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/payment_recap_date_range_picker_tile_widget.dart';
 
 class PaymentRecapScreen extends ConsumerStatefulWidget {
   const PaymentRecapScreen({super.key});
@@ -27,14 +29,6 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  String _formatRupiah(int value) {
-    return NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    ).format(value);
   }
 
   @override
@@ -53,7 +47,7 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
           child: Column(
             children: [
               // Filter date — update viewmodel saat tanggal dipilih
-              DateRangePickerTile(
+              PaymentRecapDateRangePickerTileWidget(
                 startDate: state.startDate,
                 endDate: state.endDate,
                 onDateRangeChanged: (start, end) {
@@ -83,35 +77,13 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
                 )
               // Error
               else if (state.errorMessage != null)
-                SizedBox(
-                  height: 200,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 40,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          state.errorMessage!,
-                          style: regularTextStyle.copyWith(
-                            color: semiSecondaryColor,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: () => ref
-                              .read(paymentRecapViewModelProvider.notifier)
-                              .loadRecap(),
-                          child: const Text('Coba Lagi'),
-                        ),
-                      ],
-                    ),
-                  ),
+                CustomRefreshErrorWidget(
+                  message: state.errorMessage!,
+                  onPressed: () {
+                    ref
+                        .read(paymentRecapViewModelProvider.notifier)
+                        .loadRecap();
+                  },
                 )
               // Data
               else if (state.data != null)
@@ -143,10 +115,10 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
               ),
             ),
           ),
-          child: CardRecapItem(
+          child: ItemCardRecap(
             iconSource: "assets/icons/total_pendapatan_icon.png",
             title: "TOTAL PENDAPATAN",
-            value: _formatRupiah(data.totalPendapatan),
+            value: formatRupiah(data.totalPendapatan),
             valueColor: primaryColor,
             isArrowIconVisible: true,
             arrowIconColor: primaryColor,
@@ -165,7 +137,7 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
               ),
             ),
           ),
-          child: CardRecapItem(
+          child: ItemCardRecap(
             iconSource: "assets/icons/rekap_pesanan_icon.png",
             title: "TOTAL PESANAN",
             value: "${data.totalPesananCount} Orders",
@@ -187,10 +159,10 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
               ),
             ),
           ),
-          child: CardRecapItem(
+          child: ItemCardRecap(
             iconSource: "assets/icons/total_unpaid_icon.png",
             title: "TOTAL UNPAID",
-            value: _formatRupiah(data.totalUnpaid),
+            value: formatRupiah(data.totalUnpaid),
             valueColor: redColor,
             isArrowIconVisible: true,
             arrowIconColor: redColor,
@@ -206,10 +178,10 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
               builder: (context) => const PaymentRecapDetailTotalPaidScreen(),
             ),
           ),
-          child: CardRecapItem(
+          child: ItemCardRecap(
             iconSource: "assets/icons/total_paid_icon.png",
             title: "TOTAL PAID",
-            value: _formatRupiah(data.totalPaid),
+            value: formatRupiah(data.totalPaid),
             valueColor: greenColor,
             isArrowIconVisible: true,
             arrowIconColor: greenColor,
@@ -314,7 +286,7 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
                   ),
                   const Spacer(),
                   Text(
-                    _formatRupiah(data.totalPaid),
+                    formatRupiah(data.totalPaid),
                     style: boldTextStyle.copyWith(
                       fontSize: 16,
                       color: greenColor,
@@ -342,7 +314,7 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
                   ),
                   const Spacer(),
                   Text(
-                    _formatRupiah(data.totalUnpaid),
+                    formatRupiah(data.totalUnpaid),
                     style: boldTextStyle.copyWith(
                       fontSize: 16,
                       color: redColor,
@@ -354,121 +326,6 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class DateRangePickerTile extends StatefulWidget {
-  final DateTime? startDate;
-  final DateTime? endDate;
-  final void Function(DateTime? start, DateTime? end) onDateRangeChanged;
-
-  const DateRangePickerTile({
-    super.key,
-    this.startDate,
-    this.endDate,
-    required this.onDateRangeChanged,
-  });
-
-  @override
-  State<DateRangePickerTile> createState() => _DateRangePickerTileState();
-}
-
-class _DateRangePickerTileState extends State<DateRangePickerTile> {
-  late DateTime? _startDate;
-  late DateTime? _endDate;
-
-  @override
-  void initState() {
-    super.initState();
-    _startDate = widget.startDate;
-    _endDate = widget.endDate;
-  }
-
-  String _formatDate(DateTime? date) {
-    if (date == null) return '';
-    return DateFormat('MMM d, yyyy').format(date);
-  }
-
-  Future<void> _pickDateRange() async {
-    final picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      initialDateRange: (_startDate != null && _endDate != null)
-          ? DateTimeRange(start: _startDate!, end: _endDate!)
-          : null,
-      builder: (context, child) => Theme(
-        data: Theme.of(
-          context,
-        ).copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
-        child: child!,
-      ),
-    );
-
-    if (picked != null) {
-      setState(() {
-        _startDate = picked.start;
-        _endDate = picked.end;
-      });
-      // Kirim ke viewmodel
-      widget.onDateRangeChanged(picked.start, picked.end);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final dateText = (_startDate != null && _endDate != null)
-        ? '${_formatDate(_startDate)} - ${_formatDate(_endDate)}'
-        : 'Pilih periode waktu';
-
-    return GestureDetector(
-      onTap: _pickDateRange,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: whiteColor,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: semiSecondaryColor.withValues(alpha: 0.5),
-              blurRadius: 0.5,
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.calendar_today_outlined,
-              color: primaryColor,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'PERIODE WAKTU',
-                    style: boldTextStyle.copyWith(
-                      fontSize: 10,
-                      color: semiSecondaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(dateText, style: semiBoldTextStyle),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: primaryColor,
-              size: 22,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

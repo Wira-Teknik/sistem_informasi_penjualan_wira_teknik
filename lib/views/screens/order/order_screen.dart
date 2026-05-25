@@ -5,6 +5,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/order_viewmode
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/order/add_order_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/order/detail_order_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refresh_error_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/filter_order_section.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/item_pesanan_widget.dart';
@@ -83,19 +84,10 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     // Error
     if (state.errorMessage != null) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 12),
-            Text(state.errorMessage!, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () =>
-                  ref.read(orderViewModelProvider.notifier).loadOrders(),
-              child: const Text('Coba Lagi'),
-            ),
-          ],
+        child: CustomRefreshErrorWidget(
+          message: state.errorMessage!,
+          onPressed: () =>
+              ref.read(orderViewModelProvider.notifier).loadOrders(),
         ),
       );
     }
@@ -114,6 +106,7 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     // List pesanan
     return RefreshIndicator(
       color: primaryColor,
+      backgroundColor: whiteColor,
       onRefresh: () => ref.read(orderViewModelProvider.notifier).refresh(),
       child: ListView.builder(
         itemCount: state.filteredOrders.length,

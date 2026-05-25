@@ -8,7 +8,9 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/customer/ad
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/customer/edit_customer_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info_message_widget.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refresh_error_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/item_card_customer_widget.dart';
 
 class CustomerScreen extends ConsumerStatefulWidget {
   const CustomerScreen({super.key});
@@ -76,25 +78,10 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
 
     // Error
     if (state.errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: redColor),
-            const SizedBox(height: 12),
-            Text(
-              state.errorMessage!,
-              style: regularTextStyle.copyWith(color: semiSecondaryColor),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () =>
-                  ref.read(customerViewModelProvider.notifier).loadCustomers(),
-              child: const Text('Coba Lagi'),
-            ),
-          ],
-        ),
+      return CustomRefreshErrorWidget(
+        message: state.errorMessage!,
+        onPressed: () =>
+            ref.read(customerViewModelProvider.notifier).loadCustomers(),
       );
     }
 
@@ -115,15 +102,14 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
       child: ListView.builder(
         itemCount: state.filteredCustomers.length,
         itemBuilder: (context, index) {
-          return _CustomerCard(
+          return ItemCardCustomerWidget(
             customer: state.filteredCustomers[index],
             onEdit: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => EditCustomerScreen(
-                    customer:
-                        state.filteredCustomers[index], // ← kirim data customer
+                    customer: state.filteredCustomers[index],
                   ),
                 ),
               );
@@ -179,144 +165,6 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
               'Hapus',
               style: semiBoldTextStyle.copyWith(color: redColor),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Card customer — dipisah agar tidak rebuild seluruh list
-class _CustomerCard extends StatelessWidget {
-  const _CustomerCard({
-    required this.customer,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  final CustomerModel customer;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: whiteColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: semiSecondaryColor.withValues(alpha: 0.5),
-            blurRadius: 0.5,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Nama customer
-          Row(
-            children: [
-              Image.asset(
-                "assets/icons/building_icon.png",
-                width: 20,
-                height: 18,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  customer.customerName.toUpperCase(),
-                  style: boldTextStyle.copyWith(
-                    fontSize: 16,
-                    color: primaryColor,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Email
-          Row(
-            children: [
-              Icon(Icons.mail_outline, size: 20, color: secondaryColor),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  customer.customerEmail,
-                  style: regularTextStyle,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Telepon
-          Row(
-            children: [
-              Icon(Icons.call_outlined, size: 20, color: secondaryColor),
-              const SizedBox(width: 8),
-              Text(customer.customerPhone, style: regularTextStyle),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          Divider(color: secondaryColor.withValues(alpha: 0.1)),
-          const SizedBox(height: 4),
-
-          // Alamat
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Image.asset(
-                "assets/icons/location_icon.png",
-                width: 20,
-                height: 18,
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  customer.customerAddress,
-                  style: regularTextStyle,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Tombol aksi
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              SizedBox(
-                height: 24,
-                width: 24,
-                child: IconButton(
-                  onPressed: onEdit,
-                  padding: EdgeInsets.zero,
-                  icon: Icon(
-                    Icons.edit_outlined,
-                    color: primaryColor,
-                    size: 24,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              SizedBox(
-                height: 24,
-                width: 24,
-                child: IconButton(
-                  onPressed: onDelete,
-                  padding: EdgeInsets.zero,
-                  icon: Icon(Icons.delete_outline, color: redColor, size: 24),
-                ),
-              ),
-            ],
           ),
         ],
       ),

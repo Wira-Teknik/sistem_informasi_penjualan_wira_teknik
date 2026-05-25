@@ -30,6 +30,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  @override
+  void initState() {
+    super.initState();
+
+    // Cek apakah dari redirect token expired
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map && args['expired'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Sesi Anda telah berakhir, silakan login kembali',
+            ),
+            backgroundColor: Colors.orange.shade700,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    });
+  }
+
   // action on login press
   Future<void> _onLoginPressed() async {
     if (!_formKey.currentState!.validate()) return;

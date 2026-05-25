@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment/add_payment_screen.dart';
@@ -65,28 +65,20 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
   String get _overallStatus {
     final orders = widget.billing.orders;
     if (orders.every((o) => o.paymentStatus.toLowerCase() == 'paid')) {
-      return 'Lunas';
+      return 'Paid';
     } else if (orders.every((o) => o.paymentStatus.toLowerCase() == 'unpaid')) {
-      return 'Belum Dibayar';
+      return 'Unpaid';
     }
-    return 'Sebagian Dibayar';
+    return 'Partial';
   }
 
   Color get _overallStatusColor {
     return switch (_overallStatus) {
-      'Lunas' => greenColor,
-      'Belum Dibayar' => redColor,
-      'Sebagian Dibayar' => orangeColor,
+      'Paid' => greenColor,
+      'Unpaid' => redColor,
+      'Partial' => orangeColor,
       _ => semiSecondaryColor,
     };
-  }
-
-  String _formatRupiah(int value) {
-    return NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    ).format(value);
   }
 
   Color _paymentStatusColor(String status) {
@@ -155,7 +147,7 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
                               ),
                             ),
                             Text(
-                              _formatRupiah(_totalRemainingBalance),
+                              formatRupiah(_totalRemainingBalance),
                               style: boldTextStyle.copyWith(fontSize: 20),
                             ),
                           ],
@@ -237,7 +229,7 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
                       itemBuilder: (context, index) {
                         return _OrderPaymentCard(
                           order: _filteredOrders[index],
-                          formatRupiah: _formatRupiah,
+                          formatRupiah: formatRupiah,
                           paymentStatusColor: _paymentStatusColor,
                           paymentStatusLabel: _paymentStatusLabel,
                         );

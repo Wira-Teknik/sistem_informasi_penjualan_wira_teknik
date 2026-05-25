@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_payment_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info_message_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_upload_proof_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/menunggu_pembayaran_widget.dart';
@@ -56,24 +58,20 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
     }
   }
 
-  // Format angka rupiah saat mengetik
-  String _formatNumber(String value) {
-    final clean = value.replaceAll('.', '');
-    if (clean.isEmpty) return '';
-    final number = int.tryParse(clean) ?? 0;
-    return NumberFormat('#,###', 'id_ID').format(number);
-  }
-
   Future<void> _onSimpanPembayaran() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedOrders.isEmpty) {
-      _showSnackbar('Pilih minimal 1 pesanan yang akan dibayar', isError: true);
+      showSnackbar(
+        context,
+        'Pilih minimal 1 pesanan yang akan dibayar',
+        isError: true,
+      );
       return;
     }
 
     if (_buktiKirim == null) {
-      _showSnackbar('Bukti bayar wajib diunggah', isError: true);
+      showSnackbar(context, 'Bukti bayar wajib diunggah', isError: true);
       return;
     }
 
@@ -99,18 +97,9 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
         .addPayment(request);
 
     if (success && mounted) {
-      _showSnackbar('Pembayaran berhasil disimpan', isError: false);
+      showSnackbar(context, 'Pembayaran berhasil disimpan', isError: false);
       Navigator.pop(context, true);
     }
-  }
-
-  void _showSnackbar(String message, {required bool isError}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? redColor : Colors.green,
-      ),
-    );
   }
 
   // Auto-fill total dari order yang dipilih
@@ -120,7 +109,7 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
     // Auto-fill total
     final total = orders.fold<int>(0, (sum, o) => sum + o.remainingBalance);
     if (total > 0) {
-      _totalController.text = _formatNumber(total.toString());
+      _totalController.text = formatNumberRupiah(total.toString());
     } else {
       _totalController.clear();
     }
@@ -162,7 +151,7 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                   validator: (v) =>
                       v == null || v.isEmpty ? 'Total wajib diisi' : null,
                   onChanged: (value) {
-                    final formatted = _formatNumber(value);
+                    final formatted = formatNumberRupiah(value);
                     if (formatted != value) {
                       _totalController.value = TextEditingValue(
                         text: formatted,
@@ -231,34 +220,10 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
 
                 // Error dari API
                 if (state.errorMessage != null)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            state.errorMessage!,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  CustomInfoMessageWidget(
+                    color: redColor,
+                    message: state.errorMessage!,
+                    icons: Icons.error_outline,
                   ),
 
                 const SizedBox(height: 24),
