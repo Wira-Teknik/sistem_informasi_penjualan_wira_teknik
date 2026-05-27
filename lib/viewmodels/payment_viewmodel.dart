@@ -174,6 +174,22 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
     }
   }
 
+  Future<bool> updatePayment(String id, double paymentTotal) async {
+    state = state.copyWith(isSubmitting: true, clearError: true);
+    try {
+      await _repository.updatePayment(id, paymentTotal);
+      state = state.copyWith(isSubmitting: false);
+      await loadBillings(); // refresh list setelah update
+      return true;
+    } on Exception catch (e) {
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return false;
+    }
+  }
+
   @override
   void dispose() {
     _debounceTimer?.cancel(); // ← bersihkan timer

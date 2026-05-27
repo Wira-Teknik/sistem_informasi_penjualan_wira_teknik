@@ -202,7 +202,10 @@ class _AddDeliveryScreenState extends ConsumerState<AddDeliveryScreen> {
                 // Tombol kirim
                 state.isSubmitting
                     ? Center(
-                        child: CircularProgressIndicator(color: primaryColor),
+                        child: LinearProgressIndicator(
+                          color: primaryColor,
+                          backgroundColor: primaryColor.withValues(alpha: 0.2),
+                        ),
                       )
                     : CustomFilledbutton(
                         title: "Kirim Barang",

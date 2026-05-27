@@ -1,3 +1,5 @@
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/payment_model.dart';
+
 class InvoiceModel {
   final String id;
   final String shipmentId;
@@ -174,6 +176,7 @@ class OrderModel {
   final String recipientAddress;
   final List<OrderItemModel> items;
   final List<ShipmentModel> shipments;
+  final List<PaymentModel> payments;
   final int totalAmountToPay;
   final int remainingBalance;
   final String paymentStatus;
@@ -192,6 +195,7 @@ class OrderModel {
     required this.recipientAddress,
     required this.items,
     required this.shipments,
+    required this.payments,
     required this.totalAmountToPay,
     required this.remainingBalance,
     required this.paymentStatus,
@@ -221,6 +225,10 @@ class OrderModel {
       shipments:
           (json['shipments'] as List? ?? []) // ← null safety
               .map((e) => ShipmentModel.fromJson(e))
+              .toList(),
+      payments:
+          (json['payments'] as List? ?? []) // ← null safety
+              .map((e) => PaymentModel.fromJson(e))
               .toList(),
       totalAmountToPay: json['total_amount_to_pay'] ?? 0,
       remainingBalance: json['remaining_balance'] ?? 0,

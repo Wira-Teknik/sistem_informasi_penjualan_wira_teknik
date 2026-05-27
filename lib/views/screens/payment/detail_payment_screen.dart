@@ -7,10 +7,10 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_bill
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment/add_payment_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/filter_payment_section.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/order_payment_card.dart';
 
 class DetailPaymentScreen extends ConsumerStatefulWidget {
   final CustomerBillingModel billing;
@@ -176,6 +176,7 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
                       if (success == true) {
                         // reload data dari viewmodel
                         if (mounted) {
+                          // ignore: use_build_context_synchronously
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Pembayaran berhasil dicatat'),
@@ -227,7 +228,7 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
                       padding: const EdgeInsets.only(top: 1, bottom: 24),
                       itemCount: _filteredOrders.length,
                       itemBuilder: (context, index) {
-                        return _OrderPaymentCard(
+                        return OrderPaymentCard(
                           order: _filteredOrders[index],
                           formatRupiah: formatRupiah,
                           paymentStatusColor: _paymentStatusColor,
@@ -238,254 +239,6 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _OrderPaymentCard extends StatelessWidget {
-  final OrderModel order;
-  final String Function(int) formatRupiah;
-  final Color Function(String) paymentStatusColor;
-  final String Function(String) paymentStatusLabel;
-
-  const _OrderPaymentCard({
-    required this.order,
-    required this.formatRupiah,
-    required this.paymentStatusColor,
-    required this.paymentStatusLabel,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 24),
-      decoration: BoxDecoration(
-        color: whiteColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: semiSecondaryColor.withValues(alpha: 0.5),
-            blurRadius: 0.5,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header — PO, nama, badge status
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      order.poNo,
-                      style: boldTextStyle.copyWith(fontSize: 16),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      order.recipientName,
-                      style: mediumTextStyle.copyWith(
-                        fontSize: 14,
-                        color: semiSecondaryColor,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              CustomBadge(
-                label: paymentStatusLabel(order.paymentStatus),
-                badgeColor: paymentStatusColor(order.paymentStatus),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // Tanggal & total
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "TANGGAL BELI",
-                    style: boldTextStyle.copyWith(
-                      fontSize: 10,
-                      color: semiSecondaryColor.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  Text(order.orderDate, style: mediumTextStyle),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    "JUMLAH TOTAL",
-                    style: boldTextStyle.copyWith(fontSize: 10),
-                  ),
-                  Text(
-                    formatRupiah(order.totalAmountToPay),
-                    style: boldTextStyle.copyWith(
-                      color: primaryColor,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          // Riwayat pembayaran dari shipments → invoices
-          if (order.shipments.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Divider(color: semiSecondaryColor.withValues(alpha: 0.1)),
-            const SizedBox(height: 10),
-
-            ...order.shipments
-                .where((s) => s.invoice != null)
-                .map(
-                  (shipment) => _InvoiceItem(
-                    shipment: shipment,
-                    formatRupiah: formatRupiah,
-                  ),
-                ),
-          ],
-
-          const SizedBox(height: 10),
-          Divider(color: secondaryColor),
-          const SizedBox(height: 10),
-
-          // Sisa pembayaran
-          Align(
-            alignment: Alignment.centerRight,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  "JUMLAH SISA",
-                  style: boldTextStyle.copyWith(fontSize: 10),
-                ),
-                Text(
-                  formatRupiah(order.remainingBalance),
-                  style: boldTextStyle.copyWith(
-                    color: primaryColor,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          // Tombol lihat bukti
-          SizedBox(
-            width: 149,
-            child: CustomFilledbutton(
-              title: "Lihat Bukti Pembayaran",
-              buttonTitleSize: 10,
-              buttonRadius: 100,
-              buttonColor: secondaryColor,
-              onPressed: () {
-                // navigasi ke bukti pembayaran
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InvoiceItem extends StatelessWidget {
-  final ShipmentModel shipment;
-  final String Function(int) formatRupiah;
-
-  const _InvoiceItem({required this.shipment, required this.formatRupiah});
-
-  @override
-  Widget build(BuildContext context) {
-    final invoice = shipment.invoice!;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 18,
-            height: 18,
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              onPressed: () {},
-              icon: ImageIcon(
-                const AssetImage("assets/icons/edit_pengiriman_icon.png"),
-                size: 18,
-                color: secondaryColor,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "INV",
-                  style: boldTextStyle.copyWith(
-                    fontSize: 10,
-                    color: semiSecondaryColor.withValues(alpha: 0.5),
-                  ),
-                ),
-                Text(
-                  invoice.invoiceNo,
-                  style: mediumTextStyle.copyWith(fontSize: 12),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  shipment.shippingDate,
-                  style: mediumTextStyle.copyWith(
-                    fontSize: 11,
-                    color: semiSecondaryColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(formatRupiah(invoice.totalAmount), style: boldTextStyle),
-              // Badge status invoice
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: invoice.paymentStatus.toLowerCase() == 'paid'
-                      ? greenColor.withValues(alpha: 0.1)
-                      : redColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  invoice.paymentStatus,
-                  style: boldTextStyle.copyWith(
-                    fontSize: 9,
-                    color: invoice.paymentStatus.toLowerCase() == 'paid'
-                        ? greenColor
-                        : redColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

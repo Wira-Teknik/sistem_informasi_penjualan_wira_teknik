@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
-import 'package:intl/intl.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 
 class MenungguPembayaranWidget extends StatefulWidget {
   final CustomerBillingModel billing;
-  final ValueChanged<List<OrderModel>>
-  onOrdersChanged; // ← kirim order terpilih
+  final ValueChanged<List<OrderModel>> onOrdersChanged;
 
   const MenungguPembayaranWidget({
     super.key,
@@ -26,7 +26,16 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
 
   // Hanya tampilkan order yang belum lunas
   List<OrderModel> get _unpaidOrders => widget.billing.orders
-      .where((o) => o.paymentStatus.toLowerCase() != 'paid')
+      .where(
+        (o) =>
+            o.paymentStatus.toLowerCase() != 'paid' &&
+            o.shipments.isNotEmpty &&
+            o.shipments.any(
+              (s) =>
+                  s.invoice != null &&
+                  s.invoice!.paymentStatus.toLowerCase() != 'paid',
+            ),
+      )
       .toList();
 
   @override
@@ -59,14 +68,6 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
   void _toggleItem(String id, bool value) {
     setState(() => _selected[id] = value);
     _notifyParent();
-  }
-
-  String _formatRupiah(int value) {
-    return NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    ).format(value);
   }
 
   Color _paymentStatusColor(String status) {
@@ -204,11 +205,13 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               order.transactionNo,
                               style: boldTextStyle.copyWith(fontSize: 13),
                             ),
+                            const SizedBox(height: 10),
                             Text(
                               order.orderDate,
                               style: regularTextStyle.copyWith(
@@ -223,32 +226,23 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
                       // Status & sisa tagihan
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _paymentStatusColor(
-                                order.paymentStatus,
-                              ).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              order.paymentStatus,
-                              style: boldTextStyle.copyWith(
-                                fontSize: 10,
-                                color: _paymentStatusColor(order.paymentStatus),
-                              ),
+                          Text(
+                            formatRupiah(order.remainingBalance),
+                            style: boldTextStyle.copyWith(
+                              fontSize: 14,
+                              color: primaryColor,
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            _formatRupiah(order.remainingBalance),
-                            style: boldTextStyle.copyWith(
-                              fontSize: 12,
-                              color: primaryColor,
+                          SizedBox(
+                            height: 28,
+                            child: CustomBadge(
+                              label: order.paymentStatus,
+                              badgeColor: _paymentStatusColor(
+                                order.paymentStatus,
+                              ),
                             ),
                           ),
                         ],

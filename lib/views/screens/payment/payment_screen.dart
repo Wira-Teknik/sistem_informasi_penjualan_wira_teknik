@@ -127,7 +127,6 @@ class _CustomerBillingCardState extends State<_CustomerBillingCard> {
 
   Color _paymentStatusColor(String status) {
     return switch (status.toLowerCase()) {
-      'paid' => greenColor,
       'partial' => orangeColor,
       'unpaid' => redColor,
       _ => semiSecondaryColor,
@@ -136,7 +135,6 @@ class _CustomerBillingCardState extends State<_CustomerBillingCard> {
 
   String _paymentStatusLabel(String status) {
     return switch (status.toLowerCase()) {
-      'paid' => 'Paid',
       'partial' => 'Partial',
       'unpaid' => 'Unpaid',
       _ => status,

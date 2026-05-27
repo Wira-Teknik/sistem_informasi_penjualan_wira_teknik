@@ -10,6 +10,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_bill
 abstract class PaymentRepository {
   Future<List<CustomerBillingModel>> getPayments({String? query});
   Future<void> addPayment(AddPaymentRequest request);
+  Future<void> updatePayment(String id, double paymentTotal);
 }
 
 class PaymentRepositoryImpl implements PaymentRepository {
@@ -20,7 +21,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
   Future<List<CustomerBillingModel>> getPayments({String? query}) async {
     try {
       final response = await _dio.get(
-        '/payments/search-customer',
+        '/payments',
         queryParameters: query != null && query.isNotEmpty
             ? {'q': query}
             : null,
@@ -74,6 +75,16 @@ class PaymentRepositoryImpl implements PaymentRepository {
       'jpg' || 'jpeg' => DioMediaType('image', 'jpeg'),
       _ => DioMediaType('application', 'octet-stream'),
     };
+  }
+
+  @override
+  Future<void> updatePayment(String id, double paymentTotal) async {
+    try {
+      await _dio.put('/payments/$id', data: {'payment_total': paymentTotal});
+    } on DioException catch (e) {
+      debugPrint('ERROR UPDATE PAYMENT: ${e.response?.data}');
+      throw Exception(e.error ?? 'Gagal mengubah pembayaran');
+    }
   }
 }
 
