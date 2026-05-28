@@ -5,6 +5,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_const
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/dashboard_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/dashboard_viewmodel.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/dashboard/all_activity_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/activity_item_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refresh_error_widget.dart';
@@ -64,9 +65,19 @@ class AdminDashboardScreen extends ConsumerWidget {
                     "Aktivitas Terakhir",
                     style: boldTextStyle.copyWith(fontSize: 18),
                   ),
-                  Text(
-                    "Lihat Semua",
-                    style: semiBoldTextStyle.copyWith(color: primaryColor),
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AllActivityScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "Lihat Semua",
+                      style: semiBoldTextStyle.copyWith(color: primaryColor),
+                    ),
                   ),
                 ],
               ),
