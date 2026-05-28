@@ -7,6 +7,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/payment
 class PaymentRecapDetailPendapatanState {
   final bool isLoading;
   final bool isRefreshing;
+  final bool isDownloading;
   final PaymentRecapDetailPendapatanModel? data;
   final List<PaymentRecapDetailItemModel> filteredItems;
   final String? errorMessage;
@@ -20,6 +21,7 @@ class PaymentRecapDetailPendapatanState {
   const PaymentRecapDetailPendapatanState({
     this.isLoading = false,
     this.isRefreshing = false,
+    this.isDownloading = false,
     this.data,
     this.filteredItems = const [],
     this.errorMessage,
@@ -40,6 +42,7 @@ class PaymentRecapDetailPendapatanState {
   PaymentRecapDetailPendapatanState copyWith({
     bool? isLoading,
     bool? isRefreshing,
+    bool? isDownloading,
     PaymentRecapDetailPendapatanModel? data,
     List<PaymentRecapDetailItemModel>? filteredItems,
     String? errorMessage,
@@ -52,6 +55,7 @@ class PaymentRecapDetailPendapatanState {
     return PaymentRecapDetailPendapatanState(
       isLoading: isLoading ?? this.isLoading,
       isRefreshing: isRefreshing ?? this.isRefreshing,
+      isDownloading: isDownloading ?? this.isDownloading,
       data: data ?? this.data,
       filteredItems: filteredItems ?? this.filteredItems,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -173,6 +177,30 @@ class PaymentRecapDetailPendapatanViewModel
     return items
         .where((i) => i.paymentStatus.toLowerCase() == status.toLowerCase())
         .toList();
+  }
+
+  Future<String?> exportToExcel() async {
+    state = state.copyWith(isDownloading: true, clearError: true);
+    try {
+      final filePath = await _repository.exportDetail(
+        endpoint: '/payment-recap/detail-pendapatan/export',
+        startDate: _formatDate(state.startDate),
+        endDate: _formatDate(state.endDate),
+        search: state.searchQuery.isNotEmpty ? state.searchQuery : null,
+        status:
+            PaymentRecapDetailPendapatanState._filterStatus[state.activeFilter],
+        fileName:
+            'detail_pendapatan_${DateTime.now().millisecondsSinceEpoch}.xlsx',
+      );
+      state = state.copyWith(isDownloading: false);
+      return filePath;
+    } on Exception catch (e) {
+      state = state.copyWith(
+        isDownloading: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return null;
+    }
   }
 
   @override

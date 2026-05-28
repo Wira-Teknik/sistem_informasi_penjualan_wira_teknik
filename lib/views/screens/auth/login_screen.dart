@@ -34,17 +34,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void initState() {
     super.initState();
 
-    // Cek apakah dari redirect token expired
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is Map && args['expired'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text(
-              'Sesi Anda telah berakhir, silakan login kembali',
+            content: CustomInfoMessageWidget(
+              color: orangeColor,
+              message: 'Sesi Anda telah berakhir, silakan login kembali',
+              icons: Icons.lock_clock_outlined,
             ),
-            backgroundColor: Colors.orange.shade700,
-            duration: const Duration(seconds: 3),
+            backgroundColor: whiteColor,
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }

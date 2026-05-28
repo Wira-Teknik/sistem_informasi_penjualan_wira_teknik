@@ -7,6 +7,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/payment
 class PaymentRecapDetailUnpaidState {
   final bool isLoading;
   final bool isRefreshing;
+  final bool isDownloading;
   final PaymentRecapDetailUnpaidModel? data;
   final List<PaymentRecapDetailItemModel> filteredItems;
   final String? errorMessage;
@@ -17,6 +18,7 @@ class PaymentRecapDetailUnpaidState {
   const PaymentRecapDetailUnpaidState({
     this.isLoading = false,
     this.isRefreshing = false,
+    this.isDownloading = false,
     this.data,
     this.filteredItems = const [],
     this.errorMessage,
@@ -28,6 +30,7 @@ class PaymentRecapDetailUnpaidState {
   PaymentRecapDetailUnpaidState copyWith({
     bool? isLoading,
     bool? isRefreshing,
+    bool? isDownloading,
     PaymentRecapDetailUnpaidModel? data,
     List<PaymentRecapDetailItemModel>? filteredItems,
     String? errorMessage,
@@ -39,6 +42,7 @@ class PaymentRecapDetailUnpaidState {
     return PaymentRecapDetailUnpaidState(
       isLoading: isLoading ?? this.isLoading,
       isRefreshing: isRefreshing ?? this.isRefreshing,
+      isDownloading: isDownloading ?? this.isDownloading,
       data: data ?? this.data,
       filteredItems: filteredItems ?? this.filteredItems,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -137,6 +141,27 @@ class PaymentRecapDetailUnpaidViewModel
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (_lastQuery == query) loadDetail();
     });
+  }
+
+  Future<String?> exportToExcel() async {
+    state = state.copyWith(isDownloading: true, clearError: true);
+    try {
+      final filePath = await _repository.exportDetail(
+        endpoint: '/payment-recap/detail-unpaid/export',
+        startDate: _formatDate(state.startDate),
+        endDate: _formatDate(state.endDate),
+        search: state.searchQuery.isNotEmpty ? state.searchQuery : null,
+        fileName: 'detail_unpaid_${DateTime.now().millisecondsSinceEpoch}.xlsx',
+      );
+      state = state.copyWith(isDownloading: false);
+      return filePath;
+    } on Exception catch (e) {
+      state = state.copyWith(
+        isDownloading: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return null;
+    }
   }
 
   @override
