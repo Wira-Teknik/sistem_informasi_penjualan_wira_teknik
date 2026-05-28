@@ -6,6 +6,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/history
 class HistoryTransactionState {
   final bool isLoading;
   final bool isRefreshing;
+  final bool isDownloading;
   final List<HistoryTransactionModel> transactions;
   final List<HistoryTransactionModel> filteredTransactions;
   final String? errorMessage;
@@ -14,6 +15,7 @@ class HistoryTransactionState {
   const HistoryTransactionState({
     this.isLoading = false,
     this.isRefreshing = false,
+    this.isDownloading = false,
     this.transactions = const [],
     this.filteredTransactions = const [],
     this.errorMessage,
@@ -23,6 +25,7 @@ class HistoryTransactionState {
   HistoryTransactionState copyWith({
     bool? isLoading,
     bool? isRefreshing,
+    bool? isDownloading,
     List<HistoryTransactionModel>? transactions,
     List<HistoryTransactionModel>? filteredTransactions,
     String? errorMessage,
@@ -32,6 +35,7 @@ class HistoryTransactionState {
     return HistoryTransactionState(
       isLoading: isLoading ?? this.isLoading,
       isRefreshing: isRefreshing ?? this.isRefreshing,
+      isDownloading: isDownloading ?? this.isDownloading,
       transactions: transactions ?? this.transactions,
       filteredTransactions: filteredTransactions ?? this.filteredTransactions,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -171,6 +175,25 @@ class HistoryTransactionViewModel
               t.customerName.toLowerCase().contains(keyword),
         )
         .toList();
+  }
+
+  Future<String?> exportToExcel() async {
+    state = state.copyWith(isDownloading: true, clearError: true);
+    try {
+      final filePath = await _repository.exportHistoryTransaction(
+        endpoint: '/payments/history/export',
+        fileName:
+            'history_transaction_${DateTime.now().millisecondsSinceEpoch}.xlsx',
+      );
+      state = state.copyWith(isDownloading: false);
+      return filePath;
+    } on Exception catch (e) {
+      state = state.copyWith(
+        isDownloading: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return null;
+    }
   }
 
   @override

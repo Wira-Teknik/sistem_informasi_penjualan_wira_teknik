@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/history_transaction_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info_message_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refresh_error_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/filter_history_transaction_section.dart';
@@ -37,6 +39,29 @@ class _HistoryTransactionScreenState
     };
   }
 
+  Future<void> _onDownload() async {
+    final filePath = await ref
+        .read(historyTransactionViewModelProvider.notifier)
+        .exportToExcel();
+
+    if (filePath != null && mounted) {
+      // Buka file
+      final result = await OpenFilex.open(filePath);
+      if (result.type != ResultType.done && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: CustomInfoMessageWidget(
+              color: orangeColor,
+              message: 'Tidak bisa membuka file: ${result.message}',
+              icons: Icons.warning_amber_rounded,
+            ),
+            backgroundColor: whiteColor,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(historyTransactionViewModelProvider);
@@ -46,8 +71,17 @@ class _HistoryTransactionScreenState
         title: "Laporan Riwayat Transaksi",
         actions: [
           IconButton(
-            icon: Icon(Icons.file_download_outlined, color: primaryColor),
-            onPressed: () {},
+            onPressed: state.isDownloading ? null : _onDownload,
+            icon: state.isDownloading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: primaryColor,
+                    ),
+                  )
+                : const Icon(Icons.file_download_outlined, color: primaryColor),
           ),
         ],
       ),
