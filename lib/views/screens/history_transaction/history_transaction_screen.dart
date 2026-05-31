@@ -144,6 +144,7 @@ class _HistoryTransactionScreenState
     // List
     return RefreshIndicator(
       color: primaryColor,
+      backgroundColor: whiteColor,
       onRefresh: () =>
           ref.read(historyTransactionViewModelProvider.notifier).refresh(),
       child: ListView.builder(

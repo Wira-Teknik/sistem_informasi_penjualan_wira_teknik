@@ -102,7 +102,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
 
   // Tambah barang ke list
   void _addItem() {
-    final name = _itemNameController.text.trim();
+    final name = _itemNameController.text.trim().toUpperCase();
     final price = double.tryParse(
       _itemPriceController.text.replaceAll('.', ''),
     );
@@ -148,7 +148,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
 
     final request = AddOrderRequest(
       transactionNumber: transactionNumber,
-      poNo: _poNoController.text.trim(),
+      poNo: _poNoController.text.trim().toUpperCase(),
       orderDate: _orderDateController.text.trim(),
       recipientName: _nameController.text.trim(),
       recipientEmail: _emailController.text.trim(),
@@ -200,6 +200,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
                   controller: _poNoController,
                   label: "Nomor PO",
                   prefixIcon: Icons.assignment_outlined,
+                  keyboardType: TextInputType.visiblePassword,
                   hintText: "Masukkan Nomor PO",
                   validator: (v) =>
                       v == null || v.isEmpty ? 'Nomor PO wajib diisi' : null,
@@ -269,13 +270,17 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
                           size: 24,
                         ),
                         const SizedBox(width: 14),
-                        Text(
-                          _selectedCustomer == null
-                              ? "Pilih dari daftar konsumen"
-                              : "Konsumen: ${_selectedCustomer!.customerName}",
-                          style: mediumTextStyle.copyWith(
-                            color: secondaryColor,
-                            fontSize: 14,
+                        SizedBox(
+                          width: 220,
+                          child: Text(
+                            _selectedCustomer == null
+                                ? "Pilih dari daftar konsumen"
+                                : "Konsumen: ${_selectedCustomer!.customerName}",
+                            overflow: TextOverflow.ellipsis,
+                            style: mediumTextStyle.copyWith(
+                              color: secondaryColor,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                         const Spacer(),
@@ -333,6 +338,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
                   controller: _itemNameController,
                   label: "Nama Barang",
                   hintText: "Bearing SKF 6205",
+                  keyboardType: TextInputType.visiblePassword,
                 ),
                 const SizedBox(height: 16),
 

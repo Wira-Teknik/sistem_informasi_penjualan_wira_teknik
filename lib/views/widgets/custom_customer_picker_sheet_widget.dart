@@ -4,6 +4,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_cons
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/customer_viewmodel.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/customer/add_customer_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 
 class CustomCustomerPickerSheetWidget extends ConsumerStatefulWidget {
@@ -85,7 +86,35 @@ class _CustomCustomerPickerSheetWidgetState
                   ref.read(customerViewModelProvider.notifier).search(value),
             ),
           ),
-          const SizedBox(height: 12),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddCustomerScreen(),
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
+                  overlayColor: primaryColor.withValues(alpha: 0.1),
+                ),
+                child: Text(
+                  "Belum ada pelanggan? Tambah baru",
+                  style: regularTextStyle.copyWith(
+                    fontSize: 12,
+                    color: primaryColor,
+                  ),
+                ),
+              ),
+            ),
+          ),
 
           // List customer
           Expanded(
@@ -142,6 +171,7 @@ class _CustomCustomerPickerSheetWidgetState
                     },
                   ),
           ),
+          SizedBox(height: 60),
         ],
       ),
     );

@@ -39,6 +39,7 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
       appBar: CustomAppbar(title: "Rekapitulasi Pembayaran"),
       body: RefreshIndicator(
         color: primaryColor,
+        backgroundColor: whiteColor,
         onRefresh: () =>
             ref.read(paymentRecapViewModelProvider.notifier).refresh(),
         child: SingleChildScrollView(
@@ -110,8 +111,8 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => PaymentRecapDetailTotalPendapatanScreen(
-                startDate: state.startDate, // ← dari state viewmodel
-                endDate: state.endDate, // ← dari state viewmodel
+                startDate: state.startDate,
+                endDate: state.endDate,
               ),
             ),
           ),
@@ -132,8 +133,8 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => PaymentRecapDetailTotalPesananScreen(
-                startDate: state.startDate, // ← dari state viewmodel
-                endDate: state.endDate, // ← dari state viewmodel
+                startDate: state.startDate,
+                endDate: state.endDate,
               ),
             ),
           ),

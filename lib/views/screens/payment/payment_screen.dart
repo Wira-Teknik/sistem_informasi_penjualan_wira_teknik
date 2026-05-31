@@ -29,6 +29,15 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   @override
+  initState() {
+    super.initState();
+    // Load data awal
+    Future.microtask(
+      () => ref.read(paymentViewModelProvider.notifier).loadBillings(),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final state = ref.watch(paymentViewModelProvider);
 
@@ -127,6 +136,7 @@ class _CustomerBillingCardState extends State<_CustomerBillingCard> {
 
   Color _paymentStatusColor(String status) {
     return switch (status.toLowerCase()) {
+      'paid' => greenColor,
       'partial' => orangeColor,
       'unpaid' => redColor,
       _ => semiSecondaryColor,
@@ -135,6 +145,7 @@ class _CustomerBillingCardState extends State<_CustomerBillingCard> {
 
   String _paymentStatusLabel(String status) {
     return switch (status.toLowerCase()) {
+      'paid' => 'Paid',
       'partial' => 'Partial',
       'unpaid' => 'Unpaid',
       _ => status,
@@ -271,32 +282,29 @@ class _OrderItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // No transaksi & tanggal
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    order.transactionNo,
-                    style: boldTextStyle.copyWith(fontSize: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  order.transactionNo,
+                  style: boldTextStyle.copyWith(fontSize: 12),
+                ),
+                Text(
+                  formatDate(order.orderDate),
+                  style: mediumTextStyle.copyWith(
+                    fontSize: 10,
+                    color: semiSecondaryColor,
                   ),
-                  Text(
-                    formatDate(order.orderDate),
-                    style: mediumTextStyle.copyWith(
-                      fontSize: 10,
-                      color: semiSecondaryColor,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-
+            const SizedBox(width: 30),
             // Status pembayaran
             CustomBadge(
               label: paymentStatusLabel(order.paymentStatus),
               badgeColor: paymentStatusColor(order.paymentStatus),
             ),
-            const SizedBox(width: 16),
-
+            const Spacer(),
             // Total
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,

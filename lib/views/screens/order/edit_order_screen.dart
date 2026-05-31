@@ -100,7 +100,7 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
     final success = await ref
         .read(orderViewModelProvider.notifier)
         .updateOrder(widget.order.id, {
-          'po_no': _poNoController.text.trim(),
+          'po_no': _poNoController.text.trim().toUpperCase(),
           'order_date': _orderDateController.text.trim(),
           'recipient_name': _nameController.text.trim(),
           'recipient_phone': _phoneController.text.trim(),

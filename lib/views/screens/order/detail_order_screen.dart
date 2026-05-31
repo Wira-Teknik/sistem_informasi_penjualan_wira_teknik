@@ -159,20 +159,40 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
               ],
 
               // Tombol buat pengiriman
-              if (_order.orderStatus.toUpperCase() != "COMPLETED")
+              if (_order.orderStatus.toUpperCase() != "COMPLETED" &&
+                  _order.orderStatus.toUpperCase() != "SHIPPED")
                 CustomFilledbutton(
                   title: "Buat Pengiriman",
                   iconButton: Icons.edit_note_rounded,
                   buttonRadius: 12,
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    final result = await Navigator.push<bool>(
                       context,
                       MaterialPageRoute(
                         builder: (context) => AddDeliveryScreen(order: _order),
                       ),
                     );
+
+                    // Jika berhasil tambah pengiriman → refresh detail
+                    if (result == true && mounted) {
+                      final updated = await ref
+                          .read(orderViewModelProvider.notifier)
+                          .refreshDetail(_order.id);
+
+                      if (updated != null && mounted) {
+                        setState(() => _order = updated);
+                      }
+                    }
                   },
+                )
+              else ...[
+                const SizedBox(height: 12),
+                Text(
+                  "Status ${_order.orderStatus} seluruh barang sudah dikirim, tidak dapat membuat pengiriman.",
+                  textAlign: TextAlign.center,
+                  style: regularTextStyle.copyWith(color: semiSecondaryColor),
                 ),
+              ],
               const SizedBox(height: 60),
             ],
           ),

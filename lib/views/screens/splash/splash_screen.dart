@@ -43,9 +43,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           children: [
             CustomTitleLogoWidget(),
             const SizedBox(height: 40),
-            LinearProgressIndicator(
-              color: primaryColor,
-              backgroundColor: primaryColor.withValues(alpha: 0.3),
+            SizedBox(
+              width: 140,
+              child: LinearProgressIndicator(
+                color: primaryColor,
+                backgroundColor: primaryColor.withValues(alpha: 0.3),
+              ),
             ),
           ],
         ),

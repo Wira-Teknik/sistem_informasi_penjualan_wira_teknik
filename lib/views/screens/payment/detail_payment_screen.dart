@@ -8,6 +8,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.d
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment/add_payment_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info_message_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/filter_payment_section.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/order_payment_card.dart';
@@ -179,7 +180,12 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
                           // ignore: use_build_context_synchronously
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Pembayaran berhasil dicatat'),
+                              content: CustomInfoMessageWidget(
+                                color: greenColor,
+                                message: 'Pembayaran berhasil dicatat',
+                                icons: Icons.check_rounded,
+                              ),
+                              backgroundColor: whiteColor,
                             ),
                           );
                           setState(() {}); // trigger rebuild untuk refresh
