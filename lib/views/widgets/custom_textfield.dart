@@ -11,6 +11,7 @@ class CustomTextfield extends StatefulWidget {
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
   final TextInputType? keyboardType;
+  final TextCapitalization? textCapitalization;
   final bool readOnly;
   final VoidCallback? onTap;
 
@@ -24,6 +25,7 @@ class CustomTextfield extends StatefulWidget {
     this.validator,
     this.onChanged,
     this.keyboardType,
+    this.textCapitalization,
     this.readOnly = false,
     this.onTap,
   });
@@ -56,6 +58,8 @@ class _CustomTextfieldState extends State<CustomTextfield> {
         const SizedBox(height: 8),
         TextFormField(
           onTap: widget.onTap,
+          textCapitalization:
+              widget.textCapitalization ?? TextCapitalization.none,
           controller: widget.controller,
           obscureText: _isObscured,
           readOnly: widget.readOnly,

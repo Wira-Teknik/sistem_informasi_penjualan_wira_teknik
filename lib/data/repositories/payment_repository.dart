@@ -9,6 +9,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_bill
 
 abstract class PaymentRepository {
   Future<List<CustomerBillingModel>> getPayments({String? query});
+  Future<List<CustomerBillingModel>> searchCustomerBilling({String? query});
   Future<void> addPayment(AddPaymentRequest request);
   Future<void> updatePayment(String id, double paymentTotal);
 }
@@ -26,6 +27,26 @@ class PaymentRepositoryImpl implements PaymentRepository {
             ? {'q': query}
             : null,
       );
+      final result = CustomerBillingResponseModel.fromJson(response.data);
+      return result.data;
+    } on DioException catch (e) {
+      debugPrint('ERROR BILLING: ${e.response?.data}');
+      throw Exception(e.error ?? 'Gagal memuat data tagihan');
+    }
+  }
+
+  @override
+  Future<List<CustomerBillingModel>> searchCustomerBilling({
+    String? query,
+  }) async {
+    try {
+      // Jika ada query → /payments/customer/{name}
+      // Jika kosong   → /payments/customer (get all)
+      final endpoint = query != null && query.isNotEmpty
+          ? '/payments/customer/${Uri.encodeComponent(query)}'
+          : '/payments';
+
+      final response = await _dio.get(endpoint);
       final result = CustomerBillingResponseModel.fromJson(response.data);
       return result.data;
     } on DioException catch (e) {

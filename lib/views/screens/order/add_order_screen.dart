@@ -201,6 +201,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
                   label: "Nomor PO",
                   prefixIcon: Icons.assignment_outlined,
                   keyboardType: TextInputType.visiblePassword,
+                  textCapitalization: TextCapitalization.characters,
                   hintText: "Masukkan Nomor PO",
                   validator: (v) =>
                       v == null || v.isEmpty ? 'Nomor PO wajib diisi' : null,
@@ -338,6 +339,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
                   controller: _itemNameController,
                   label: "Nama Barang",
                   hintText: "Bearing SKF 6205",
+                  textCapitalization: TextCapitalization.characters,
                   keyboardType: TextInputType.visiblePassword,
                 ),
                 const SizedBox(height: 16),

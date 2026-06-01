@@ -332,33 +332,47 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
       padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(),
       child: Column(
-        children: _order.items.asMap().entries.map((entry) {
-          final item = entry.value;
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: _order.items.asMap().entries.map((entry) {
+              final item = entry.value;
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(item.productName, style: semiBoldTextStyle),
-              const SizedBox(height: 4),
-              Row(
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    formatRupiah(item.unitPrice.toInt()),
-                    style: boldTextStyle.copyWith(color: primaryColor),
+                  Text(item.productName, style: semiBoldTextStyle),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        formatRupiah(item.unitPrice.toInt()),
+                        style: boldTextStyle.copyWith(color: primaryColor),
+                      ),
+                      const Spacer(),
+                      Text(
+                        "x ${item.orderQty}",
+                        style: boldTextStyle.copyWith(color: primaryColor),
+                      ),
+                    ],
                   ),
-                  const Spacer(),
-                  Text(
-                    "x ${item.orderQty}",
-                    style: boldTextStyle.copyWith(color: primaryColor),
-                  ),
-                ],
-              ),
 
-              const SizedBox(height: 4),
-              Divider(color: semiSecondaryColor.withValues(alpha: 0.2)),
-            ],
-          );
-        }).toList(),
+                  const SizedBox(height: 4),
+                  Divider(color: semiSecondaryColor.withValues(alpha: 0.2)),
+                ],
+              );
+            }).toList(),
+          ),
+          Text(
+            _order.items.any((item) => item.remainingQty > 0)
+                ? "sisa ${_order.items.where((item) => item.remainingQty > 0).first.remainingQty} barang belum dikirim"
+                : "semua barang sudah dikirim",
+            style: regularTextStyle.copyWith(
+              fontSize: 12,
+              color: semiSecondaryColor,
+            ),
+          ),
+        ],
       ),
     );
   }

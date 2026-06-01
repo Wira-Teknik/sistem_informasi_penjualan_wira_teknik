@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/audit_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/dashboard_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/login_viewmodel.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/order_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/audit/audit_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/dashboard/admin_dashboard_screen.dart';
@@ -78,7 +76,6 @@ class _BottomNavigationState extends ConsumerState<BottomNavigation> {
           ref.read(dashboardViewModelProvider.notifier).refresh();
           break;
         case 1:
-          ref.read(auditViewModelProvider.notifier).refresh();
           break;
         case 2: // Profile — tidak perlu reload
           break;
@@ -89,7 +86,6 @@ class _BottomNavigationState extends ConsumerState<BottomNavigation> {
           ref.read(dashboardViewModelProvider.notifier).refresh();
           break;
         case 1:
-          ref.read(orderViewModelProvider.notifier).refresh();
           break;
         case 2:
           ref.read(paymentViewModelProvider.notifier).refresh();

@@ -8,7 +8,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/payment
 class PaymentState {
   final bool isLoading;
   final bool isRefreshing;
-  final bool isSubmitting; // ← tambah
+  final bool isSubmitting;
   final List<PaymentModel> payments;
   final List<PaymentModel> filteredPayments;
   final List<CustomerBillingModel> billings;
@@ -18,7 +18,7 @@ class PaymentState {
   const PaymentState({
     this.isLoading = false,
     this.isRefreshing = false,
-    this.isSubmitting = false, // ← tambah
+    this.isSubmitting = false,
     this.payments = const [],
     this.filteredPayments = const [],
     this.billings = const [],
@@ -53,8 +53,16 @@ class PaymentState {
 class PaymentViewModel extends StateNotifier<PaymentState> {
   final PaymentRepository _repository;
 
-  Timer? _debounceTimer; // ← debounce agar tidak hit API tiap keystroke
-  String _lastQuery = ''; // ← cegah hasil lama menimpa hasil baru
+  Timer? _debounceTimer;
+  String _lastQuery = '';
+  DateTime? _lastFetchTime;
+
+  // Cache 5 menit
+  static const _cacheDuration = Duration(minutes: 5);
+
+  bool get _isCacheExpired =>
+      _lastFetchTime == null ||
+      DateTime.now().difference(_lastFetchTime!) > _cacheDuration;
 
   PaymentViewModel(this._repository) : super(const PaymentState()) {
     loadBillings();
@@ -63,11 +71,14 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
   Future<void> loadBillings() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final billings = await _repository.getPayments();
+      final billings = await _repository.searchCustomerBilling();
+      _lastFetchTime = DateTime.now();
+
       state = state.copyWith(
         isLoading: false,
         billings: billings,
-        filteredBillings: billings,
+        // ← Simpan urutan asli dari API, tidak diurutkan ulang
+        filteredBillings: List.from(billings),
       );
     } on Exception catch (e) {
       state = state.copyWith(
@@ -82,14 +93,22 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
     }
   }
 
+  Future<void> loadIfNeeded() async {
+    if (!_isCacheExpired) return;
+    await loadBillings();
+  }
+
   Future<void> refresh() async {
+    _lastFetchTime = null; // ← reset cache
     state = state.copyWith(isRefreshing: true, clearError: true);
     try {
-      final billings = await _repository.getPayments();
+      final billings = await _repository.searchCustomerBilling();
+      _lastFetchTime = DateTime.now();
+
       state = state.copyWith(
         isRefreshing: false,
         billings: billings,
-        filteredBillings: billings,
+        filteredBillings: List.from(billings), // ← urutan asli API
       );
     } on Exception catch (e) {
       state = state.copyWith(
@@ -102,17 +121,21 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
   void search(String query) {
     _lastQuery = query;
 
+    // Query kosong → tampil semua dengan urutan asli
     if (query.isEmpty) {
       _debounceTimer?.cancel();
-      state = state.copyWith(filteredBillings: state.billings);
+      state = state.copyWith(
+        filteredBillings: List.from(state.billings), // ← urutan asli
+      );
       return;
     }
 
-    // Filter + urutkan berdasarkan relevansi
+    // Filter + sort relevansi hanya saat ada query
     state = state.copyWith(
       filteredBillings: _filterAndSort(state.billings, query),
     );
 
+    // Debounce hit API
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       _searchFromApi(query);
@@ -121,23 +144,23 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
 
   Future<void> _searchFromApi(String query) async {
     try {
-      final billings = await _repository.getPayments(query: query);
-      if (_lastQuery != query) return;
+      final billings = await _repository.searchCustomerBilling(query: query);
+      if (_lastQuery != query) return; // ← abaikan hasil lama
 
-      // Urutkan hasil API juga berdasarkan relevansi
       state = state.copyWith(filteredBillings: _filterAndSort(billings, query));
     } on Exception catch (_) {
       // Tetap tampil hasil filter lokal
     }
   }
 
-  // Urutkan: exact match → starts with → contains
   List<CustomerBillingModel> _filterAndSort(
     List<CustomerBillingModel> billings,
     String query,
   ) {
-    final keyword = query.toLowerCase().trim();
+    // Query kosong → return urutan asli tanpa diubah
+    if (query.trim().isEmpty) return List.from(billings);
 
+    final keyword = query.toLowerCase().trim();
     final exact = <CustomerBillingModel>[];
     final startsWith = <CustomerBillingModel>[];
     final contains = <CustomerBillingModel>[];
@@ -146,15 +169,15 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
       final name = billing.customerName.toLowerCase();
 
       if (name == keyword) {
-        exact.add(billing); // ← nama persis sama
+        exact.add(billing);
       } else if (name.startsWith(keyword)) {
-        startsWith.add(billing); // ← nama diawali keyword
+        startsWith.add(billing);
       } else if (name.contains(keyword)) {
-        contains.add(billing); // ← nama mengandung keyword
+        contains.add(billing);
       }
+      // Tidak match sama sekali → tidak ditambahkan
     }
 
-    // Gabung: exact → startsWith → contains
     return [...exact, ...startsWith, ...contains];
   }
 
@@ -162,6 +185,7 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
       await _repository.addPayment(request);
+      _lastFetchTime = null; // ← reset cache setelah CRUD
       state = state.copyWith(isSubmitting: false);
       await loadBillings();
       return true;
@@ -178,8 +202,9 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
       await _repository.updatePayment(id, paymentTotal);
+      _lastFetchTime = null; // ← reset cache setelah CRUD
       state = state.copyWith(isSubmitting: false);
-      await loadBillings(); // refresh list setelah update
+      await loadBillings();
       return true;
     } on Exception catch (e) {
       state = state.copyWith(
@@ -192,7 +217,7 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel(); // ← bersihkan timer
+    _debounceTimer?.cancel();
     super.dispose();
   }
 }

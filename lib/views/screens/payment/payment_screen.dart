@@ -29,15 +29,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   @override
-  initState() {
-    super.initState();
-    // Load data awal
-    Future.microtask(
-      () => ref.read(paymentViewModelProvider.notifier).loadBillings(),
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
     final state = ref.watch(paymentViewModelProvider);
 
@@ -47,12 +38,39 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         padding: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
         child: Column(
           children: [
-            CustomTextfield(
-              controller: _searchController,
-              hintText: "Cari nama perusahaan",
-              prefixIcon: Icons.search,
-              onChanged: (value) =>
-                  ref.read(paymentViewModelProvider.notifier).search(value),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomTextfield(
+                    controller: _searchController,
+                    hintText: "Cari nama perusahaan",
+                    textCapitalization: TextCapitalization.characters,
+                    prefixIcon: Icons.search,
+                    onChanged: (value) => ref
+                        .read(paymentViewModelProvider.notifier)
+                        .search(value),
+                  ),
+                ),
+                if (_searchController.text.isNotEmpty) ...[
+                  const SizedBox(width: 4),
+                  SizedBox(
+                    height: 28,
+                    width: 28,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: primaryColor,
+                        size: 28,
+                      ),
+                      onPressed: () {
+                        _searchController.clear();
+                        ref.read(paymentViewModelProvider.notifier).search('');
+                      },
+                    ),
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 22),
             Expanded(child: _buildContent(state)),
@@ -317,7 +335,9 @@ class _OrderItem extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  formatRupiah(order.remainingBalance),
+                  order.remainingBalance != 0
+                      ? formatRupiah(order.remainingBalance)
+                      : "Lunas",
                   style: boldTextStyle.copyWith(
                     fontSize: 12,
                     color: primaryColor,
