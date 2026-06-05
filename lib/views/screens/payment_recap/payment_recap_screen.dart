@@ -13,7 +13,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refr
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/item_card_recap.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/payment_recap_date_range_picker_tile_widget.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/filter_date_range_picker_tile_widget.dart';
 
 class PaymentRecapScreen extends ConsumerStatefulWidget {
   const PaymentRecapScreen({super.key});
@@ -48,7 +48,7 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
           child: Column(
             children: [
               // Filter date — update viewmodel saat tanggal dipilih
-              PaymentRecapDateRangePickerTileWidget(
+              FilterDateRangePickerTileWidget(
                 startDate: state.startDate,
                 endDate: state.endDate,
                 onDateRangeChanged: (start, end) {

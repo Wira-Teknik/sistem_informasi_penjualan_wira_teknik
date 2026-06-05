@@ -11,6 +11,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refr
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/filter_history_transaction_section.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/item_history_widget.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/reusable_advance_filter.dart';
 
 class HistoryTransactionScreen extends ConsumerStatefulWidget {
   const HistoryTransactionScreen({super.key});
@@ -68,8 +69,74 @@ class _HistoryTransactionScreenState
 
     return Scaffold(
       appBar: CustomAppbar(
-        title: "Laporan Riwayat Transaksi",
+        title: "Riwayat Transaksi",
         actions: [
+          SizedBox(
+            width: 28,
+            height: 28,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                final searchController = TextEditingController(
+                  text: state.searchQuery,
+                );
+
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) {
+                    return ReusableAdvanceFilter(
+                      title: 'Filter Riwayat',
+                      initialStartDate: state.startDate,
+                      initialEndDate: state.endDate,
+                      initialStatus: state.status,
+                      hasActiveFilter: state.hasActiveFilter,
+
+                      customTextFields: [
+                        CustomTextfield(
+                          controller: searchController,
+                          label: 'Pencarian',
+                          hintText: 'Cari PO, No Trx, atau Nama...',
+                          prefixIcon: Icons.search_rounded,
+                        ),
+                      ],
+
+                      statusOptions: const [
+                        {'label': 'All', 'value': ''},
+                        {'label': 'Unpaid', 'value': 'unpaid'},
+                        {'label': 'Partial', 'value': 'partial'},
+                        {'label': 'Paid', 'value': 'paid'},
+                      ],
+
+                      onApply: (start, end, status) async {
+                        await ref
+                            .read(historyTransactionViewModelProvider.notifier)
+                            .applyAdvanceFilter(
+                              startDate: start,
+                              endDate: end,
+                              status: status,
+                              search: searchController.text.trim(),
+                            );
+                      },
+
+                      onReset: () async {
+                        await ref
+                            .read(historyTransactionViewModelProvider.notifier)
+                            .resetFilter();
+                      },
+                    );
+                  },
+                );
+              },
+              icon: Icon(
+                Icons.filter_list_rounded,
+                size: 28,
+                color: state.hasActiveFilter ? primaryColor : secondaryColor,
+              ),
+            ),
+          ),
+
           IconButton(
             onPressed: state.isDownloading ? null : _onDownload,
             icon: state.isDownloading
@@ -83,10 +150,11 @@ class _HistoryTransactionScreenState
                   )
                 : const Icon(Icons.file_download_outlined, color: primaryColor),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
+        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 2, top: 2),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -101,10 +169,13 @@ class _HistoryTransactionScreenState
             const SizedBox(height: 12),
 
             FilterHistoryTransactionSection(
-              activeFilter: state.activeFilter,
-              onFilterChanged: (index) => ref
-                  .read(historyTransactionViewModelProvider.notifier)
-                  .setFilter(index),
+              activeFilter:
+                  state.activeFilter, // Ambil status string dari state
+              onFilterChanged: (index) {
+                ref
+                    .read(historyTransactionViewModelProvider.notifier)
+                    .setFilter(index);
+              },
             ),
             const SizedBox(height: 12),
 

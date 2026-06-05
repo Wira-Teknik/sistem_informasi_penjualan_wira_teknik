@@ -11,6 +11,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appb
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refresh_error_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/reusable_advance_filter.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});
@@ -33,9 +34,72 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     final state = ref.watch(paymentViewModelProvider);
 
     return Scaffold(
-      appBar: CustomAppbar(title: "Pembayaran"),
+      appBar: CustomAppbar(
+        title: "Pembayaran",
+        actions: [
+          IconButton(
+            onPressed: () {
+              final nameController = TextEditingController(text: state.name);
+
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) {
+                  return ReusableAdvanceFilter(
+                    title: 'Filter Pembayaran',
+                    initialStartDate: state.startDate, // start_date
+                    initialEndDate: state.endDate, // end_date
+                    initialStatus: state.status, // status
+                    hasActiveFilter: state.hasActiveFilter,
+
+                    customTextFields: [
+                      CustomTextfield(
+                        controller: nameController,
+                        label: 'Nama Konsumen',
+                        hintText: 'Cari nama konsumen',
+                        prefixIcon: Icons.badge_outlined,
+                      ),
+                    ],
+
+                    statusOptions: const [
+                      {'label': 'All', 'value': ''},
+                      {'label': 'Partial', 'value': 'partial'},
+                      {'label': 'Paid', 'value': 'paid'},
+                      {'label': 'Unpaid', 'value': 'unpaid'},
+                    ],
+
+                    onApply: (start, end, status) async {
+                      await ref
+                          .read(paymentViewModelProvider.notifier)
+                          .applyAdvanceFilter(
+                            startDate: start,
+                            endDate: end,
+                            status: status,
+                            name: nameController.text.trim(),
+                          );
+                    },
+
+                    onReset: () async {
+                      await ref
+                          .read(paymentViewModelProvider.notifier)
+                          .resetFilter();
+                    },
+                  );
+                },
+              );
+            },
+            icon: Icon(
+              Icons.filter_list_rounded,
+              size: 28,
+              color: state.hasActiveFilter ? primaryColor : secondaryColor,
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: Padding(
-        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
+        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 2, top: 2),
         child: Column(
           children: [
             Row(
@@ -106,6 +170,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
     return RefreshIndicator(
       color: primaryColor,
+      backgroundColor: whiteColor,
       onRefresh: () => ref.read(paymentViewModelProvider.notifier).refresh(),
       child: ListView.builder(
         itemCount: state.filteredBillings.length,
@@ -229,7 +294,9 @@ class _CustomerBillingCardState extends State<_CustomerBillingCard> {
                       ),
                     ),
                     Text(
-                      widget.formatRupiah(widget.billing.totalTagihan),
+                      widget.billing.totalTagihan != 0
+                          ? widget.formatRupiah(widget.billing.totalTagihan)
+                          : 'Lunas',
                       style: boldTextStyle.copyWith(color: primaryColor),
                     ),
                     const SizedBox(height: 4),

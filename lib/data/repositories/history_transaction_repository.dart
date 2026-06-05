@@ -8,7 +8,12 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dar
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/history_transaction_model.dart';
 
 abstract class HistoryTransactionRepository {
-  Future<List<HistoryTransactionModel>> getHistory({String? query});
+  Future<List<HistoryTransactionModel>> getHistory({
+    String? search,
+    String? startDate,
+    String? endDate,
+    String? status,
+  });
   Future<String> exportHistoryTransaction({
     required String endpoint,
     String? search,
@@ -23,14 +28,34 @@ class HistoryTransactionRepositoryImpl implements HistoryTransactionRepository {
   HistoryTransactionRepositoryImpl(this._dio);
 
   @override
-  Future<List<HistoryTransactionModel>> getHistory({String? query}) async {
+  Future<List<HistoryTransactionModel>> getHistory({
+    String? search,
+    String? startDate,
+    String? endDate,
+    String? status,
+  }) async {
     try {
+      // Siapkan parameter query dinamis
+      final Map<String, dynamic> queryParams = {};
+
+      if (search != null && search.isNotEmpty) {
+        queryParams['search'] = search; // API butuh key 'search'
+      }
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+      if (status != null && status.isNotEmpty) {
+        queryParams['status'] = status;
+      }
+
       final response = await _dio.get(
         '/payments/history',
-        queryParameters: query != null && query.isNotEmpty
-            ? {'q': query}
-            : null,
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
+
       final result = HistoryTransactionResponseModel.fromJson(response.data);
       return result.data;
     } on DioException catch (e) {

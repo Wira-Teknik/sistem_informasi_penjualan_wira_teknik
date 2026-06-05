@@ -3,12 +3,12 @@ import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 
-class PaymentRecapDateRangePickerTileWidget extends StatefulWidget {
+class FilterDateRangePickerTileWidget extends StatefulWidget {
   final DateTime? startDate;
   final DateTime? endDate;
   final void Function(DateTime? start, DateTime? end) onDateRangeChanged;
 
-  const PaymentRecapDateRangePickerTileWidget({
+  const FilterDateRangePickerTileWidget({
     super.key,
     this.startDate,
     this.endDate,
@@ -16,12 +16,12 @@ class PaymentRecapDateRangePickerTileWidget extends StatefulWidget {
   });
 
   @override
-  State<PaymentRecapDateRangePickerTileWidget> createState() =>
-      _PaymentRecapDateRangePickerTileWidgetState();
+  State<FilterDateRangePickerTileWidget> createState() =>
+      _FilterDateRangePickerTileWidgetState();
 }
 
-class _PaymentRecapDateRangePickerTileWidgetState
-    extends State<PaymentRecapDateRangePickerTileWidget> {
+class _FilterDateRangePickerTileWidgetState
+    extends State<FilterDateRangePickerTileWidget> {
   late DateTime? _startDate;
   late DateTime? _endDate;
 

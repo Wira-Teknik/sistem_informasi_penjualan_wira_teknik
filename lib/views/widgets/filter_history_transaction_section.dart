@@ -4,7 +4,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_const
 
 class FilterHistoryTransactionSection extends StatelessWidget {
   final int activeFilter;
-  final void Function(int) onFilterChanged;
+  final void Function(int index) onFilterChanged;
 
   const FilterHistoryTransactionSection({
     super.key,
@@ -12,29 +12,34 @@ class FilterHistoryTransactionSection extends StatelessWidget {
     required this.onFilterChanged,
   });
 
-  static const List<Map<String, String>> _filters = [
-    {"name": "All"},
-    {"name": "Unpaid"},
-    {"name": "Partial"},
-    {"name": "Paid"},
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> listFilterHistory = [
+      {"name": "All"},
+      {"name": "Unpaid"},
+      {"name": "Partial"},
+      {"name": "Paid"},
+    ];
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: _filters.asMap().entries.map((entry) {
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: listFilterHistory.asMap().entries.map((entry) {
           final index = entry.key;
-          final filter = entry.value;
+          final e = entry.value;
+          // Cek status terpilih berdasarkan index dari ViewModel
           final isSelected = activeFilter == index;
 
           return Padding(
             padding: const EdgeInsets.only(right: 4),
             child: FilterChip(
-              onSelected: (_) => onFilterChanged(index),
+              onSelected: (value) {
+                // Trigger fungsi callback dengan membawa nilai index
+                onFilterChanged(index);
+              },
               label: Text(
-                filter["name"]!,
+                e["name"].toString(),
                 style: semiBoldTextStyle.copyWith(
                   fontSize: 12,
                   color: isSelected ? whiteColor : semiSecondaryColor,

@@ -9,7 +9,12 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_bill
 
 abstract class PaymentRepository {
   Future<List<CustomerBillingModel>> getPayments({String? query});
-  Future<List<CustomerBillingModel>> searchCustomerBilling({String? query});
+  Future<List<CustomerBillingModel>> searchCustomerBilling({
+    String? query,
+    String? startDate,
+    String? endDate,
+    String? status,
+  });
   Future<void> addPayment(AddPaymentRequest request);
   Future<void> updatePayment(String id, double paymentTotal);
 }
@@ -38,15 +43,34 @@ class PaymentRepositoryImpl implements PaymentRepository {
   @override
   Future<List<CustomerBillingModel>> searchCustomerBilling({
     String? query,
+    String? startDate,
+    String? endDate,
+    String? status,
   }) async {
     try {
-      // Jika ada query → /payments/customer/{name}
-      // Jika kosong   → /payments/customer (get all)
       final endpoint = query != null && query.isNotEmpty
           ? '/payments/customer/${Uri.encodeComponent(query)}'
           : '/payments';
 
-      final response = await _dio.get(endpoint);
+      final Map<String, dynamic> queryParams = {};
+
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+
+      if (status != null && status.isNotEmpty) {
+        queryParams['status'] = status;
+      }
+
+      final response = await _dio.get(
+        endpoint,
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      );
+
       final result = CustomerBillingResponseModel.fromJson(response.data);
       return result.data;
     } on DioException catch (e) {

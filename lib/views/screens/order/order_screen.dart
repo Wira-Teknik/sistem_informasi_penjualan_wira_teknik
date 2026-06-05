@@ -9,6 +9,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refr
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/filter_order_section.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/item_pesanan_widget.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/reusable_advance_filter.dart';
 
 class OrderScreen extends ConsumerStatefulWidget {
   const OrderScreen({super.key});
@@ -31,9 +32,82 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     final state = ref.watch(orderViewModelProvider);
 
     return Scaffold(
-      appBar: CustomAppbar(title: "Pesanan"),
+      appBar: CustomAppbar(
+        title: "Pesanan",
+        actions: [
+          IconButton(
+            onPressed: () {
+              final poNoController = TextEditingController(text: state.poNo);
+              final recipientNameController = TextEditingController(
+                text: state.recipientName,
+              );
+
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) {
+                  return ReusableAdvanceFilter(
+                    title: 'Filter Pesanan',
+                    initialStartDate: state.startDate,
+                    initialEndDate: state.endDate,
+                    initialStatus: state.orderStatus,
+                    hasActiveFilter: state.hasActiveFilter,
+
+                    customTextFields: [
+                      CustomTextfield(
+                        controller: poNoController,
+                        label: 'Nomor PO',
+                        hintText: 'Cari nomor PO',
+                        prefixIcon: Icons.content_paste_outlined,
+                      ),
+                      CustomTextfield(
+                        controller: recipientNameController,
+                        label: 'Nama Konsumen',
+                        hintText: 'Cari nama konsumen',
+                        prefixIcon: Icons.badge_outlined,
+                      ),
+                    ],
+
+                    statusOptions: const [
+                      {'label': 'All', 'value': ''},
+                      {'label': 'Pending', 'value': 'pending'},
+                      {'label': 'Partial', 'value': 'partial'},
+                      {'label': 'Shipped', 'value': 'shipped'},
+                      {'label': 'Completed', 'value': 'completed'},
+                    ],
+
+                    onApply: (start, end, status) async {
+                      await ref
+                          .read(orderViewModelProvider.notifier)
+                          .applyAdvanceFilter(
+                            startDate: start,
+                            endDate: end,
+                            orderStatus: status,
+                            poNo: poNoController.text.trim(),
+                            recipientName: recipientNameController.text.trim(),
+                          );
+                    },
+                    onReset: () async {
+                      await ref
+                          .read(orderViewModelProvider.notifier)
+                          .resetFilter();
+                    },
+                  );
+                },
+              );
+            },
+            icon: Icon(
+              Icons.filter_list_rounded,
+              size: 28,
+              color: state.hasActiveFilter ? primaryColor : secondaryColor,
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: Padding(
-        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
+        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 2, top: 2),
         child: Column(
           children: [
             // Search
@@ -48,9 +122,12 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
 
             // Filter
             FilterOrderSection(
-              activeFilter: state.activeFilter,
-              onFilterChanged: (index) =>
-                  ref.read(orderViewModelProvider.notifier).setFilter(index),
+              activeFilter:
+                  state.activeFilter, // Mengambil nilai terkini dari state
+              onFilterChanged: (index) {
+                // Memanggil method setFilter di ViewModel untuk mengubah state
+                ref.read(orderViewModelProvider.notifier).setFilter(index);
+              },
             ),
             const SizedBox(height: 12),
 

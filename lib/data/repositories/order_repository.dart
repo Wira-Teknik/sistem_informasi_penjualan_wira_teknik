@@ -8,7 +8,13 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.d
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_response_model.dart';
 
 abstract class OrderRepository {
-  Future<List<OrderModel>> getOrders();
+  Future<List<OrderModel>> getOrders({
+    String? startDate,
+    String? endDate,
+    String? poNo,
+    String? recipientName,
+    String? orderStatus,
+  });
   Future<OrderModel> updateOrder(String id, Map<String, dynamic> data);
   Future<void> addOrder(AddOrderRequest request);
   Future<NextTrxModel> getNextTransactionNo();
@@ -21,9 +27,25 @@ class OrderRepositoryImpl implements OrderRepository {
   OrderRepositoryImpl(this._dio);
 
   @override
-  Future<List<OrderModel>> getOrders() async {
+  Future<List<OrderModel>> getOrders({
+    String? startDate,
+    String? endDate,
+    String? poNo,
+    String? recipientName,
+    String? orderStatus,
+  }) async {
     try {
-      final response = await _dio.get(AppStrings.ordersEndpoint);
+      final queryParams = <String, dynamic>{};
+      if (startDate != null) queryParams['start_date'] = startDate;
+      if (endDate != null) queryParams['end_date'] = endDate;
+      if (poNo != null) queryParams['po_no'] = poNo;
+      if (recipientName != null) queryParams['recipient_name'] = recipientName;
+      if (orderStatus != null) queryParams['order_status'] = orderStatus;
+
+      final response = await _dio.get(
+        '/orders',
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      );
       final result = OrderResponseModel.fromJson(response.data);
       return result.data;
     } on DioException catch (e) {
