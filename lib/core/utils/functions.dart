@@ -7,15 +7,16 @@ String formatRupiah(int value) {
   return NumberFormat.currency(
     locale: 'id_ID',
     symbol: 'Rp ',
-    decimalDigits: 0,
+    decimalDigits: 2,
   ).format(value);
 }
 
 String formatNumberRupiah(String value) {
-  final clean = value.replaceAll('.', '');
+  final clean = value.replaceAll(RegExp(r'[^0-9]'), '');
   if (clean.isEmpty) return '';
   final number = int.tryParse(clean) ?? 0;
-  return NumberFormat('#,###', 'id_ID').format(number);
+
+  return NumberFormat('#,##0', 'id_ID').format(number);
 }
 
 String formatDateDisplay(DateTime? date) {

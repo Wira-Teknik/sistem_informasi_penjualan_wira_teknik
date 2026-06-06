@@ -276,7 +276,12 @@ class _CustomerBillingCardState extends State<_CustomerBillingCard> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "${widget.billing.orders.length}",
+                        widget.billing.orders
+                            .where(
+                              (o) => o.paymentStatus.toUpperCase() != "PAID",
+                            )
+                            .length
+                            .toString(),
                         style: boldTextStyle,
                       ),
                     ],
@@ -402,9 +407,7 @@ class _OrderItem extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  order.remainingBalance != 0
-                      ? formatRupiah(order.remainingBalance)
-                      : "Lunas",
+                  formatRupiah(order.totalAmountToPay),
                   style: boldTextStyle.copyWith(
                     fontSize: 12,
                     color: primaryColor,

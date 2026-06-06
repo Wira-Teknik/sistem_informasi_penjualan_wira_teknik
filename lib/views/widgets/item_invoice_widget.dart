@@ -7,11 +7,13 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/edit_paymen
 class ItemInvoiceWidget extends StatefulWidget {
   final PaymentModel payment;
   final String Function(int) formatRupiah;
+  final String paymentStatus;
 
   const ItemInvoiceWidget({
     super.key,
     required this.payment,
     required this.formatRupiah,
+    required this.paymentStatus,
   });
 
   @override
@@ -28,23 +30,25 @@ class _ItemInvoiceWidgetState extends State<ItemInvoiceWidget> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 18,
-            height: 18,
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              onPressed: () => _showEditPaymentDialog(
-                context,
-                payment.id, // ← id payment/payment
-                payment.paymentTotal.toDouble(), // ← total saat ini
-              ),
-              icon: ImageIcon(
-                const AssetImage("assets/icons/edit_pengiriman_icon.png"),
-                size: 18,
-                color: secondaryColor,
-              ),
-            ),
-          ),
+          (widget.paymentStatus.toUpperCase() == "PAID")
+              ? SizedBox()
+              : SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => _showEditPaymentDialog(
+                      context,
+                      payment.id,
+                      payment.paymentTotal.toDouble(),
+                    ),
+                    icon: ImageIcon(
+                      const AssetImage("assets/icons/edit_pengiriman_icon.png"),
+                      size: 18,
+                      color: secondaryColor,
+                    ),
+                  ),
+                ),
           const SizedBox(width: 10),
 
           Expanded(

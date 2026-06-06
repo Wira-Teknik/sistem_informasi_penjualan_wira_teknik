@@ -114,6 +114,7 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
       body: RefreshIndicator(
         onRefresh: _onRefresh,
         color: primaryColor,
+        backgroundColor: whiteColor,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
@@ -389,9 +390,9 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
             children: [
               Text("Status Sekarang", style: semiBoldTextStyle),
               const Spacer(),
-              // Status pembayaran belum ada di model order
-              // sesuaikan saat endpoint payment tersedia
-              CustomBadge(label: "Unpaid", badgeColor: redColor),
+              _order.paymentStatus.toUpperCase() == "PAID"
+                  ? CustomBadge(label: "Paid", badgeColor: greenColor)
+                  : CustomBadge(label: "Unpaid", badgeColor: redColor),
             ],
           ),
           const SizedBox(height: 16),

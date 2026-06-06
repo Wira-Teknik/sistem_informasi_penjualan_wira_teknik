@@ -24,19 +24,22 @@ class MenungguPembayaranWidget extends StatefulWidget {
 class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
   late Map<String, bool> _selected;
 
-  // Hanya tampilkan order yang belum lunas
-  List<OrderModel> get _unpaidOrders => widget.billing.orders
-      .where(
-        (o) =>
-            o.paymentStatus.toLowerCase() != 'paid' &&
-            o.shipments.isNotEmpty &&
-            o.shipments.any(
-              (s) =>
-                  s.invoice != null &&
-                  s.invoice!.paymentStatus.toLowerCase() != 'paid',
-            ),
-      )
-      .toList();
+  // 1. Order yang siap ditagihkan (Belum lunas, sudah dikirim, dan punya invoice yang belum lunas)
+  List<OrderModel> get _unpaidOrders => widget.billing.orders.where((o) {
+    final isNotPaid = o.paymentStatus.toLowerCase() != 'paid';
+    final hasShipment = o.shipments.isNotEmpty;
+    final hasUnpaidInvoice = o.shipments.any(
+      (s) =>
+          s.invoice != null && s.invoice!.paymentStatus.toLowerCase() != 'paid',
+    );
+
+    return isNotPaid && hasShipment && hasUnpaidInvoice;
+  }).toList();
+
+  // 2. Fungsi baru: Cek apakah ada order yang belum lunas TAPI belum dikirim sama sekali
+  bool get _hasUnshippedUnpaidOrders => widget.billing.orders.any(
+    (o) => o.paymentStatus.toLowerCase() != 'paid' && o.shipments.isEmpty,
+  );
 
   @override
   void initState() {
@@ -147,9 +150,32 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
             Padding(
               padding: const EdgeInsets.all(24),
               child: Center(
-                child: Text(
-                  'Semua pesanan sudah lunas',
-                  style: regularTextStyle.copyWith(color: semiSecondaryColor),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      // Jika ada order yang nunggak pengiriman, pesannya beda
+                      _hasUnshippedUnpaidOrders
+                          ? 'Belum ada tagihan yang bisa dibayar'
+                          : 'Semua pesanan sudah lunas',
+                      style: boldTextStyle.copyWith(color: semiSecondaryColor),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    // Tampilkan penjelasan tambahan khusus jika barang belum dikirim
+                    if (_hasUnshippedUnpaidOrders)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          'Pembayaran baru bisa dilakukan setelah barang dikirimkan (Shipment) dan invoice dibuat.',
+                          style: regularTextStyle.copyWith(
+                            color: semiSecondaryColor.withValues(alpha: 0.7),
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),

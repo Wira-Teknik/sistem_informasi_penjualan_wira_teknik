@@ -5,6 +5,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_const
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment/add_payment_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
@@ -27,12 +28,30 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
   int _activeFilter = 0;
   String _searchQuery = '';
 
-  // Filter orders berdasarkan status & search
+  // ← Simpan billing lokal agar bisa diupdate
+  late CustomerBillingModel _billing;
+
+  @override
+  void initState() {
+    super.initState();
+    _billing = widget.billing; // ← inisialisasi dari parameter
+  }
+
+  // ← Ambil billing terbaru dari viewmodel berdasarkan customerName
+  void _syncBillingFromState(PaymentState state) {
+    final updated = state.billings.firstWhere(
+      (b) => b.customerName == _billing.customerName,
+      orElse: () => _billing,
+    );
+    if (updated != _billing) {
+      setState(() => _billing = updated);
+    }
+  }
+
   List<OrderModel> get _filteredOrders {
     final filterStatus = _filterStatus[_activeFilter];
-    var orders = widget.billing.orders;
+    var orders = _billing.orders; // ← pakai _billing lokal
 
-    // Filter by status
     if (filterStatus != null) {
       orders = orders
           .where(
@@ -41,7 +60,6 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
           .toList();
     }
 
-    // Filter by search
     if (_searchQuery.isNotEmpty) {
       final keyword = _searchQuery.toLowerCase();
       orders = orders
@@ -58,13 +76,11 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
 
   static const _filterStatus = {0: null, 1: 'unpaid', 2: 'partial', 3: 'paid'};
 
-  // Total remaining balance semua order customer ini
   int get _totalRemainingBalance =>
-      widget.billing.orders.fold(0, (sum, o) => sum + o.remainingBalance);
+      _billing.orders.fold(0, (sum, o) => sum + o.remainingBalance);
 
-  // Status keseluruhan customer
   String get _overallStatus {
-    final orders = widget.billing.orders;
+    final orders = _billing.orders;
     if (orders.every((o) => o.paymentStatus.toLowerCase() == 'paid')) {
       return 'Paid';
     } else if (orders.every((o) => o.paymentStatus.toLowerCase() == 'unpaid')) {
@@ -102,6 +118,16 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ← Pantau perubahan state — sync billing saat data berubah
+    ref.listen<PaymentState>(paymentViewModelProvider, (previous, next) {
+      // Hanya sync jika tidak sedang loading dan billings sudah ada
+      if (!next.isLoading && next.billings.isNotEmpty) {
+        _syncBillingFromState(next);
+      }
+    });
+
+    final paymentState = ref.watch(paymentViewModelProvider);
+
     return Scaffold(
       appBar: CustomAppbar(title: 'Detail Pembayaran'),
       body: Padding(
@@ -135,7 +161,7 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              widget.billing.customerName.toUpperCase(),
+                              _billing.customerName.toUpperCase(),
                               style: boldTextStyle.copyWith(fontSize: 12),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -148,7 +174,9 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
                               ),
                             ),
                             Text(
-                              formatRupiah(_totalRemainingBalance),
+                              _totalRemainingBalance == 0
+                                  ? ''
+                                  : formatRupiah(_totalRemainingBalance),
                               style: boldTextStyle.copyWith(fontSize: 20),
                             ),
                           ],
@@ -159,24 +187,51 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Tombol catat pembayaran
-                  CustomFilledbutton(
-                    title: "Catat Pembayaran",
-                    iconButton: Icons.payments_outlined,
-                    onPressed: () async {
-                      final success = await Navigator.push<bool>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddPaymentScreen(
-                            billing: widget.billing, // ← pass billing
+                  // Loading saat submit payment
+                  if (paymentState.isSubmitting)
+                    Center(
+                      child: Column(
+                        children: [
+                          LinearProgressIndicator(
+                            color: primaryColor,
+                            backgroundColor: primaryColor.withValues(
+                              alpha: 0.2,
+                            ),
                           ),
-                        ),
-                      );
+                          const SizedBox(height: 6),
+                          Text(
+                            'Memproses pembayaran...',
+                            style: regularTextStyle.copyWith(
+                              fontSize: 12,
+                              color: semiSecondaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (_totalRemainingBalance == 0)
+                    CustomInfoMessageWidget(
+                      color: greenColor,
+                      message: 'Semua pembayaran sudah lunas',
+                      icons: Icons.check_rounded,
+                    )
+                  else
+                    CustomFilledbutton(
+                      title: "Catat Pembayaran",
+                      iconButton: Icons.payments_outlined,
+                      onPressed: () async {
+                        final success = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AddPaymentScreen(
+                              billing: _billing, // ← pakai _billing lokal
+                            ),
+                          ),
+                        );
 
-                      // Refresh jika berhasil bayar
-                      if (success == true) {
-                        // reload data dari viewmodel
-                        if (mounted) {
+                        // ← Viewmodel sudah reload di addPayment()
+                        // ref.listen di atas otomatis sync _billing
+                        if (success == true && mounted) {
                           // ignore: use_build_context_synchronously
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -188,11 +243,9 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
                               backgroundColor: whiteColor,
                             ),
                           );
-                          setState(() {}); // trigger rebuild untuk refresh
                         }
-                      }
-                    },
-                  ),
+                      },
+                    ),
                 ],
               ),
             ),
@@ -204,7 +257,6 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
             ),
             const SizedBox(height: 8),
 
-            // Search
             CustomTextfield(
               hintText: "Cari nomor PO",
               prefixIcon: Icons.search,
@@ -212,14 +264,12 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
             ),
             const SizedBox(height: 14),
 
-            // Filter
             FilterPaymentSection(
               activeFilter: _activeFilter,
               onFilterChanged: (index) => setState(() => _activeFilter = index),
             ),
             const SizedBox(height: 14),
 
-            // List order
             Expanded(
               child: _filteredOrders.isEmpty
                   ? Center(

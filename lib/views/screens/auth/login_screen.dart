@@ -69,7 +69,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // Navigasi otomatis saat login berhasil
     ref.listen<LoginState>(loginViewModelProvider, (previous, next) {
       if (next.isSuccess) {
-        Navigator.pushReplacementNamed(context, '/bottom_navigation');
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/bottom_navigation',
+          (route) => false,
+        );
       }
     });
 

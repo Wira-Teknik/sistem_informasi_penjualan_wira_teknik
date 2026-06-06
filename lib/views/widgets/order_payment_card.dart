@@ -128,6 +128,7 @@ class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
                   (payment) => ItemInvoiceWidget(
                     payment: payment,
                     formatRupiah: widget.formatRupiah,
+                    paymentStatus: widget.order.paymentStatus,
                   ),
                 ),
           ],
