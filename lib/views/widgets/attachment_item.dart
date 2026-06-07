@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/attachment_model.dart';
 
 class AttachmentItem extends StatelessWidget {
@@ -98,38 +99,58 @@ class AttachmentItem extends StatelessWidget {
 
         // Preview PDF — tidak bisa render, tampil tap to open
         if (attachment.isPdf)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.red.shade100),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.picture_as_pdf_rounded, color: Colors.red, size: 32),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'PDF Document',
-                        style: semiBoldTextStyle.copyWith(color: Colors.red),
-                      ),
-                      Text(
-                        attachment.fileUrl.split('/').last,
-                        style: regularTextStyle.copyWith(
-                          fontSize: 11,
-                          color: Colors.red.shade300,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+              onTap: () {
+                openExternalUrl(context, attachment.fileUrl);
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade100),
                 ),
-              ],
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.picture_as_pdf_rounded,
+                      color: Colors.red,
+                      size: 32,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'PDF Document',
+                            style: semiBoldTextStyle.copyWith(
+                              color: Colors.red,
+                            ),
+                          ),
+                          Text(
+                            attachment.fileUrl.split('/').last,
+                            style: regularTextStyle.copyWith(
+                              fontSize: 11,
+                              color: Colors.red.shade300,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.open_in_new_rounded,
+                      color: Colors.red.shade300,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
       ],

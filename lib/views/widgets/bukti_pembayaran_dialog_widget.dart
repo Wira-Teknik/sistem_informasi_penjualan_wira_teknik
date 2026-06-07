@@ -384,32 +384,54 @@ class _PaymentBuktiSection extends StatelessWidget {
                 // PDF
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.shade100),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.picture_as_pdf_rounded,
-                          color: Colors.red,
-                          size: 28,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            attachment.fullUrl.split('/').last,
-                            style: regularTextStyle.copyWith(
-                              fontSize: 11,
-                              color: Colors.red.shade400,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                  child: GestureDetector(
+                    onTap: () => openExternalUrl(context, attachment.fullUrl),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.red.shade100),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.picture_as_pdf_rounded,
+                            color: Colors.red,
+                            size: 28,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  attachment.fullUrl.split('/').last,
+                                  style: regularTextStyle.copyWith(
+                                    fontSize: 11,
+                                    color: Colors.red.shade400,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Tap untuk membuka',
+                                  style: regularTextStyle.copyWith(
+                                    fontSize: 10,
+                                    color: Colors.red.shade300,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.open_in_new_rounded,
+                            color: Colors.red.shade400,
+                            size: 18,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
