@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/jwt_utils.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/user_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/auth_repository.dart';
 
@@ -9,7 +10,8 @@ class LoginState {
   final bool isPasswordVisible;
   final String? errorMessage;
   final UserModel? user;
-  final String? token; // ← tambah token
+  final String? token;
+  final bool isTokenExpired;
 
   const LoginState({
     this.isLoading = false,
@@ -17,9 +19,10 @@ class LoginState {
     this.errorMessage,
     this.user,
     this.token,
+    this.isTokenExpired = false,
   });
 
-  bool get isSuccess => user != null && token != null;
+  bool get isSuccess => user != null && token != null && !isTokenExpired;
 
   LoginState copyWith({
     bool? isLoading,
@@ -27,6 +30,7 @@ class LoginState {
     String? errorMessage,
     UserModel? user,
     String? token,
+    bool? isTokenExpired,
     bool clearError = false,
   }) {
     return LoginState(
@@ -35,56 +39,58 @@ class LoginState {
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       user: user ?? this.user,
       token: token ?? this.token,
+      isTokenExpired: isTokenExpired ?? this.isTokenExpired,
     );
   }
 }
 
-// ViewModel: jembatan antara repository dan UI
 class LoginViewModel extends StateNotifier<LoginState> {
   final AuthRepository _authRepository;
   final _storage = const FlutterSecureStorage();
 
   LoginViewModel(this._authRepository) : super(const LoginState()) {
-    checkSession(); // ← otomatis cek sesi saat ViewModel dibuat
+    checkSession();
   }
 
-  // Cek apakah sudah ada sesi tersimpan
   Future<void> checkSession() async {
     state = state.copyWith(isLoading: true);
 
     final session = await _authRepository.getSavedSession();
 
     if (session != null) {
+      // Double check token di sisi viewmodel
+      if (JwtUtils.isExpired(session.token)) {
+        await logout();
+        state = state.copyWith(isLoading: false, isTokenExpired: true);
+        return;
+      }
+
       state = state.copyWith(
         isLoading: false,
         user: session.user,
         token: session.token,
+        isTokenExpired: false,
       );
     } else {
       state = state.copyWith(isLoading: false);
     }
   }
 
-  // Toggle show/hide password
   void togglePasswordVisibility() {
     state = state.copyWith(isPasswordVisible: !state.isPasswordVisible);
   }
 
-  // Reset error saat user mulai mengetik
   void clearError() {
     if (state.errorMessage != null) {
       state = state.copyWith(clearError: true);
     }
   }
 
-  // Proses login
   Future<void> login(String username, String password) async {
     state = state.copyWith(isLoading: true, clearError: true);
-
     try {
       final result = await _authRepository.login(username, password);
 
-      // Simpan token + semua data user ke secure storage
       await Future.wait([
         _storage.write(key: AppStrings.tokenKey, value: result.token),
         _storage.write(key: AppStrings.userIdKey, value: result.user.id),
@@ -97,6 +103,7 @@ class LoginViewModel extends StateNotifier<LoginState> {
         isLoading: false,
         user: result.user,
         token: result.token,
+        isTokenExpired: false,
       );
     } on Exception catch (e) {
       state = state.copyWith(
@@ -107,7 +114,6 @@ class LoginViewModel extends StateNotifier<LoginState> {
   }
 
   Future<void> logout() async {
-    // Hapus semua data tersimpan
     await Future.wait([
       _storage.delete(key: AppStrings.tokenKey),
       _storage.delete(key: AppStrings.userIdKey),
@@ -115,18 +121,14 @@ class LoginViewModel extends StateNotifier<LoginState> {
       _storage.delete(key: AppStrings.userEmailKey),
       _storage.delete(key: AppStrings.userRoleKey),
     ]);
-
     state = const LoginState();
   }
 
-  void resetState() {
-    state = const LoginState();
-  }
+  void resetState() => state = const LoginState();
 }
 
-// Deklarasi Provider ViewModel — inject repository lewat ref
 final loginViewModelProvider =
     StateNotifierProvider<LoginViewModel, LoginState>((ref) {
       final repository = ref.watch(authRepositoryProvider);
       return LoginViewModel(repository);
-    }); // ViewModel: jembatan antara repository dan UI
+    });

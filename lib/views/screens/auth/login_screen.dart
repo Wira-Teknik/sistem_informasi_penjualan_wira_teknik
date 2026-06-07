@@ -30,6 +30,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map && args['expired'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: CustomInfoMessageWidget(
+              color: orangeColor,
+              message: 'Sesi Anda telah berakhir, silakan login kembali',
+              icons: Icons.lock_clock_outlined,
+            ),
+            backgroundColor: whiteColor,
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
+  }
+
   // action on login press
   Future<void> _onLoginPressed() async {
     if (!_formKey.currentState!.validate()) return;
@@ -46,7 +69,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // Navigasi otomatis saat login berhasil
     ref.listen<LoginState>(loginViewModelProvider, (previous, next) {
       if (next.isSuccess) {
-        Navigator.pushReplacementNamed(context, '/bottom_navigation');
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/bottom_navigation',
+          (route) => false,
+        );
       }
     });
 

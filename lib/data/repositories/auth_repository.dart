@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/jwt_utils.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/email_sender_response_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/login_response_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/reset_password_response_model.dart';
@@ -46,12 +48,11 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<LoginResponseModel?> getSavedSession() async {
     try {
       final token = await _storage.read(key: AppStrings.tokenKey);
-      final id = await _storage.read(key: 'user_id');
-      final name = await _storage.read(key: 'user_name');
-      final email = await _storage.read(key: 'user_email');
-      final role = await _storage.read(key: 'user_role');
+      final id = await _storage.read(key: AppStrings.userIdKey);
+      final name = await _storage.read(key: AppStrings.userNameKey);
+      final email = await _storage.read(key: AppStrings.userEmailKey);
+      final role = await _storage.read(key: AppStrings.userRoleKey);
 
-      // Jika salah satu tidak ada, anggap belum login
       if (token == null ||
           id == null ||
           name == null ||
@@ -59,6 +60,22 @@ class AuthRepositoryImpl implements AuthRepository {
           role == null) {
         return null;
       }
+
+      // ← Cek apakah token sudah expired
+      if (JwtUtils.isExpired(token)) {
+        debugPrint('TOKEN EXPIRED — hapus sesi');
+        // Hapus semua data tersimpan
+        await Future.wait([
+          _storage.delete(key: AppStrings.tokenKey),
+          _storage.delete(key: AppStrings.userIdKey),
+          _storage.delete(key: AppStrings.userNameKey),
+          _storage.delete(key: AppStrings.userEmailKey),
+          _storage.delete(key: AppStrings.userRoleKey),
+        ]);
+        return null;
+      }
+
+      debugPrint('TOKEN VALID — sisa waktu: ${JwtUtils.remainingTime(token)}');
 
       return LoginResponseModel(
         success: true,
@@ -107,7 +124,7 @@ class AuthRepositoryImpl implements AuthRepository {
   ) async {
     try {
       final response = await _dio.post(
-        AppStrings.verifyCodeEndpoint,
+        AppStrings.forgotPasswordResetEndpoint,
         data: {
           'confirm_password': confirmPassword,
           'new_password': newPassword,

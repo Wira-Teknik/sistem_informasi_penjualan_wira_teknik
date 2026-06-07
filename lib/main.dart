@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/app_navigator.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/auth/email_sender_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/auth/login_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +22,7 @@ class MainApp extends StatelessWidget {
       theme: ThemeData(scaffoldBackgroundColor: backgroundColor),
       debugShowCheckedModeBanner: false,
       title: 'Wira Teknik',
+      navigatorKey: AppNavigator.navigatorKey,
       initialRoute: '/splash',
       routes: {
         '/splash': (_) => const SplashScreen(),

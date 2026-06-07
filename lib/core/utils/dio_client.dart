@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/app_navigator.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/login_viewmodel.dart';
 
 // Provider token — baca dari secure storage
@@ -89,6 +91,7 @@ class _ErrorInterceptor extends Interceptor {
       401 => 'Email atau password salah',
       403 => 'Akses ditolak',
       404 => 'Data tidak ditemukan',
+      413 => 'Ukuran file gambar terlalu besar. Harap kompres gambar Anda.',
       422 => response?.data?['message'] ?? 'Data tidak valid',
       500 => 'Terjadi kesalahan pada server',
       _ => 'Terjadi kesalahan (${response?.statusCode})',
@@ -98,7 +101,6 @@ class _ErrorInterceptor extends Interceptor {
 
 // AuthInterceptor menerima ref dengan benar dari dioProvider
 class AuthInterceptor extends Interceptor {
-  // ignore: unused_field
   final Ref _ref;
 
   AuthInterceptor(this._ref);
@@ -108,7 +110,6 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    // Baca token langsung dari secure storage
     const storage = FlutterSecureStorage();
     final token = await storage.read(key: 'token');
 
@@ -125,14 +126,37 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    // Token expired → hapus token & logout otomatis
     if (err.response?.statusCode == 401) {
-      const storage = FlutterSecureStorage();
-      await storage.delete(key: 'token');
+      debugPrint('⚠️ TOKEN EXPIRED — logout & redirect ke login');
 
-      // Uncomment setelah authViewModelProvider dibuat
-      _ref.read(loginViewModelProvider.notifier).logout();
+      // 1. Hapus token dari storage
+      const storage = FlutterSecureStorage();
+      await Future.wait([
+        storage.delete(key: AppStrings.tokenKey),
+        storage.delete(key: AppStrings.userIdKey),
+        storage.delete(key: AppStrings.userNameKey),
+        storage.delete(key: AppStrings.userEmailKey),
+        storage.delete(key: AppStrings.userRoleKey),
+      ]);
+
+      // 2. Reset state viewmodel
+      _ref.read(loginViewModelProvider.notifier).resetState();
+
+      // 3. Navigasi ke login — batalkan semua request sebelumnya
+      AppNavigator.goToLogin();
+
+      // 4. Reject request agar tidak lanjut ke handler berikutnya
+      handler.reject(
+        DioException(
+          requestOptions: err.requestOptions,
+          error: 'Sesi telah berakhir, silakan login kembali',
+          type: DioExceptionType.cancel,
+          response: err.response,
+        ),
+      );
+      return;
     }
+
     handler.next(err);
   }
 }

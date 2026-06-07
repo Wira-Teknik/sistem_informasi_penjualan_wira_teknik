@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/dashboard_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/login_viewmodel.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/audit/audit_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/dashboard/admin_dashboard_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/dashboard/owner_dashboard_screen.dart';
@@ -21,13 +23,10 @@ class BottomNavigation extends ConsumerStatefulWidget {
 class _BottomNavigationState extends ConsumerState<BottomNavigation> {
   int _currentIndex = 0;
 
-  // Definisi item & halaman per role
   List<Widget> _getPages(String role) {
     if (role == 'owner') {
       return const [OwnerDashboardScreen(), AuditScreen(), ProfileScreen()];
     }
-
-    // admin — tanpa AuditScreen
     return const [
       AdminDashboardScreen(),
       OrderScreen(),
@@ -58,30 +57,51 @@ class _BottomNavigationState extends ConsumerState<BottomNavigation> {
       label: 'PROFIL',
     );
 
-    if (role == 'owner') {
-      return [dashboard, audit, order, payment, profile];
-    }
-
-    // admin — tanpa audit
+    if (role == 'owner') return [dashboard, audit, profile];
     return [dashboard, order, payment, profile];
   }
 
   void _onTap(int index) {
     if (_currentIndex == index) return;
     setState(() => _currentIndex = index);
+    _triggerReload(index);
+  }
+
+  void _triggerReload(int index) {
+    final role = ref.read(loginViewModelProvider).user?.role ?? 'admin';
+
+    if (role == 'owner') {
+      switch (index) {
+        case 0:
+          ref.read(dashboardViewModelProvider.notifier).refresh();
+          break;
+        case 1:
+          break;
+        case 2: // Profile — tidak perlu reload
+          break;
+      }
+    } else {
+      switch (index) {
+        case 0:
+          ref.read(dashboardViewModelProvider.notifier).refresh();
+          break;
+        case 1:
+          break;
+        case 2:
+          ref.read(paymentViewModelProvider.notifier).refresh();
+          break;
+        case 3: // Profile — tidak perlu reload
+          break;
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(loginViewModelProvider);
-
-    // Fallback ke 'admin' jika role null
     final role = state.user?.role ?? 'admin';
-
     final pages = _getPages(role);
     final navItems = _getNavItems(role);
-
-    // Pastikan index tidak out of range saat role berubah
     final safeIndex = _currentIndex.clamp(0, pages.length - 1);
 
     return Scaffold(

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 
-class CardRecapItem extends StatelessWidget {
+class ItemCardRecap extends StatelessWidget {
   final String iconSource;
   final String title;
   final String value;
   final bool isArrowIconVisible;
   final Color valueColor;
   final Color arrowIconColor;
-  const CardRecapItem({
+  const ItemCardRecap({
     super.key,
     required this.iconSource,
     required this.title,

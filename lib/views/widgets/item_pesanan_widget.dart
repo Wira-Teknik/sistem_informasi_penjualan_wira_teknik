@@ -1,11 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 
 class ItemPesananWidget extends StatelessWidget {
+  final OrderModel order;
   final VoidCallback? onTap;
-  const ItemPesananWidget({super.key, this.onTap});
+
+  const ItemPesananWidget({super.key, required this.order, this.onTap});
+
+  // Format rupiah
+  String _formatRupiah(double value) {
+    return NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(value);
+  }
+
+  // Format tanggal
+  String _formatDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      return DateFormat('MMM dd, yyyy').format(date);
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
+  // Warna badge sesuai status
+  Color _badgeColor(String status) {
+    return switch (status.toLowerCase()) {
+      'pending' => primaryColor,
+      'partial' => yellowColor,
+      'shipped' => yellowColor,
+      'completed' => greenColor,
+      // 'dibatal' => Colors.red,
+      _ => semiSecondaryColor,
+    };
+  }
+
+  // Label badge
+  String _badgeLabel(String status) {
+    return switch (status.toLowerCase()) {
+      'pending' => 'Pending',
+      'partial' => 'Partial',
+      'shipped' => 'Shipped',
+      'completed' => 'Completed',
+      // 'dibatal' => 'Dibatalkan',
+      _ => status,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,23 +77,29 @@ class ItemPesananWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "P5537XJJ22",
-                      style: boldTextStyle.copyWith(fontSize: 16),
-                    ),
-                    Text(
-                      "PT.KIRANA PERMATA",
-                      style: mediumTextStyle.copyWith(
-                        color: semiSecondaryColor,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        order.poNo,
+                        style: boldTextStyle.copyWith(fontSize: 16),
                       ),
-                    ),
-                  ],
+                      Text(
+                        order.recipientName.toUpperCase(),
+                        style: mediumTextStyle.copyWith(
+                          color: semiSecondaryColor,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-                // badge status
-                CustomBadge(label: "Pending", badgeColor: primaryColor),
+                const SizedBox(width: 8),
+                CustomBadge(
+                  label: _badgeLabel(order.orderStatus),
+                  badgeColor: _badgeColor(order.orderStatus),
+                ),
               ],
             ),
 
@@ -58,7 +111,7 @@ class ItemPesananWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // tanggal
+                // Tanggal
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -69,11 +122,11 @@ class ItemPesananWidget extends StatelessWidget {
                         color: semiSecondaryColor.withValues(alpha: 0.5),
                       ),
                     ),
-                    Text("Oct 23, 2026", style: mediumTextStyle),
+                    Text(_formatDate(order.orderDate), style: mediumTextStyle),
                   ],
                 ),
 
-                // jumlah total
+                // Total
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -85,7 +138,7 @@ class ItemPesananWidget extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      "Rp 12.750.000",
+                      _formatRupiah(order.totalAmountToPay.toDouble()),
                       style: boldTextStyle.copyWith(
                         color: primaryColor,
                         fontSize: 16,

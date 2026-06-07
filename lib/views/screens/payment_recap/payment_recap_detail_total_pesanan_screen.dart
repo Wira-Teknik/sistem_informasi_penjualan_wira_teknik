@@ -1,111 +1,250 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/card_recap_item.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_recap_detail_pesanan_viewmodel.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info_message_widget.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/item_card_recap.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/filter_recap_total_pesanan_section.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/item_recap_widget.dart';
 
-class PaymentRecapDetailTotalPesananScreen extends StatefulWidget {
-  const PaymentRecapDetailTotalPesananScreen({super.key});
+class PaymentRecapDetailTotalPesananScreen extends ConsumerStatefulWidget {
+  final DateTime? startDate;
+  final DateTime? endDate;
+
+  const PaymentRecapDetailTotalPesananScreen({
+    super.key,
+    this.startDate,
+    this.endDate,
+  });
 
   @override
-  State<PaymentRecapDetailTotalPesananScreen> createState() =>
+  ConsumerState<PaymentRecapDetailTotalPesananScreen> createState() =>
       _PaymentRecapDetailTotalPesananScreenState();
 }
 
 class _PaymentRecapDetailTotalPesananScreenState
-    extends State<PaymentRecapDetailTotalPesananScreen> {
-  int _activeFilter = 0;
+    extends ConsumerState<PaymentRecapDetailTotalPesananScreen> {
+  final _searchController = TextEditingController();
+
+  late final _providerKey = (
+    startDate: widget.startDate,
+    endDate: widget.endDate,
+  );
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Color _orderStatusColor(String status) {
+    return switch (status.toLowerCase()) {
+      'pending' => primaryColor,
+      'partial' => yellowColor,
+      'shipped' => yellowColor,
+      'completed' => greenColor,
+      _ => semiSecondaryColor,
+    };
+  }
+
+  Future<void> _onDownload() async {
+    final filePath = await ref
+        .read(paymentRecapDetailPesananViewModelProvider(_providerKey).notifier)
+        .exportToExcel();
+
+    if (filePath != null && mounted) {
+      // Buka file
+      final result = await OpenFilex.open(filePath);
+      if (result.type != ResultType.done && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: CustomInfoMessageWidget(
+              color: orangeColor,
+              message: 'Tidak bisa membuka file: ${result.message}',
+              icons: Icons.warning_amber_rounded,
+            ),
+            backgroundColor: whiteColor,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(
+      paymentRecapDetailPesananViewModelProvider(_providerKey),
+    );
+
     return Scaffold(
       appBar: CustomAppbar(
         title: 'Detail Total Pesanan',
         actions: [
           IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.file_download_outlined, color: primaryColor),
+            onPressed: state.isDownloading ? null : _onDownload,
+            icon: state.isDownloading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: primaryColor,
+                    ),
+                  )
+                : const Icon(Icons.file_download_outlined, color: primaryColor),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Column(
-          children: [
-            // periode waktu
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Periode Waktu',
-                      style: boldTextStyle.copyWith(
-                        fontSize: 10,
-                        color: semiSecondaryColor,
+      body: RefreshIndicator(
+        color: primaryColor,
+        onRefresh: () => ref
+            .read(
+              paymentRecapDetailPesananViewModelProvider(_providerKey).notifier,
+            )
+            .refresh(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Periode waktu
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Periode Waktu',
+                        style: boldTextStyle.copyWith(
+                          fontSize: 10,
+                          color: semiSecondaryColor,
+                        ),
                       ),
-                    ),
-                    Text('1 Jan 2026 - 31 Jan 2026', style: semiBoldTextStyle),
-                  ],
-                ),
-                Spacer(),
-                CustomBadge(
-                  label: "142 Orders",
-                  badgeColor: semiSecondaryColor,
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-
-            // card info
-            CardRecapItem(
-              iconSource: "assets/icons/rekap_pesanan_icon.png",
-              title: "TOTAL PESANAN",
-              value: "142 Orders",
-              valueColor: secondaryColor,
-            ),
-            const SizedBox(height: 10),
-
-            // search bar
-            CustomTextfield(
-              hintText: "Cari berdasarkan konsumen, PO",
-              prefixIcon: Icons.search,
-            ),
-            const SizedBox(height: 10),
-
-            // filter
-            FilterRecapTotalPesananSection(
-              onFilterChanged: (index) {
-                // update data di parent tanpa rebuild seluruh halaman
-                setState(() => _activeFilter = index);
-              },
-            ),
-            const SizedBox(height: 10),
-
-            // list item
-            Expanded(
-              child: ListView.builder(
-                itemCount: 10,
-                itemBuilder: (context, index) {
-                  return ItemRecapWidget(
-                    noPO: "P5537XJJ22",
-                    namaKonsumen: "PT.KIRANA PERMATA",
-                    tanggal: "Oct 23, 2026",
-                    jumlahTotal: "Rp 2.000.000",
-                    badgeName: "Pending",
-                    badgeColor: primaryColor,
-                  );
-                },
+                      Text(
+                        widget.startDate == null && widget.endDate == null
+                            ? 'Semua Waktu'
+                            : '${formatDateDisplay(widget.startDate)} - ${formatDateDisplay(widget.endDate)}',
+                        style: semiBoldTextStyle,
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  CustomBadge(
+                    label: "${state.data?.totalPesananCount ?? 0} Orders",
+                    badgeColor: semiSecondaryColor,
+                  ),
+                ],
               ),
+              const SizedBox(height: 14),
+
+              // Card info
+              ItemCardRecap(
+                iconSource: "assets/icons/rekap_pesanan_icon.png",
+                title: "TOTAL PESANAN",
+                value: "${state.data?.totalPesananCount ?? 0} Orders",
+                valueColor: secondaryColor,
+              ),
+              const SizedBox(height: 10),
+
+              // Search
+              CustomTextfield(
+                controller: _searchController,
+                hintText: "Cari berdasarkan konsumen, PO",
+                prefixIcon: Icons.search,
+                onChanged: (value) => ref
+                    .read(
+                      paymentRecapDetailPesananViewModelProvider(
+                        _providerKey,
+                      ).notifier,
+                    )
+                    .search(value),
+              ),
+              const SizedBox(height: 10),
+
+              // Filter
+              FilterRecapTotalPesananSection(
+                activeFilter: state.activeFilter,
+                onFilterChanged: (index) => ref
+                    .read(
+                      paymentRecapDetailPesananViewModelProvider(
+                        _providerKey,
+                      ).notifier,
+                    )
+                    .setFilter(index),
+              ),
+              const SizedBox(height: 10),
+
+              // Content
+              Expanded(child: _buildContent(state)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(PaymentRecapDetailPesananState state) {
+    if (state.isLoading) {
+      return Center(child: CircularProgressIndicator(color: primaryColor));
+    }
+
+    if (state.errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 12),
+            Text(
+              state.errorMessage!,
+              style: regularTextStyle.copyWith(color: semiSecondaryColor),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => ref
+                  .read(
+                    paymentRecapDetailPesananViewModelProvider(
+                      _providerKey,
+                    ).notifier,
+                  )
+                  .loadDetail(),
+              child: const Text('Coba Lagi'),
             ),
           ],
         ),
-      ),
+      );
+    }
+
+    if (state.filteredItems.isEmpty) {
+      return Center(
+        child: Text(
+          'Tidak ada data pesanan',
+          style: regularTextStyle.copyWith(color: semiSecondaryColor),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: state.filteredItems.length,
+      itemBuilder: (context, index) {
+        final item = state.filteredItems[index];
+        return ItemRecapWidget(
+          noPO: item.poNo,
+          namaKonsumen: item.customerName,
+          tanggal: item.date,
+          jumlahTotal: formatRupiah(item.totalAmount),
+          badgeName: item.orderStatus,
+          badgeColor: _orderStatusColor(item.orderStatus),
+        );
+      },
     );
   }
 }

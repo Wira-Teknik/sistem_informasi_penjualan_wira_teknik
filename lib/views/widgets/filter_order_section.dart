@@ -2,43 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 
-class FilterOrderSection extends StatefulWidget {
+class FilterOrderSection extends StatelessWidget {
+  final int activeFilter;
   final void Function(int index) onFilterChanged;
-  const FilterOrderSection({super.key, required this.onFilterChanged});
 
-  @override
-  State<FilterOrderSection> createState() => _FilterOrderSectionState();
-}
-
-class _FilterOrderSectionState extends State<FilterOrderSection> {
-  final List<Map<String, dynamic>> _listFilterOrder = [
-    {"name": "All"},
-    {"name": "Pending"},
-    {"name": "Shipped"},
-    {"name": "Partial"},
-    {"name": "Completed"},
-  ];
-
-  int _selectedFilterOrderIndex = 0;
+  const FilterOrderSection({
+    super.key,
+    required this.onFilterChanged,
+    required this.activeFilter,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> listFilterOrder = [
+      {"name": "All"},
+      {"name": "Pending"},
+      {"name": "Partial"},
+      {"name": "Shipped"},
+      {"name": "Completed"},
+    ];
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: _listFilterOrder.asMap().entries.map((entry) {
+        children: listFilterOrder.asMap().entries.map((entry) {
           final index = entry.key;
           final e = entry.value;
-          final isSelected = _selectedFilterOrderIndex == index;
+          // Cek status terpilih langsung dari property activeFilter (dari ViewModel)
+          final isSelected = activeFilter == index;
+
           return Padding(
             padding: const EdgeInsets.only(right: 4),
             child: FilterChip(
               onSelected: (value) {
-                setState(() {
-                  _selectedFilterOrderIndex = index;
-                });
-                widget.onFilterChanged(index);
+                // Langsung trigger fungsi callback, state diurus oleh Riverpod
+                onFilterChanged(index);
               },
               label: Text(
                 e["name"].toString(),
