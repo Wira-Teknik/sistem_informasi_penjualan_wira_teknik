@@ -5,16 +5,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_payment_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_detail_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/customer_billing_response_model.dart';
 
 abstract class PaymentRepository {
-  Future<List<CustomerBillingModel>> getPayments({String? query});
-  Future<List<CustomerBillingModel>> searchCustomerBilling({
+  Future<List<CustomerBillingModel>> getCustomerBillings({
     String? query,
     String? startDate,
     String? endDate,
     String? status,
   });
+  Future<CustomerBillingDetailModel> getCustomerBillingDetail(
+    String customerName,
+  );
   Future<void> addPayment(AddPaymentRequest request);
   Future<void> updatePayment(String id, double paymentTotal);
 }
@@ -24,24 +28,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
   PaymentRepositoryImpl(this._dio);
 
   @override
-  Future<List<CustomerBillingModel>> getPayments({String? query}) async {
-    try {
-      final response = await _dio.get(
-        '/payments',
-        queryParameters: query != null && query.isNotEmpty
-            ? {'q': query}
-            : null,
-      );
-      final result = CustomerBillingResponseModel.fromJson(response.data);
-      return result.data;
-    } on DioException catch (e) {
-      debugPrint('ERROR BILLING: ${e.response?.data}');
-      throw Exception(e.error ?? 'Gagal memuat data tagihan');
-    }
-  }
-
-  @override
-  Future<List<CustomerBillingModel>> searchCustomerBilling({
+  Future<List<CustomerBillingModel>> getCustomerBillings({
     String? query,
     String? startDate,
     String? endDate,
@@ -80,9 +67,24 @@ class PaymentRepositoryImpl implements PaymentRepository {
   }
 
   @override
+  Future<CustomerBillingDetailModel> getCustomerBillingDetail(
+    String customerName,
+  ) async {
+    try {
+      final response = await _dio.get(
+        '/payments/customer/${Uri.encodeComponent(customerName)}',
+      );
+
+      return CustomerBillingDetailModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      debugPrint('ERROR CUSTOMER DETAIL: ${e.response?.data}');
+      throw Exception(e.error ?? 'Gagal memuat detail tagihan customer');
+    }
+  }
+
+  @override
   Future<void> addPayment(AddPaymentRequest request) async {
     try {
-      // details dikirim sebagai JSON string sesuai dokumentasi API
       final detailsJson = jsonEncode(
         request.details.map((e) => e.toJson()).toList(),
       );

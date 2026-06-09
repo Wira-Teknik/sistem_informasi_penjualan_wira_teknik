@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info_message_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -52,11 +53,11 @@ String formatDate(String dateStr) {
 }
 
 Future<void> openExternalUrl(BuildContext context, String url) async {
-  final uri = Uri.parse(url);
+  final uri = Uri.parse(AppStrings.imageUrl + url);
 
   try {
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
     } else {
       if (!context.mounted) return;
 

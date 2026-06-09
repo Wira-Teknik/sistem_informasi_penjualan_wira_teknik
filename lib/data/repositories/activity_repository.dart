@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/activity_response_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/activity_response_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/dashboard_model.dart';
 
 abstract class ActivityRepository {

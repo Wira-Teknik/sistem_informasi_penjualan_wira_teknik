@@ -191,10 +191,6 @@ class _ShippingItemTile extends StatelessWidget {
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
 
-  String _formatRupiah(double value) {
-    return 'Rp ${value.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -233,13 +229,13 @@ class _ShippingItemTile extends StatelessWidget {
               children: [
                 Text(item.productName.toUpperCase(), style: semiBoldTextStyle),
                 const SizedBox(height: 4),
-                Text(
-                  _formatRupiah(item.unitPrice),
-                  style: boldTextStyle.copyWith(
-                    color: primaryColor,
-                    fontSize: 12,
-                  ),
-                ),
+                // Text(
+                //   formatNumberRupiah(item.unitPrice.toString()),
+                //   style: boldTextStyle.copyWith(
+                //     color: primaryColor,
+                //     fontSize: 12,
+                //   ),
+                // ),
                 const SizedBox(height: 10),
 
                 // Quantity control

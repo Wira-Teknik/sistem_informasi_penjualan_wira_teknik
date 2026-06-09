@@ -4,7 +4,6 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_cons
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment/detail_payment_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
@@ -48,9 +47,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 builder: (context) {
                   return ReusableAdvanceFilter(
                     title: 'Filter Pembayaran',
-                    initialStartDate: state.startDate, // start_date
-                    initialEndDate: state.endDate, // end_date
-                    initialStatus: state.status, // status
+                    initialStartDate: state.startDate,
+                    initialEndDate: state.endDate,
+                    initialStatus: state.status,
                     hasActiveFilter: state.hasActiveFilter,
 
                     customTextFields: [
@@ -184,7 +183,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => DetailPaymentScreen(
-                    billing: state.filteredBillings[index],
+                    customerName: state.filteredBillings[index].customerName,
                   ),
                 ),
               );
@@ -200,7 +199,7 @@ class _CustomerBillingCard extends StatefulWidget {
   final CustomerBillingModel billing;
   final String Function(int) formatRupiah;
   final String Function(String) formatDate;
-  final ValueChanged<OrderModel> onOrderTap;
+  final ValueChanged<BillingOrderModel> onOrderTap;
 
   const _CustomerBillingCard({
     required this.billing,
@@ -214,7 +213,6 @@ class _CustomerBillingCard extends StatefulWidget {
 }
 
 class _CustomerBillingCardState extends State<_CustomerBillingCard> {
-  // Expand/collapse list order per customer
   bool _isExpanded = true;
 
   Color _paymentStatusColor(String status) {
@@ -328,16 +326,16 @@ class _CustomerBillingCardState extends State<_CustomerBillingCard> {
               height: 1,
               color: semiSecondaryColor.withValues(alpha: 0.1),
             ),
-            ...widget.billing.orders.map(
-              (order) => _OrderItem(
-                order: order,
+            ...widget.billing.orders.map((billingOrder) {
+              return _OrderItem(
+                billingOrder: billingOrder,
                 formatRupiah: widget.formatRupiah,
                 formatDate: widget.formatDate,
                 paymentStatusColor: _paymentStatusColor,
                 paymentStatusLabel: _paymentStatusLabel,
-                onTap: () => widget.onOrderTap(order),
-              ),
-            ),
+                onTap: () => widget.onOrderTap(billingOrder),
+              );
+            }),
           ],
         ],
       ),
@@ -346,7 +344,7 @@ class _CustomerBillingCardState extends State<_CustomerBillingCard> {
 }
 
 class _OrderItem extends StatelessWidget {
-  final OrderModel order;
+  final BillingOrderModel billingOrder;
   final String Function(int) formatRupiah;
   final String Function(String) formatDate;
   final Color Function(String) paymentStatusColor;
@@ -354,7 +352,7 @@ class _OrderItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const _OrderItem({
-    required this.order,
+    required this.billingOrder,
     required this.formatRupiah,
     required this.formatDate,
     required this.paymentStatusColor,
@@ -376,11 +374,11 @@ class _OrderItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  order.transactionNo,
+                  billingOrder.transactionNo,
                   style: boldTextStyle.copyWith(fontSize: 12),
                 ),
                 Text(
-                  formatDate(order.orderDate),
+                  formatDate(billingOrder.orderDate),
                   style: mediumTextStyle.copyWith(
                     fontSize: 10,
                     color: semiSecondaryColor,
@@ -391,8 +389,8 @@ class _OrderItem extends StatelessWidget {
             const SizedBox(width: 30),
             // Status pembayaran
             CustomBadge(
-              label: paymentStatusLabel(order.paymentStatus),
-              badgeColor: paymentStatusColor(order.paymentStatus),
+              label: paymentStatusLabel(billingOrder.paymentStatus),
+              badgeColor: paymentStatusColor(billingOrder.paymentStatus),
             ),
             const Spacer(),
             // Total
@@ -407,7 +405,7 @@ class _OrderItem extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  formatRupiah(order.totalAmountToPay),
+                  formatRupiah(billingOrder.totalAmountToPay),
                   style: boldTextStyle.copyWith(
                     fontSize: 12,
                     color: primaryColor,

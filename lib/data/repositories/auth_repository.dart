@@ -5,11 +5,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/jwt_utils.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/email_sender_response_model.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/login_response_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/email_sender_response_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/login_response_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/reset_password_response_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/user_model.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/verify_code_response_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/verify_code_response_model.dart';
 
 abstract class AuthRepository {
   Future<LoginResponseModel> login(String username, String password);

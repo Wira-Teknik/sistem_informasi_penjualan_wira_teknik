@@ -12,7 +12,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 
 class EditOrderScreen extends ConsumerStatefulWidget {
-  final OrderModel order;
+  final OrderDetailModel order;
   const EditOrderScreen({super.key, required this.order});
 
   @override
@@ -179,6 +179,7 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
                   controller: _poNoController,
                   label: "Nomor PO",
                   prefixIcon: Icons.content_paste_outlined,
+                  readOnly: true,
                   validator: (v) =>
                       v == null || v.isEmpty ? 'Nomor PO wajib diisi' : null,
                 ),
@@ -206,6 +207,7 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
                   controller: _nameController,
                   label: "Nama Konsumen",
                   prefixIcon: Icons.badge_outlined,
+                  readOnly: true,
                   validator: (v) =>
                       v == null || v.isEmpty ? 'Nama wajib diisi' : null,
                 ),

@@ -19,7 +19,7 @@ class DioClient {
   static Dio createDio(List<Interceptor> extraInterceptors) {
     final dio = Dio(
       BaseOptions(
-        baseUrl: "https://wirateknik.backendify.my.id/api/v1",
+        baseUrl: AppStrings.baseUrl,
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         headers: {

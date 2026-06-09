@@ -17,6 +17,10 @@ abstract class ShipmentRepository {
     required String category,
   });
   Future<List<AttachmentModel>> getAttachments(String shipmentId);
+  Future<void> updateShipment(
+    String shipmentId,
+    List<Map<String, dynamic>> items,
+  );
 }
 
 class ShipmentRepositoryImpl implements ShipmentRepository {
@@ -142,6 +146,19 @@ class ShipmentRepositoryImpl implements ShipmentRepository {
     } on DioException catch (e) {
       debugPrint('ERROR GET ATTACHMENTS: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal memuat dokumen');
+    }
+  }
+
+  @override
+  Future<void> updateShipment(
+    String shipmentId,
+    List<Map<String, dynamic>> items,
+  ) async {
+    try {
+      await _dio.put('/shipments/$shipmentId', data: {'items': items});
+    } on DioException catch (e) {
+      debugPrint('ERROR UPDATE SHIPMENT: ${e.response?.data}');
+      throw Exception(e.error ?? 'Gagal mengubah pengiriman');
     }
   }
 }

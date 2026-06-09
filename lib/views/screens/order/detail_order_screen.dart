@@ -4,6 +4,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_cons
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/shipment_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/order_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/shipment_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/delivery/add_delivery_screen.dart';
@@ -13,6 +14,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appb
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/dokumen_pendukung_dialog.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/edit_shipment_dialog_widget.dart';
 
 class DetailOrderScreen extends ConsumerStatefulWidget {
   final OrderModel order;
@@ -23,23 +25,34 @@ class DetailOrderScreen extends ConsumerStatefulWidget {
 }
 
 class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
-  late OrderModel _order;
+  OrderDetailModel? _orderDetail;
+  OrderModel? _order;
 
   @override
   void initState() {
     super.initState();
     _order = widget.order;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final value = await ref
+          .read(orderViewModelProvider.notifier)
+          .getOrderDetail(widget.order.id);
+
+      if (mounted && value != null) {
+        setState(() {
+          _orderDetail = value;
+        });
+      }
+    });
   }
 
   // Refresh dari list order di viewmodel
   Future<void> _onRefresh() async {
     final updated = await ref
         .read(orderViewModelProvider.notifier)
-        .refreshDetail(_order.id);
-    debugPrint('UPDATED ORDER: ${updated?.shipments.length}');
-    // Update tampilan jika berhasil
+        .getOrderDetail(_order!.id);
     if (updated != null) {
-      setState(() => _order = updated);
+      setState(() => _orderDetail = updated);
     }
   }
 
@@ -80,125 +93,165 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
       appBar: CustomAppbar(
         title: "Detail Pesanan",
         actions: [
-          if (_order.orderStatus.toUpperCase() == "PENDING")
+          if (_orderDetail == null)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.only(right: 16.0),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: primaryColor,
+                    strokeWidth: 2,
+                  ),
+                ),
+              ),
+            )
+          else if (_order!.orderStatus.toUpperCase() == "PENDING")
             IconButton(
               onPressed: () async {
                 final updated = await Navigator.push<bool>(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => EditOrderScreen(order: _order),
+                    builder: (context) => EditOrderScreen(order: _orderDetail!),
                   ),
                 );
 
-                // Jika ada update, ambil data terbaru dari state
-                if (updated == true) {
+                if (updated == true && mounted) {
                   final latest = ref
                       .read(orderViewModelProvider)
                       .orders
                       .firstWhere(
-                        (o) => o.id == _order.id,
-                        orElse: () => _order,
+                        (o) => o.id == _orderDetail!.id,
+                        orElse: () => _order!,
                       );
+                  final value = await ref
+                      .read(orderViewModelProvider.notifier)
+                      .getOrderDetail(latest.id);
 
-                  setState(() => _order = latest);
+                  if (mounted && value != null) {
+                    setState(() {
+                      _orderDetail = value;
+                    });
+                  }
                 }
               },
-              icon: ImageIcon(
-                const AssetImage("assets/icons/edit_pesanan.png"),
+              icon: const ImageIcon(
+                AssetImage("assets/icons/edit_pesanan.png"),
                 color: secondaryColor,
                 size: 20,
               ),
             ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _onRefresh,
-        color: primaryColor,
-        backgroundColor: whiteColor,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Informasi pesanan
-              _buildOrderInfoCard(),
-              const SizedBox(height: 20),
-
-              // Informasi konsumen
-              Text("INFORMASI KONSUMEN", style: boldTextStyle),
-              const SizedBox(height: 12),
-              _buildRecipientCard(),
-              const SizedBox(height: 20),
-
-              // Barang pesanan
-              Text(
-                "BARANG PESANAN (${_order.items.length})",
-                style: boldTextStyle,
-              ),
-              const SizedBox(height: 12),
-              _buildItemsCard(),
-              const SizedBox(height: 20),
-
-              // Status pembayaran
-              Text("STATUS PEMBAYARAN", style: boldTextStyle),
-              const SizedBox(height: 12),
-              _buildPaymentCard(),
-              const SizedBox(height: 20),
-
-              // Pengiriman
-              if (_order.shipments.isNotEmpty) ...[
-                Text("PENGIRIMAN", style: boldTextStyle),
-                const SizedBox(height: 12),
-                ..._order.shipments.map(
-                  (shipment) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _buildShipmentCard(shipment),
+      body: (_orderDetail == null)
+          ? const Center(
+              child: Padding(
+                padding: EdgeInsets.only(right: 16.0),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: primaryColor,
+                    strokeWidth: 2,
                   ),
                 ),
-                const SizedBox(height: 8),
-              ],
-
-              // Tombol buat pengiriman
-              if (_order.orderStatus.toUpperCase() != "COMPLETED" &&
-                  _order.orderStatus.toUpperCase() != "SHIPPED")
-                CustomFilledbutton(
-                  title: "Buat Pengiriman",
-                  iconButton: Icons.edit_note_rounded,
-                  buttonRadius: 12,
-                  onPressed: () async {
-                    final result = await Navigator.push<bool>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddDeliveryScreen(order: _order),
-                      ),
-                    );
-
-                    // Jika berhasil tambah pengiriman → refresh detail
-                    if (result == true && mounted) {
-                      final updated = await ref
-                          .read(orderViewModelProvider.notifier)
-                          .refreshDetail(_order.id);
-
-                      if (updated != null && mounted) {
-                        setState(() => _order = updated);
-                      }
-                    }
-                  },
-                )
-              else ...[
-                const SizedBox(height: 12),
-                Text(
-                  "Status ${_order.orderStatus} seluruh barang sudah dikirim, tidak dapat membuat pengiriman.",
-                  textAlign: TextAlign.center,
-                  style: regularTextStyle.copyWith(color: semiSecondaryColor),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _onRefresh,
+              color: primaryColor,
+              backgroundColor: whiteColor,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 1,
                 ),
-              ],
-              const SizedBox(height: 60),
-            ],
-          ),
-        ),
-      ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Informasi pesanan
+                    _buildOrderInfoCard(),
+                    const SizedBox(height: 20),
+
+                    // Informasi konsumen
+                    Text("INFORMASI KONSUMEN", style: boldTextStyle),
+                    const SizedBox(height: 12),
+                    _buildRecipientCard(),
+                    const SizedBox(height: 20),
+
+                    // Barang pesanan
+                    Text(
+                      "BARANG PESANAN (${_orderDetail?.items.length ?? 0})",
+                      style: boldTextStyle,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildItemsCard(),
+                    const SizedBox(height: 20),
+
+                    // Status pembayaran
+                    Text("STATUS PEMBAYARAN", style: boldTextStyle),
+                    const SizedBox(height: 12),
+                    _buildPaymentCard(),
+                    const SizedBox(height: 20),
+
+                    // Pengiriman
+                    if (_orderDetail?.shipments.isNotEmpty == true) ...[
+                      Text("PENGIRIMAN", style: boldTextStyle),
+                      const SizedBox(height: 12),
+                      ..._orderDetail!.shipments.map(
+                        (shipment) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildShipmentCard(shipment),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+
+                    // Tombol buat pengiriman
+                    if (_order!.orderStatus.toUpperCase() != "COMPLETED" &&
+                        _order!.orderStatus.toUpperCase() != "SHIPPED")
+                      CustomFilledbutton(
+                        title: "Buat Pengiriman",
+                        iconButton: Icons.edit_note_rounded,
+                        buttonRadius: 12,
+                        onPressed: () async {
+                          final result = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  AddDeliveryScreen(order: _orderDetail!),
+                            ),
+                          );
+
+                          // Jika berhasil tambah pengiriman → refresh detail
+                          if (result == true && mounted) {
+                            final updated = await ref
+                                .read(orderViewModelProvider.notifier)
+                                .getOrderDetail(_order!.id);
+
+                            if (updated != null && mounted) {
+                              setState(() => _orderDetail = updated);
+                            }
+                          }
+                        },
+                      )
+                    else ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        "Status ${_order!.orderStatus} seluruh barang sudah dikirim, tidak dapat membuat pengiriman.",
+                        textAlign: TextAlign.center,
+                        style: regularTextStyle.copyWith(
+                          color: semiSecondaryColor,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 60),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 
@@ -232,20 +285,20 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                _order.transactionNo,
+                _orderDetail?.transactionNo ?? '',
                 style: boldTextStyle.copyWith(fontSize: 20),
               ),
               const SizedBox(height: 4),
               Text(
-                "Updated: ${formatDate(_order.updatedAt)}",
+                "Updated: ${formatDate(_orderDetail!.updatedAt)}",
                 style: regularTextStyle.copyWith(fontSize: 12),
               ),
             ],
           ),
           const Spacer(),
           CustomBadge(
-            label: _orderStatusLabel(_order.orderStatus),
-            badgeColor: _orderStatusColor(_order.orderStatus),
+            label: _orderStatusLabel(_order!.orderStatus),
+            badgeColor: _orderStatusColor(_order!.orderStatus),
           ),
         ],
       ),
@@ -273,12 +326,12 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _order.recipientName.toUpperCase(),
+                      _order!.recipientName.toUpperCase(),
                       style: boldTextStyle,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      "No PO: ${_order.poNo}",
+                      "No PO: ${_order!.poNo}",
                       style: regularTextStyle.copyWith(
                         fontSize: 12,
                         color: semiSecondaryColor,
@@ -292,15 +345,14 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
           const SizedBox(height: 14),
 
           Text(
-            _order.recipientEmail,
+            _orderDetail?.recipientEmail ?? '',
             style: regularTextStyle.copyWith(color: semiSecondaryColor),
           ),
           const SizedBox(height: 4),
           Text(
-            _order.recipientPhone,
+            _orderDetail?.recipientPhone ?? '',
             style: regularTextStyle.copyWith(color: semiSecondaryColor),
           ),
-
           const SizedBox(height: 10),
           Divider(color: semiSecondaryColor.withValues(alpha: 0.2)),
           const SizedBox(height: 10),
@@ -316,7 +368,7 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  _order.recipientAddress,
+                  _orderDetail?.recipientAddress ?? '',
                   style: regularTextStyle.copyWith(color: semiSecondaryColor),
                 ),
               ),
@@ -336,7 +388,7 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Column(
-            children: _order.items.asMap().entries.map((entry) {
+            children: _orderDetail!.items.asMap().entries.map((entry) {
               final item = entry.value;
 
               return Column(
@@ -365,8 +417,8 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
             }).toList(),
           ),
           Text(
-            _order.items.any((item) => item.remainingQty > 0)
-                ? "sisa ${_order.items.where((item) => item.remainingQty > 0).first.remainingQty} barang belum dikirim"
+            _orderDetail!.items.any((item) => item.remainingQty > 0)
+                ? "sisa ${_orderDetail!.items.where((item) => item.remainingQty > 0).first.remainingQty} barang belum dikirim"
                 : "semua barang sudah dikirim",
             style: regularTextStyle.copyWith(
               fontSize: 12,
@@ -390,7 +442,7 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
             children: [
               Text("Status Sekarang", style: semiBoldTextStyle),
               const Spacer(),
-              _order.paymentStatus.toUpperCase() == "PAID"
+              _orderDetail!.paymentStatus.toUpperCase() == "PAID"
                   ? CustomBadge(label: "Paid", badgeColor: greenColor)
                   : CustomBadge(label: "Unpaid", badgeColor: redColor),
             ],
@@ -407,7 +459,7 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
               ),
               const Spacer(),
               Text(
-                formatRupiah(_order.totalAmount.toInt()),
+                formatRupiah(_orderDetail!.totalAmountToPay),
                 style: boldTextStyle.copyWith(color: primaryColor),
               ),
             ],
@@ -432,7 +484,7 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
                   height: 18,
                   width: 18,
                   child: IconButton(
-                    onPressed: () {},
+                    onPressed: () => _showEditShipmentDialog(context, shipment),
                     icon: ImageIcon(
                       const AssetImage("assets/icons/edit_pengiriman_icon.png"),
                       size: 18,
@@ -461,19 +513,16 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
 
           // Item pengiriman — match dengan item order by order_item_id
           ...shipment.items.map((shipItem) {
-            final orderItem = _order.items.firstWhere(
+            final orderItem = _orderDetail!.items.firstWhere(
               (o) => o.id == shipItem.orderItemId,
               orElse: () => OrderItemModel(
                 id: '',
-                orderId: '',
                 productName: 'Produk tidak diketahui',
                 orderQty: 0,
                 remainingQty: 0,
                 unitPrice: 0,
                 ppn: 0,
                 subtotal: 0,
-                createdAt: '',
-                updatedAt: '',
               ),
             );
 
@@ -532,7 +581,6 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
       builder: (context) => ConfirmReceivedDialog(
         shipmentId: shipmentId,
         onSuccess: () {
-          // Refresh detail setelah berhasil
           _onRefresh();
         },
       ),
@@ -540,12 +588,30 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
   }
 
   void _showDokumenDialog(BuildContext context, String shipmentId) {
-    // Reset & load attachments saat dialog dibuka
     ref.read(shipmentViewModelProvider.notifier).loadAttachments(shipmentId);
 
     showDialog(
       context: context,
       builder: (context) => DokumenPendukungDialog(shipmentId: shipmentId),
+    );
+  }
+
+  void _showEditShipmentDialog(BuildContext context, ShipmentModel shipment) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => EditShipmentDialogWidget(
+        shipment: shipment,
+        orderItems: _orderDetail!.items,
+        onSuccess: () async {
+          final updated = await ref
+              .read(orderViewModelProvider.notifier)
+              .getOrderDetail(_orderDetail!.id);
+          if (updated != null && mounted) {
+            setState(() => _orderDetail = updated);
+          }
+        },
+      ),
     );
   }
 

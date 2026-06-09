@@ -122,10 +122,8 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
 
             // Filter
             FilterOrderSection(
-              activeFilter:
-                  state.activeFilter, // Mengambil nilai terkini dari state
+              activeFilter: state.activeFilter,
               onFilterChanged: (index) {
-                // Memanggil method setFilter di ViewModel untuk mengubah state
                 ref.read(orderViewModelProvider.notifier).setFilter(index);
               },
             ),

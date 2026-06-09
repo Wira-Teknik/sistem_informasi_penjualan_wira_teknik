@@ -2,8 +2,8 @@ class AppStrings {
   AppStrings._();
 
   static const appName = 'Wira Teknik';
-  static const baseUrl = 'https://wirateknik.backendify.my.id/api/v1';
-  static const imageUrl = 'https://wirateknik.backendify.my.id';
+  static const baseUrl = 'https://wirateknik.com/api/v1';
+  static const imageUrl = 'https://wirateknik.com';
 
   // endpoint
   static const loginEndpoint = '/auth/login';

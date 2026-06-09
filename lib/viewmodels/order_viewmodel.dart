@@ -18,7 +18,6 @@ class OrderState {
   final String? nextTransactionNo;
   final int activeFilter;
 
-  // ← Parameter advance filter
   final DateTime? startDate;
   final DateTime? endDate;
   final String poNo;
@@ -43,7 +42,6 @@ class OrderState {
     this.orderStatus = '',
   });
 
-  // Cek apakah ada filter aktif
   bool get hasActiveFilter =>
       startDate != null ||
       endDate != null ||
@@ -104,7 +102,6 @@ class OrderViewModel extends StateNotifier<OrderState> {
       _lastFetchTime == null ||
       DateTime.now().difference(_lastFetchTime!) > _cacheDuration;
 
-  // Pastikan indeks dan nilainya selaras dengan urutan di UI
   static const _filterStatus = {
     0: null, // All
     1: 'pending', // Pending
@@ -180,7 +177,6 @@ class OrderViewModel extends StateNotifier<OrderState> {
     }
   }
 
-  // Terapkan advance filter → hit API
   Future<void> applyAdvanceFilter({
     DateTime? startDate,
     DateTime? endDate,
@@ -199,7 +195,6 @@ class OrderViewModel extends StateNotifier<OrderState> {
     await loadOrders();
   }
 
-  // Reset semua filter
   Future<void> resetFilter() async {
     _lastFetchTime = null;
     state = state.copyWith(clearFilter: true);
@@ -214,30 +209,54 @@ class OrderViewModel extends StateNotifier<OrderState> {
   }
 
   void search(String query) {
+    _debounceTimer?.cancel();
+
     if (query.isEmpty) {
-      _debounceTimer?.cancel();
-      state = state.copyWith(
-        filteredOrders: _applyFilter(state.orders, state.activeFilter),
+      applyAdvanceFilter(
+        startDate: state.startDate,
+        endDate: state.endDate,
+        orderStatus: state.orderStatus,
+        poNo: '',
+        recipientName: '',
       );
       return;
     }
 
-    final keyword = query.toLowerCase();
-    final filtered = _applyFilter(state.orders, state.activeFilter)
-        .where(
-          (o) =>
-              o.poNo.toLowerCase().contains(keyword) ||
-              o.recipientName.toLowerCase().contains(keyword) ||
-              o.transactionNo.toLowerCase().contains(keyword),
-        )
-        .toList();
-    state = state.copyWith(filteredOrders: filtered);
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      await applyAdvanceFilter(
+        startDate: state.startDate,
+        endDate: state.endDate,
+        orderStatus: state.orderStatus,
+        recipientName: query,
+      );
+    });
   }
 
   List<OrderModel> _applyFilter(List<OrderModel> orders, int filterIndex) {
     final status = _filterStatus[filterIndex];
-    if (status == null) return orders;
-    return orders.where((o) => o.orderStatus == status).toList();
+
+    return orders.where((o) {
+      bool matchStatus = status == null || o.orderStatus == status;
+
+      bool matchPo =
+          state.poNo.isEmpty ||
+          o.poNo.toLowerCase().contains(state.poNo.toLowerCase());
+
+      bool matchName =
+          state.recipientName.isEmpty ||
+          o.recipientName.toLowerCase().contains(
+            state.recipientName.toLowerCase(),
+          );
+
+      if (state.recipientName.isNotEmpty && state.poNo.isEmpty) {
+        final keyword = state.recipientName.toLowerCase();
+        matchName =
+            o.recipientName.toLowerCase().contains(keyword) ||
+            o.poNo.toLowerCase().contains(keyword);
+      }
+
+      return matchStatus && matchPo && matchName;
+    }).toList();
   }
 
   Future<bool> addOrder(AddOrderRequest request) async {
@@ -257,7 +276,6 @@ class OrderViewModel extends StateNotifier<OrderState> {
     }
   }
 
-  // Ambil nomor transaksi berikutnya
   Future<void> fetchNextTransactionNo() async {
     state = state.copyWith(isLoadingTrxNo: true, clearError: true);
     try {
@@ -274,19 +292,15 @@ class OrderViewModel extends StateNotifier<OrderState> {
     }
   }
 
-  // Reset nomor transaksi setelah order dibuat
   void clearNextTransactionNo() {
     state = state.copyWith(clearTrxNo: true);
   }
 
-  // Hit API → update lokal → instan tanpa refetch semua
   Future<bool> updateOrder(String id, Map<String, dynamic> data) async {
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
-      // 1. Hit API — dapat data terbaru dari server
       final updatedOrder = await _repository.updateOrder(id, data);
 
-      // 2. Update lokal — ganti 1 item di list, tidak fetch ulang semua
       _updateOrderLocally(updatedOrder);
 
       state = state.copyWith(isSubmitting: false);
@@ -300,13 +314,21 @@ class OrderViewModel extends StateNotifier<OrderState> {
     }
   }
 
-  Future<OrderModel?> refreshDetail(String orderId) async {
+  Future<OrderDetailModel?> getOrderDetail(String orderId) async {
     state = state.copyWith(isRefreshingDetail: true, clearError: true);
     try {
       final updatedOrder = await _repository.getOrderDetail(orderId);
 
-      // Update juga di list agar konsisten
-      _updateOrderLocally(updatedOrder);
+      _updateOrderLocally(
+        OrderModel(
+          id: updatedOrder.id,
+          poNo: updatedOrder.poNo,
+          orderDate: updatedOrder.orderDate,
+          recipientName: updatedOrder.recipientName,
+          orderStatus: updatedOrder.orderStatus,
+          totalAmountToPay: updatedOrder.totalAmountToPay,
+        ),
+      );
 
       state = state.copyWith(isRefreshingDetail: false);
       return updatedOrder;

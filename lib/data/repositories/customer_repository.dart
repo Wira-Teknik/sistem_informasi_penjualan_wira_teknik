@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_model.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_response_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/customer_response_model.dart';
 
 abstract class CustomerRepository {
   Future<List<CustomerModel>> getCustomers();

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart'; // Pastikan BillingOrderModel dan PaymentModel terimport dari sini
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/payment_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/bukti_pembayaran_dialog_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
@@ -10,14 +10,14 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_fill
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/item_invoice_widget.dart';
 
 class OrderPaymentCard extends ConsumerStatefulWidget {
-  final OrderModel order;
+  final BillingOrderModel billingOrder;
   final String Function(int) formatRupiah;
   final Color Function(String) paymentStatusColor;
   final String Function(String) paymentStatusLabel;
 
   const OrderPaymentCard({
     super.key,
-    required this.order,
+    required this.billingOrder,
     required this.formatRupiah,
     required this.paymentStatusColor,
     required this.paymentStatusLabel,
@@ -46,7 +46,7 @@ class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header — PO, nama, badge status
+          // Header — PO, badge status
           Row(
             children: [
               Expanded(
@@ -54,16 +54,8 @@ class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.order.poNo,
+                      widget.billingOrder.poNo,
                       style: boldTextStyle.copyWith(fontSize: 16),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      widget.order.recipientName,
-                      style: mediumTextStyle.copyWith(
-                        fontSize: 14,
-                        color: semiSecondaryColor,
-                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
@@ -71,9 +63,11 @@ class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
               ),
               const SizedBox(width: 8),
               CustomBadge(
-                label: widget.paymentStatusLabel(widget.order.paymentStatus),
+                label: widget.paymentStatusLabel(
+                  widget.billingOrder.paymentStatus,
+                ),
                 badgeColor: widget.paymentStatusColor(
-                  widget.order.paymentStatus,
+                  widget.billingOrder.paymentStatus,
                 ),
               ),
             ],
@@ -94,7 +88,7 @@ class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
                       color: semiSecondaryColor.withValues(alpha: 0.5),
                     ),
                   ),
-                  Text(widget.order.orderDate, style: mediumTextStyle),
+                  Text(widget.billingOrder.orderDate, style: mediumTextStyle),
                 ],
               ),
               Column(
@@ -105,7 +99,7 @@ class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
                     style: boldTextStyle.copyWith(fontSize: 10),
                   ),
                   Text(
-                    widget.formatRupiah(widget.order.totalAmountToPay),
+                    widget.formatRupiah(widget.billingOrder.totalAmountToPay),
                     style: boldTextStyle.copyWith(
                       color: primaryColor,
                       fontSize: 14,
@@ -116,21 +110,29 @@ class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
             ],
           ),
 
-          // Riwayat pembayaran dari shipments → invoices
-          if (widget.order.shipments.isNotEmpty) ...[
-            const SizedBox(height: 10),
+          if (widget.billingOrder.payments.isNotEmpty) ...[
+            const SizedBox(height: 12),
             Divider(color: semiSecondaryColor.withValues(alpha: 0.1)),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
 
-            ...widget.order.payments
-                .where((p) => p.details.isNotEmpty)
-                .map(
-                  (payment) => ItemInvoiceWidget(
-                    payment: payment,
-                    formatRupiah: widget.formatRupiah,
-                    paymentStatus: widget.order.paymentStatus,
-                  ),
-                ),
+            Text(
+              "Histori Pembayaran",
+              style: semiBoldTextStyle.copyWith(
+                fontSize: 12,
+                color: semiSecondaryColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            ...widget.billingOrder.payments.map(
+              (payment) => ItemInvoiceWidget(
+                paymentId: payment.paymentId,
+                paymentTotal: payment.allocatedAmount,
+                paymentDate: payment.paymentDate,
+                formatRupiah: widget.formatRupiah,
+                paymentStatus: widget.billingOrder.paymentStatus,
+              ),
+            ),
           ],
 
           const SizedBox(height: 10),
@@ -148,8 +150,10 @@ class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
                   style: boldTextStyle.copyWith(fontSize: 10),
                 ),
                 Text(
-                  widget.order.remainingBalance != 0
-                      ? widget.formatRupiah(widget.order.remainingBalance)
+                  widget.billingOrder.remainingBalance > 0
+                      ? widget.formatRupiah(
+                          widget.billingOrder.remainingBalance,
+                        )
                       : "Lunas",
                   style: boldTextStyle.copyWith(
                     color: primaryColor,
@@ -162,7 +166,7 @@ class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
           const SizedBox(height: 10),
 
           // Tombol lihat bukti
-          if (widget.order.payments.isNotEmpty)
+          if (widget.billingOrder.payments.isNotEmpty)
             SizedBox(
               width: 149,
               child: CustomFilledbutton(
@@ -172,7 +176,7 @@ class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
                 buttonColor: secondaryColor,
                 onPressed: () => _showBuktiPembayaranDialog(
                   context,
-                  widget.order.payments, // ← payment/invoice id
+                  widget.billingOrder.payments,
                 ),
               ),
             ),

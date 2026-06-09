@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/history_transaction_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/history_transaction_response_model.dart';
 
 abstract class HistoryTransactionRepository {
   Future<List<HistoryTransactionModel>> getHistory({
@@ -35,11 +36,10 @@ class HistoryTransactionRepositoryImpl implements HistoryTransactionRepository {
     String? status,
   }) async {
     try {
-      // Siapkan parameter query dinamis
       final Map<String, dynamic> queryParams = {};
 
       if (search != null && search.isNotEmpty) {
-        queryParams['search'] = search; // API butuh key 'search'
+        queryParams['search'] = search;
       }
       if (startDate != null && startDate.isNotEmpty) {
         queryParams['start_date'] = startDate;
@@ -80,11 +80,9 @@ class HistoryTransactionRepositoryImpl implements HistoryTransactionRepository {
         queryParams['status'] = status;
       }
 
-      // Ambil direktori penyimpanan
       final dir = await getApplicationDocumentsDirectory();
       final filePath = '${dir.path}/$fileName';
 
-      // Download file sebagai bytes
       await _dio
           .get(
             endpoint,
@@ -99,7 +97,7 @@ class HistoryTransactionRepositoryImpl implements HistoryTransactionRepository {
             await file.writeAsBytes(response.data);
           });
 
-      return filePath; // ← return path untuk dibuka di UI
+      return filePath;
     } on DioException catch (e) {
       debugPrint('ERROR EXPORT: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal mengunduh file');

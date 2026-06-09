@@ -5,7 +5,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dar
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_order_request_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/next_trx_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_response_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/order_response_model.dart';
 
 abstract class OrderRepository {
   Future<List<OrderModel>> getOrders({
@@ -18,7 +18,7 @@ abstract class OrderRepository {
   Future<OrderModel> updateOrder(String id, Map<String, dynamic> data);
   Future<void> addOrder(AddOrderRequest request);
   Future<NextTrxModel> getNextTransactionNo();
-  Future<OrderModel> getOrderDetail(String orderId);
+  Future<OrderDetailModel> getOrderDetail(String orderId);
 }
 
 class OrderRepositoryImpl implements OrderRepository {
@@ -87,10 +87,10 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   @override
-  Future<OrderModel> getOrderDetail(String orderId) async {
+  Future<OrderDetailModel> getOrderDetail(String orderId) async {
     try {
       final response = await _dio.get('/orders/$orderId');
-      return OrderModel.fromJson(response.data['data']);
+      return OrderDetailModel.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw Exception(e.error ?? 'Gagal memuat detail pesanan');
     }

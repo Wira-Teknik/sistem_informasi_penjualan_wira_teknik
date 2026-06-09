@@ -15,7 +15,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_uplo
 import 'package:intl/intl.dart';
 
 class AddDeliveryScreen extends ConsumerStatefulWidget {
-  final OrderModel order;
+  final OrderDetailModel order;
 
   const AddDeliveryScreen({super.key, required this.order});
 
@@ -33,8 +33,6 @@ class _AddDeliveryScreenState extends ConsumerState<AddDeliveryScreen> {
   File? _bonPesanan;
   File? _invoiceFile;
 
-  // Item yang dipilih dari BarangDikirimWidget
-  // key: orderItemId, value: qty yang akan dikirim
   final Map<String, int> _selectedItems = {};
 
   @override

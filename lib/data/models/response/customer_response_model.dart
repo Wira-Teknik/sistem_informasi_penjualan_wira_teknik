@@ -1,4 +1,4 @@
-import 'customer_model.dart';
+import '../customer_model.dart';
 
 class CustomerResponseModel {
   final bool success;
