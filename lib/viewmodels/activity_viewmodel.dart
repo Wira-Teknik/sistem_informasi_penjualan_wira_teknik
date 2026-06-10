@@ -40,6 +40,7 @@ class ActivityViewModel extends StateNotifier<ActivityState> {
   final ActivityRepository _repository;
 
   Timer? _debounceTimer;
+  // ignore: unused_field
   String _lastQuery = '';
 
   ActivityViewModel(this._repository) : super(const ActivityState()) {

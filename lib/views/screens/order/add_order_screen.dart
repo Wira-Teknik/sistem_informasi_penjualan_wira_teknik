@@ -41,6 +41,9 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
   // Customer yang dipilih
   CustomerModel? _selectedCustomer;
 
+  // ignore: unused_field
+  DateTime? _selectedDate;
+
   // Method auto-fill dari customer yang dipilih
   void _fillFromCustomer(CustomerModel customer) {
     setState(() {
@@ -51,9 +54,6 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
       _addressController.text = customer.customerAddress;
     });
   }
-
-  // ignore: unused_field
-  DateTime? _selectedDate;
 
   @override
   void dispose() {

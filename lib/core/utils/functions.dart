@@ -86,3 +86,25 @@ Future<void> openExternalUrl(BuildContext context, String url) async {
     );
   }
 }
+
+Future<DateTime?> pickCustomDate(
+  BuildContext context, {
+  DateTime? initialDate,
+  DateTime? firstDate,
+  DateTime? lastDate,
+}) async {
+  final picked = await showDatePicker(
+    context: context,
+    initialDate: initialDate ?? DateTime.now(),
+    firstDate: firstDate ?? DateTime(2000),
+    lastDate: lastDate ?? DateTime(2050),
+    builder: (context, child) => Theme(
+      data: Theme.of(
+        context,
+      ).copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
+      child: child!,
+    ),
+  );
+
+  return picked;
+}

@@ -46,7 +46,6 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
     });
   }
 
-  // Refresh dari list order di viewmodel
   Future<void> _onRefresh() async {
     final updated = await ref
         .read(orderViewModelProvider.notifier)
@@ -56,35 +55,44 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
     }
   }
 
-  // Warna badge order status
-  Color _orderStatusColor(String status) {
-    return switch (status.toLowerCase()) {
-      'pending' => primaryColor,
-      'partial' => yellowColor,
-      'shipped' => yellowColor,
-      'completed' => greenColor,
-      _ => semiSecondaryColor,
-    };
+  void _showConfirmReceivedDialog(BuildContext context, String shipmentId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => ConfirmReceivedDialog(
+        shipmentId: shipmentId,
+        onSuccess: () {
+          _onRefresh();
+        },
+      ),
+    );
   }
 
-  // Label badge order status
-  String _orderStatusLabel(String status) {
-    return switch (status.toLowerCase()) {
-      'pending' => 'Pending',
-      'partial' => 'Partial',
-      'shipped' => 'Shipped',
-      'completed' => 'Completed',
-      _ => status,
-    };
+  void _showDokumenDialog(BuildContext context, String shipmentId) {
+    ref.read(shipmentViewModelProvider.notifier).loadAttachments(shipmentId);
+    showDialog(
+      context: context,
+      builder: (context) => DokumenPendukungDialog(shipmentId: shipmentId),
+    );
   }
 
-  // Warna badge shipping status
-  Color _shippingStatusColor(String status) {
-    return switch (status.toLowerCase()) {
-      'dikirim' => yellowColor,
-      'diterima' => greenColor,
-      _ => semiSecondaryColor,
-    };
+  void _showEditShipmentDialog(BuildContext context, ShipmentModel shipment) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => EditShipmentDialogWidget(
+        shipment: shipment,
+        orderItems: _orderDetail!.items,
+        onSuccess: () async {
+          final updated = await ref
+              .read(orderViewModelProvider.notifier)
+              .getOrderDetail(_orderDetail!.id);
+          if (updated != null && mounted) {
+            setState(() => _orderDetail = updated);
+          }
+        },
+      ),
+    );
   }
 
   @override
@@ -225,7 +233,6 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
                             ),
                           );
 
-                          // Jika berhasil tambah pengiriman → refresh detail
                           if (result == true && mounted) {
                             final updated = await ref
                                 .read(orderViewModelProvider.notifier)
@@ -574,47 +581,6 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
     );
   }
 
-  void _showConfirmReceivedDialog(BuildContext context, String shipmentId) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => ConfirmReceivedDialog(
-        shipmentId: shipmentId,
-        onSuccess: () {
-          _onRefresh();
-        },
-      ),
-    );
-  }
-
-  void _showDokumenDialog(BuildContext context, String shipmentId) {
-    ref.read(shipmentViewModelProvider.notifier).loadAttachments(shipmentId);
-
-    showDialog(
-      context: context,
-      builder: (context) => DokumenPendukungDialog(shipmentId: shipmentId),
-    );
-  }
-
-  void _showEditShipmentDialog(BuildContext context, ShipmentModel shipment) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => EditShipmentDialogWidget(
-        shipment: shipment,
-        orderItems: _orderDetail!.items,
-        onSuccess: () async {
-          final updated = await ref
-              .read(orderViewModelProvider.notifier)
-              .getOrderDetail(_orderDetail!.id);
-          if (updated != null && mounted) {
-            setState(() => _orderDetail = updated);
-          }
-        },
-      ),
-    );
-  }
-
   // Dekorasi card yang konsisten
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
@@ -624,5 +590,36 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
         BoxShadow(color: secondaryColor.withValues(alpha: 0.3), blurRadius: 1),
       ],
     );
+  }
+
+  // Warna badge order status
+  Color _orderStatusColor(String status) {
+    return switch (status.toLowerCase()) {
+      'pending' => primaryColor,
+      'partial' => yellowColor,
+      'shipped' => yellowColor,
+      'completed' => greenColor,
+      _ => semiSecondaryColor,
+    };
+  }
+
+  // Label badge order status
+  String _orderStatusLabel(String status) {
+    return switch (status.toLowerCase()) {
+      'pending' => 'Pending',
+      'partial' => 'Partial',
+      'shipped' => 'Shipped',
+      'completed' => 'Completed',
+      _ => status,
+    };
+  }
+
+  // Warna badge shipping status
+  Color _shippingStatusColor(String status) {
+    return switch (status.toLowerCase()) {
+      'dikirim' => yellowColor,
+      'diterima' => greenColor,
+      _ => semiSecondaryColor,
+    };
   }
 }

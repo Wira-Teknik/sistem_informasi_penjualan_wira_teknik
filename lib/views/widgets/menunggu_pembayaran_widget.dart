@@ -7,12 +7,12 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_bill
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 
 class MenungguPembayaranWidget extends StatefulWidget {
-  final CustomerBillingDetailModel billing;
+  final CustomerBillingDetailModel billingDetail;
   final ValueChanged<List<BillingOrderModel>> onOrdersChanged;
 
   const MenungguPembayaranWidget({
     super.key,
-    required this.billing,
+    required this.billingDetail,
     required this.onOrdersChanged,
   });
 
@@ -24,13 +24,13 @@ class MenungguPembayaranWidget extends StatefulWidget {
 class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
   Map<String, bool> _selected = {};
 
-  List<BillingOrderModel> get _unpaidOrders => widget.billing.orders.where((o) {
-    final isNotPaid = o.paymentStatus.toLowerCase() != 'paid';
-    return isNotPaid;
-  }).toList();
+  List<BillingOrderModel> get _unpaidOrders =>
+      widget.billingDetail.orders.where((o) {
+        return o.unpaidInvoiceTotal > 0;
+      }).toList();
 
-  bool get _hasUnshippedUnpaidOrders => widget.billing.orders.any(
-    (o) => o.paymentStatus.toLowerCase() != 'paid' && o.invoices.isEmpty,
+  bool get _hasUnshippedUnpaidOrders => widget.billingDetail.orders.any(
+    (o) => o.remainingBalance > 0 && o.unpaidInvoiceTotal == 0,
   );
 
   @override
@@ -248,7 +248,7 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
                           children: [
                             Text(
                               formatNumberRupiah(
-                                order.remainingBalance.toString(),
+                                order.unpaidInvoiceTotal.toString(),
                               ),
                               style: boldTextStyle.copyWith(
                                 fontSize: 14,

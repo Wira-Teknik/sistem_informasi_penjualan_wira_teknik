@@ -227,33 +227,16 @@ class HistoryTransactionViewModel
   Future<String?> exportToExcel() async {
     state = state.copyWith(isDownloading: true, clearError: true);
     try {
-      // PERHATIKAN: Saya menambahkan parameter query string ke endpoint export
-      // agar file excel yang di-download sesuai dengan filter yang aktif!
-
-      final Map<String, dynamic> queryParams = {};
-      if (state.startDate != null) {
-        queryParams['start_date'] = _formatDate(state.startDate);
-      }
-      if (state.endDate != null) {
-        queryParams['end_date'] = _formatDate(state.endDate);
-      }
-      if (state.searchQuery.isNotEmpty) {
-        queryParams['search'] = state.searchQuery;
-      }
-      if (state.status.isNotEmpty) queryParams['status'] = state.status;
-
-      // Susun URL String secara manual (atau pakai fungsi utilitas)
-      String endpoint = '/payments/history/export';
-      if (queryParams.isNotEmpty) {
-        endpoint +=
-            '?${Uri(queryParameters: queryParams.cast<String, String>()).query}';
-      }
-
       final filePath = await _repository.exportHistoryTransaction(
-        endpoint: endpoint,
+        endpoint: '/payments/history/export',
+        search: state.searchQuery.isNotEmpty ? state.searchQuery : null,
+        status: state.status.isNotEmpty ? state.status : null,
+        startDate: _formatDate(state.startDate),
+        endDate: _formatDate(state.endDate),
         fileName:
             'history_transaction_${DateTime.now().millisecondsSinceEpoch}.xlsx',
       );
+
       state = state.copyWith(isDownloading: false);
       return filePath;
     } on Exception catch (e) {

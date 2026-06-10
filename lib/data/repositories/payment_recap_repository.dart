@@ -229,11 +229,9 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
         queryParams['status'] = status;
       }
 
-      // Ambil direktori penyimpanan
       final dir = await getApplicationDocumentsDirectory();
       final filePath = '${dir.path}/$fileName';
 
-      // Download file sebagai bytes
       await _dio
           .get(
             endpoint,
@@ -248,7 +246,7 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
             await file.writeAsBytes(response.data);
           });
 
-      return filePath; // ← return path untuk dibuka di UI
+      return filePath;
     } on DioException catch (e) {
       debugPrint('ERROR EXPORT: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal mengunduh file');

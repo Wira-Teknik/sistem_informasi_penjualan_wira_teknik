@@ -33,7 +33,6 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await ref
           .read(paymentViewModelProvider.notifier)
@@ -52,91 +51,23 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
     });
   }
 
-  // void _syncBillingFromState(PaymentState state) {
-  //   final updated = state.billings.firstWhere(
-  //     (b) => b.customerName == _billing.customerName,
-  //     orElse: () => _billing,
-  //   );
-  //   if (updated != _billing) {
-  //     setState(() => _billing = updated);
-  //   }
-  // }
+  void _syncBillingFromState(PaymentState state) {
+    final updatedDetail = state.selectedCustomerDetail;
 
-  List<BillingOrderModel> get _filteredOrders {
-    final filterStatus = _filterStatus[_activeFilter];
-    var orders = _billing!.orders;
-
-    if (filterStatus != null) {
-      orders = orders
-          .where(
-            (o) => o.paymentStatus.toLowerCase() == filterStatus.toLowerCase(),
-          )
-          .toList();
+    if (updatedDetail != null &&
+        updatedDetail.customerName == _billing?.customerName) {
+      if (updatedDetail != _billing) {
+        setState(() => _billing = updatedDetail);
+      }
     }
-
-    if (_searchQuery.isNotEmpty) {
-      final keyword = _searchQuery.toLowerCase();
-      orders = orders
-          .where(
-            (o) =>
-                o.poNo.toLowerCase().contains(keyword) ||
-                o.transactionNo.toLowerCase().contains(keyword),
-          )
-          .toList();
-    }
-
-    return orders;
-  }
-
-  static const _filterStatus = {0: null, 1: 'unpaid', 2: 'partial', 3: 'paid'};
-
-  int get _totalRemainingBalance =>
-      _billing!.orders.fold(0, (sum, o) => sum + o.remainingBalance);
-
-  String get _overallStatus {
-    final orders = _billing!.orders;
-    if (orders.every((o) => o.paymentStatus.toLowerCase() == 'paid')) {
-      return 'Paid';
-    } else if (orders.every((o) => o.paymentStatus.toLowerCase() == 'unpaid')) {
-      return 'Unpaid';
-    }
-    return 'Partial';
-  }
-
-  Color get _overallStatusColor {
-    return switch (_overallStatus) {
-      'Paid' => greenColor,
-      'Unpaid' => redColor,
-      'Partial' => orangeColor,
-      _ => semiSecondaryColor,
-    };
-  }
-
-  Color _paymentStatusColor(String status) {
-    return switch (status.toLowerCase()) {
-      'paid' => greenColor,
-      'partial' => orangeColor,
-      'unpaid' => redColor,
-      _ => semiSecondaryColor,
-    };
-  }
-
-  String _paymentStatusLabel(String status) {
-    return switch (status.toLowerCase()) {
-      'paid' => 'Paid',
-      'partial' => 'Partial',
-      'unpaid' => 'Unpaid',
-      _ => status,
-    };
   }
 
   @override
   Widget build(BuildContext context) {
     ref.listen<PaymentState>(paymentViewModelProvider, (previous, next) {
-      // Hanya sync jika tidak sedang loading dan billings sudah ada
-      // if (!next.isLoading && next.billings.isNotEmpty) {
-      //   _syncBillingFromState(next);
-      // }
+      if (!next.isLoading && next.billings.isNotEmpty) {
+        _syncBillingFromState(next);
+      }
     });
 
     final paymentState = ref.watch(paymentViewModelProvider);
@@ -240,8 +171,9 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
                               final success = await Navigator.push<bool>(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      AddPaymentScreen(billing: _billing!),
+                                  builder: (context) => AddPaymentScreen(
+                                    billingDetail: _billing!,
+                                  ),
                                 ),
                               );
 
@@ -319,4 +251,70 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
       ),
     );
   }
+
+  int get _totalRemainingBalance {
+    return _billing!.orders.fold(0, (sum, o) => sum + o.remainingBalance);
+  }
+
+  String get _overallStatus {
+    final orders = _billing!.orders;
+    if (orders.every((o) => o.paymentStatus.toLowerCase() == 'paid')) {
+      return 'Paid';
+    } else if (orders.every((o) => o.paymentStatus.toLowerCase() == 'unpaid')) {
+      return 'Unpaid';
+    }
+    return 'Partial';
+  }
+
+  Color get _overallStatusColor {
+    return switch (_overallStatus) {
+      'Paid' => greenColor,
+      'Unpaid' => redColor,
+      'Partial' => orangeColor,
+      _ => semiSecondaryColor,
+    };
+  }
+
+  Color _paymentStatusColor(String status) {
+    return switch (status.toLowerCase()) {
+      'paid' => greenColor,
+      'partial' => orangeColor,
+      'unpaid' => redColor,
+      _ => semiSecondaryColor,
+    };
+  }
+
+  String _paymentStatusLabel(String status) {
+    return switch (status.toLowerCase()) {
+      'paid' => 'Paid',
+      'partial' => 'Partial',
+      'unpaid' => 'Unpaid',
+      _ => status,
+    };
+  }
+
+  List<BillingOrderModel> get _filteredOrders {
+    final filterStatus = _filterStatus[_activeFilter];
+    var orders = _billing!.orders;
+    if (filterStatus != null) {
+      orders = orders
+          .where(
+            (o) => o.paymentStatus.toLowerCase() == filterStatus.toLowerCase(),
+          )
+          .toList();
+    }
+    if (_searchQuery.isNotEmpty) {
+      final keyword = _searchQuery.toLowerCase();
+      orders = orders
+          .where(
+            (o) =>
+                o.poNo.toLowerCase().contains(keyword) ||
+                o.transactionNo.toLowerCase().contains(keyword),
+          )
+          .toList();
+    }
+    return orders;
+  }
+
+  static const _filterStatus = {0: null, 1: 'unpaid', 2: 'partial', 3: 'paid'};
 }

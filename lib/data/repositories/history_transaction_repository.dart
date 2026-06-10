@@ -19,6 +19,8 @@ abstract class HistoryTransactionRepository {
     required String endpoint,
     String? search,
     String? status,
+    String? startDate,
+    String? endDate,
     required String fileName,
   });
 }
@@ -69,15 +71,24 @@ class HistoryTransactionRepositoryImpl implements HistoryTransactionRepository {
     required String endpoint,
     String? search,
     String? status,
+    String? startDate,
+    String? endDate,
     required String fileName,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
+
       if (search != null && search.isNotEmpty) {
         queryParams['search'] = search;
       }
       if (status != null && status.isNotEmpty) {
         queryParams['status'] = status;
+      }
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
       }
 
       final dir = await getApplicationDocumentsDirectory();

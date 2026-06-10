@@ -17,9 +17,9 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_uplo
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/menunggu_pembayaran_widget.dart';
 
 class AddPaymentScreen extends ConsumerStatefulWidget {
-  final CustomerBillingDetailModel billing; // ← terima dari DetailPaymentScreen
+  final CustomerBillingDetailModel billingDetail;
 
-  const AddPaymentScreen({super.key, required this.billing});
+  const AddPaymentScreen({super.key, required this.billingDetail});
 
   @override
   ConsumerState<AddPaymentScreen> createState() => _AddPaymentScreenState();
@@ -41,20 +41,12 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      builder: (context, child) => Theme(
-        data: Theme.of(
-          context,
-        ).copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
-        child: child!,
-      ),
-    );
+    final picked = await pickCustomDate(context);
+
     if (picked != null) {
-      _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+      setState(() {
+        _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+      });
     }
   }
 
@@ -102,7 +94,6 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
     }
   }
 
-  // Auto-fill total dari order yang dipilih
   void _onOrdersChanged(List<BillingOrderModel> orders) {
     setState(() => _selectedOrders = orders);
 
@@ -173,7 +164,7 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
 
                 // List order menunggu pembayaran
                 MenungguPembayaranWidget(
-                  billing: widget.billing,
+                  billingDetail: widget.billingDetail,
                   onOrdersChanged: _onOrdersChanged,
                 ),
                 const SizedBox(height: 16),
