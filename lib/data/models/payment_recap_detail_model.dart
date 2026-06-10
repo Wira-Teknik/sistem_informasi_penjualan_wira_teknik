@@ -23,6 +23,35 @@ class PaymentRecapDetailItemModel {
       );
 }
 
+class PaymentRecapDetailPesananItemModel {
+  final String transactionNo;
+  final String poNo;
+  final String customerName;
+  final String date;
+  final int totalAmount;
+  final String orderStatus;
+
+  const PaymentRecapDetailPesananItemModel({
+    required this.transactionNo,
+    required this.poNo,
+    required this.customerName,
+    required this.date,
+    required this.totalAmount,
+    required this.orderStatus,
+  });
+
+  factory PaymentRecapDetailPesananItemModel.fromJson(
+    Map<String, dynamic> json,
+  ) => PaymentRecapDetailPesananItemModel(
+    transactionNo: json['transaction_no'] ?? '',
+    poNo: json['po_no'] ?? '',
+    customerName: json['customer_name'] ?? '',
+    date: json['date'] ?? '',
+    totalAmount: json['total_amount'] ?? 0,
+    orderStatus: json['order_status'] ?? '',
+  );
+}
+
 class PaymentRecapDetailPendapatanModel {
   final int totalPendapatan;
   final int totalPesananCount;
@@ -37,41 +66,15 @@ class PaymentRecapDetailPendapatanModel {
   factory PaymentRecapDetailPendapatanModel.fromJson(
     Map<String, dynamic> json,
   ) {
-    final data = json['data'] as Map<String, dynamic>;
+    // HAPUS pemanggilan json['data'] di sini. Langsung baca dari json.
     return PaymentRecapDetailPendapatanModel(
-      totalPendapatan: data['total_pendapatan'] ?? 0,
-      totalPesananCount: data['total_pesanan_count'] ?? 0,
-      items: (data['items'] as List? ?? [])
+      totalPendapatan: json['total_pendapatan'] ?? 0,
+      totalPesananCount: json['total_pesanan_count'] ?? 0,
+      items: (json['items'] as List? ?? [])
           .map((e) => PaymentRecapDetailItemModel.fromJson(e))
           .toList(),
     );
   }
-}
-
-class PaymentRecapDetailPesananItemModel {
-  final String poNo;
-  final String customerName;
-  final String date;
-  final int totalAmount;
-  final String orderStatus;
-
-  const PaymentRecapDetailPesananItemModel({
-    required this.poNo,
-    required this.customerName,
-    required this.date,
-    required this.totalAmount,
-    required this.orderStatus,
-  });
-
-  factory PaymentRecapDetailPesananItemModel.fromJson(
-    Map<String, dynamic> json,
-  ) => PaymentRecapDetailPesananItemModel(
-    poNo: json['po_no'] ?? '',
-    customerName: json['customer_name'] ?? '',
-    date: json['date'] ?? '',
-    totalAmount: json['total_amount'] ?? 0,
-    orderStatus: json['order_status'] ?? '',
-  );
 }
 
 class PaymentRecapDetailPesananModel {
@@ -85,16 +88,16 @@ class PaymentRecapDetailPesananModel {
     required this.items,
   });
 
-  factory PaymentRecapDetailPesananModel.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>;
-    return PaymentRecapDetailPesananModel(
-      totalPesananAmount: data['total_pesanan_amount'] ?? 0,
-      totalPesananCount: data['total_pesanan_count'] ?? 0,
-      items: (data['items'] as List? ?? [])
-          .map((e) => PaymentRecapDetailPesananItemModel.fromJson(e))
-          .toList(),
-    );
-  }
+  factory PaymentRecapDetailPesananModel.fromJson(Map<String, dynamic> json) =>
+      PaymentRecapDetailPesananModel(
+        totalPesananAmount: json['total_pesanan_amount'] ?? 0,
+        totalPesananCount: json['total_pesanan_count'] ?? 0,
+        items: json['items'] != null
+            ? (json['items'] as List)
+                  .map((e) => PaymentRecapDetailPesananItemModel.fromJson(e))
+                  .toList()
+            : [],
+      );
 }
 
 class PaymentRecapDetailUnpaidModel {
@@ -109,11 +112,11 @@ class PaymentRecapDetailUnpaidModel {
   });
 
   factory PaymentRecapDetailUnpaidModel.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>;
+    // Langsung baca dari json
     return PaymentRecapDetailUnpaidModel(
-      totalUnpaid: data['total_unpaid'] ?? 0,
-      totalCount: data['total_count'] ?? 0,
-      items: (data['items'] as List? ?? [])
+      totalUnpaid: json['total_unpaid'] ?? 0,
+      totalCount: json['total_count'] ?? 0,
+      items: (json['items'] as List? ?? [])
           .map((e) => PaymentRecapDetailItemModel.fromJson(e))
           .toList(),
     );
@@ -132,11 +135,11 @@ class PaymentRecapDetailPaidModel {
   });
 
   factory PaymentRecapDetailPaidModel.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>;
+    // Langsung baca dari json
     return PaymentRecapDetailPaidModel(
-      totalPaid: data['total_paid'] ?? 0,
-      totalCount: data['total_count'] ?? 0,
-      items: (data['items'] as List? ?? [])
+      totalPaid: json['total_paid'] ?? 0,
+      totalCount: json['total_count'] ?? 0,
+      items: (json['items'] as List? ?? [])
           .map((e) => PaymentRecapDetailItemModel.fromJson(e))
           .toList(),
     );

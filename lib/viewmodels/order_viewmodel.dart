@@ -8,12 +8,15 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/order_r
 
 class OrderState {
   final bool isLoading;
+  final bool isLoadMore;
   final bool isRefreshing;
   final bool isSubmitting;
   final bool isRefreshingDetail;
   final bool isLoadingTrxNo;
   final List<OrderModel> orders;
   final List<OrderModel> filteredOrders;
+  final int currentPage;
+  final bool hasReachedMax;
   final String? errorMessage;
   final String? nextTransactionNo;
   final int activeFilter;
@@ -26,12 +29,15 @@ class OrderState {
 
   const OrderState({
     this.isLoading = false,
+    this.isLoadMore = false,
     this.isRefreshing = false,
     this.isSubmitting = false,
     this.isRefreshingDetail = false,
     this.isLoadingTrxNo = false,
     this.orders = const [],
     this.filteredOrders = const [],
+    this.currentPage = 1,
+    this.hasReachedMax = false,
     this.errorMessage,
     this.nextTransactionNo,
     this.activeFilter = 0,
@@ -51,12 +57,15 @@ class OrderState {
 
   OrderState copyWith({
     bool? isLoading,
+    bool? isLoadMore,
     bool? isRefreshing,
     bool? isSubmitting,
     bool? isRefreshingDetail,
     bool? isLoadingTrxNo,
     List<OrderModel>? orders,
     List<OrderModel>? filteredOrders,
+    int? currentPage,
+    bool? hasReachedMax,
     String? errorMessage,
     String? nextTransactionNo,
     int? activeFilter,
@@ -67,16 +76,19 @@ class OrderState {
     String? orderStatus,
     bool clearError = false,
     bool clearTrxNo = false,
-    bool clearFilter = false, // ← reset semua filter
+    bool clearFilter = false,
   }) {
     return OrderState(
       isLoading: isLoading ?? this.isLoading,
+      isLoadMore: isLoadMore ?? this.isLoadMore,
       isRefreshing: isRefreshing ?? this.isRefreshing,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isRefreshingDetail: isRefreshingDetail ?? this.isRefreshingDetail,
       isLoadingTrxNo: isLoadingTrxNo ?? this.isLoadingTrxNo,
       orders: orders ?? this.orders,
       filteredOrders: filteredOrders ?? this.filteredOrders,
+      currentPage: currentPage ?? this.currentPage,
+      hasReachedMax: hasReachedMax ?? this.hasReachedMax,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       nextTransactionNo: clearTrxNo
           ? null
@@ -103,11 +115,11 @@ class OrderViewModel extends StateNotifier<OrderState> {
       DateTime.now().difference(_lastFetchTime!) > _cacheDuration;
 
   static const _filterStatus = {
-    0: null, // All
-    1: 'pending', // Pending
-    2: 'partial', // Partial
-    3: 'shipped', // Shipped
-    4: 'completed', // Completed
+    0: null,
+    1: 'pending',
+    2: 'partial',
+    3: 'shipped',
+    4: 'completed',
   };
 
   OrderViewModel(this._repository) : super(const OrderState()) {
@@ -119,10 +131,28 @@ class OrderViewModel extends StateNotifier<OrderState> {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  Future<void> loadOrders() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+  Future<void> loadOrders({bool isLoadMore = false}) async {
+    if (isLoadMore) {
+      if (state.hasReachedMax ||
+          state.isLoading ||
+          state.isLoadMore ||
+          state.isRefreshing) {
+        return;
+      }
+      state = state.copyWith(isLoadMore: true, clearError: true);
+    } else {
+      state = state.copyWith(
+        isLoading: true,
+        currentPage: 1,
+        hasReachedMax: false,
+        clearError: true,
+      );
+    }
+
     try {
-      final orders = await _repository.getOrders(
+      final response = await _repository.getOrders(
+        page: state.currentPage,
+        limit: 20,
         startDate: _formatDate(state.startDate),
         endDate: _formatDate(state.endDate),
         poNo: state.poNo.isNotEmpty ? state.poNo : null,
@@ -131,15 +161,31 @@ class OrderViewModel extends StateNotifier<OrderState> {
             : null,
         orderStatus: state.orderStatus.isNotEmpty ? state.orderStatus : null,
       );
+
       _lastFetchTime = DateTime.now();
+
+      final newOrders = response.data;
+      final totalPages = response.pagination.totalPages;
+
+      final currentList = isLoadMore
+          ? List<OrderModel>.from(state.orders)
+          : <OrderModel>[];
+      currentList.addAll(newOrders);
+
       state = state.copyWith(
         isLoading: false,
-        orders: orders,
-        filteredOrders: _applyFilter(orders, state.activeFilter),
+        isLoadMore: false,
+        orders: currentList,
+        filteredOrders: _applyFilter(currentList, state.activeFilter),
+        currentPage: isLoadMore ? state.currentPage + 1 : 2,
+        hasReachedMax: isLoadMore
+            ? (state.currentPage >= totalPages)
+            : (1 >= totalPages),
       );
     } on Exception catch (e) {
       state = state.copyWith(
         isLoading: false,
+        isLoadMore: false,
         errorMessage: e.toString().replaceAll('Exception: ', ''),
       );
     }
@@ -152,9 +198,16 @@ class OrderViewModel extends StateNotifier<OrderState> {
 
   Future<void> refresh() async {
     _lastFetchTime = null;
-    state = state.copyWith(isRefreshing: true, clearError: true);
+    state = state.copyWith(
+      isRefreshing: true,
+      clearError: true,
+      currentPage: 1,
+      hasReachedMax: false,
+    );
     try {
-      final orders = await _repository.getOrders(
+      final response = await _repository.getOrders(
+        page: 1,
+        limit: 20,
         startDate: _formatDate(state.startDate),
         endDate: _formatDate(state.endDate),
         poNo: state.poNo.isNotEmpty ? state.poNo : null,
@@ -163,11 +216,17 @@ class OrderViewModel extends StateNotifier<OrderState> {
             : null,
         orderStatus: state.orderStatus.isNotEmpty ? state.orderStatus : null,
       );
+
       _lastFetchTime = DateTime.now();
+      final newOrders = response.data;
+      final totalPages = response.pagination.totalPages;
+
       state = state.copyWith(
         isRefreshing: false,
-        orders: orders,
-        filteredOrders: _applyFilter(orders, state.activeFilter),
+        orders: newOrders,
+        filteredOrders: _applyFilter(newOrders, state.activeFilter),
+        currentPage: 2,
+        hasReachedMax: 1 >= totalPages,
       );
     } on Exception catch (e) {
       state = state.copyWith(
@@ -300,9 +359,7 @@ class OrderViewModel extends StateNotifier<OrderState> {
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
       final updatedOrder = await _repository.updateOrder(id, data);
-
       _updateOrderLocally(updatedOrder);
-
       state = state.copyWith(isSubmitting: false);
       return true;
     } on Exception catch (e) {
@@ -318,7 +375,6 @@ class OrderViewModel extends StateNotifier<OrderState> {
     state = state.copyWith(isRefreshingDetail: true, clearError: true);
     try {
       final updatedOrder = await _repository.getOrderDetail(orderId);
-
       _updateOrderLocally(
         OrderModel(
           id: updatedOrder.id,
@@ -329,7 +385,6 @@ class OrderViewModel extends StateNotifier<OrderState> {
           totalAmountToPay: updatedOrder.totalAmountToPay,
         ),
       );
-
       state = state.copyWith(isRefreshingDetail: false);
       return updatedOrder;
     } on Exception catch (e) {

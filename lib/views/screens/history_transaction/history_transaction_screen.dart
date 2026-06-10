@@ -25,10 +25,32 @@ class _HistoryTransactionScreenState
     extends ConsumerState<HistoryTransactionScreen> {
   final _searchController = TextEditingController();
 
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final state = ref.read(historyTransactionViewModelProvider);
+
+      if (!state.isLoadMore && !state.hasReachedMax && !state.isLoading) {
+        ref
+            .read(historyTransactionViewModelProvider.notifier)
+            .loadHistory(isLoadMore: true);
+      }
+    }
   }
 
   Color _paymentStatusColor(String status) {
@@ -46,7 +68,6 @@ class _HistoryTransactionScreenState
         .exportToExcel();
 
     if (filePath != null && mounted) {
-      // Buka file
       final result = await OpenFilex.open(filePath);
       if (result.type != ResultType.done && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -136,11 +157,10 @@ class _HistoryTransactionScreenState
               ),
             ),
           ),
-
           IconButton(
             onPressed: state.isDownloading ? null : _onDownload,
             icon: state.isDownloading
-                ? SizedBox(
+                ? const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
@@ -167,10 +187,8 @@ class _HistoryTransactionScreenState
                   .search(value),
             ),
             const SizedBox(height: 12),
-
             FilterHistoryTransactionSection(
-              activeFilter:
-                  state.activeFilter, // Ambil status string dari state
+              activeFilter: state.activeFilter,
               onFilterChanged: (index) {
                 ref
                     .read(historyTransactionViewModelProvider.notifier)
@@ -178,7 +196,6 @@ class _HistoryTransactionScreenState
               },
             ),
             const SizedBox(height: 12),
-
             Expanded(child: _buildContent(state)),
           ],
         ),
@@ -187,13 +204,14 @@ class _HistoryTransactionScreenState
   }
 
   Widget _buildContent(HistoryTransactionState state) {
-    // Loading
-    if (state.isLoading) {
-      return Center(child: CircularProgressIndicator(color: primaryColor));
+    if (state.isLoading && state.filteredTransactions.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(color: primaryColor),
+      );
     }
 
     // Error
-    if (state.errorMessage != null) {
+    if (state.errorMessage != null && state.filteredTransactions.isEmpty) {
       return CustomRefreshErrorWidget(
         message: state.errorMessage!,
         onPressed: () => ref
@@ -219,8 +237,27 @@ class _HistoryTransactionScreenState
       onRefresh: () =>
           ref.read(historyTransactionViewModelProvider.notifier).refresh(),
       child: ListView.builder(
-        itemCount: state.filteredTransactions.length,
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount:
+            state.filteredTransactions.length + (state.isLoadMore ? 1 : 0),
         itemBuilder: (context, index) {
+          if (index == state.filteredTransactions.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24.0),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: primaryColor,
+                    strokeWidth: 2.5,
+                  ),
+                ),
+              ),
+            );
+          }
+
           return ItemHistoryWidget(
             item: state.filteredTransactions[index],
             formatRupiah: formatRupiah,

@@ -8,7 +8,9 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.d
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/order_response_model.dart';
 
 abstract class OrderRepository {
-  Future<List<OrderModel>> getOrders({
+  Future<OrderResponseModel> getOrders({
+    int? page,
+    int? limit,
     String? startDate,
     String? endDate,
     String? poNo,
@@ -27,7 +29,9 @@ class OrderRepositoryImpl implements OrderRepository {
   OrderRepositoryImpl(this._dio);
 
   @override
-  Future<List<OrderModel>> getOrders({
+  Future<OrderResponseModel> getOrders({
+    int? page,
+    int? limit,
     String? startDate,
     String? endDate,
     String? poNo,
@@ -36,6 +40,10 @@ class OrderRepositoryImpl implements OrderRepository {
   }) async {
     try {
       final queryParams = <String, dynamic>{};
+
+      if (page != null) queryParams['page'] = page;
+      if (limit != null) queryParams['limit'] = limit;
+
       if (startDate != null) queryParams['start_date'] = startDate;
       if (endDate != null) queryParams['end_date'] = endDate;
       if (poNo != null) queryParams['po_no'] = poNo;
@@ -46,8 +54,10 @@ class OrderRepositoryImpl implements OrderRepository {
         '/orders',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
+
       final result = OrderResponseModel.fromJson(response.data);
-      return result.data;
+
+      return result;
     } on DioException catch (e) {
       throw Exception(e.error ?? 'Gagal memuat data pesanan');
     }

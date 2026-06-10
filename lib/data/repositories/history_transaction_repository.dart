@@ -5,11 +5,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/history_transaction_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/history_transaction_response_model.dart';
 
 abstract class HistoryTransactionRepository {
-  Future<List<HistoryTransactionModel>> getHistory({
+  Future<HistoryTransactionResponseModel> getHistory({
+    int? page,
+    int? limit,
     String? search,
     String? startDate,
     String? endDate,
@@ -31,7 +32,9 @@ class HistoryTransactionRepositoryImpl implements HistoryTransactionRepository {
   HistoryTransactionRepositoryImpl(this._dio);
 
   @override
-  Future<List<HistoryTransactionModel>> getHistory({
+  Future<HistoryTransactionResponseModel> getHistory({
+    int? page,
+    int? limit,
     String? search,
     String? startDate,
     String? endDate,
@@ -39,6 +42,9 @@ class HistoryTransactionRepositoryImpl implements HistoryTransactionRepository {
   }) async {
     try {
       final Map<String, dynamic> queryParams = {};
+
+      if (page != null) queryParams['page'] = page;
+      if (limit != null) queryParams['limit'] = limit;
 
       if (search != null && search.isNotEmpty) {
         queryParams['search'] = search;
@@ -59,7 +65,8 @@ class HistoryTransactionRepositoryImpl implements HistoryTransactionRepository {
       );
 
       final result = HistoryTransactionResponseModel.fromJson(response.data);
-      return result.data;
+
+      return result;
     } on DioException catch (e) {
       debugPrint('ERROR HISTORY: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal memuat riwayat transaksi');

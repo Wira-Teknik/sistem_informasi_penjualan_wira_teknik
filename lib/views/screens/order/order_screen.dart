@@ -21,10 +21,30 @@ class OrderScreen extends ConsumerStatefulWidget {
 class _OrderScreenState extends ConsumerState<OrderScreen> {
   final _searchController = TextEditingController();
 
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final state = ref.read(orderViewModelProvider);
+
+      if (!state.isLoadMore && !state.hasReachedMax && !state.isLoading) {
+        ref.read(orderViewModelProvider.notifier).loadOrders(isLoadMore: true);
+      }
+    }
   }
 
   @override
@@ -53,7 +73,6 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
                     initialEndDate: state.endDate,
                     initialStatus: state.orderStatus,
                     hasActiveFilter: state.hasActiveFilter,
-
                     customTextFields: [
                       CustomTextfield(
                         controller: poNoController,
@@ -68,7 +87,6 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
                         prefixIcon: Icons.badge_outlined,
                       ),
                     ],
-
                     statusOptions: const [
                       {'label': 'All', 'value': ''},
                       {'label': 'Pending', 'value': 'pending'},
@@ -76,7 +94,6 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
                       {'label': 'Shipped', 'value': 'shipped'},
                       {'label': 'Completed', 'value': 'completed'},
                     ],
-
                     onApply: (start, end, status) async {
                       await ref
                           .read(orderViewModelProvider.notifier)
@@ -138,7 +155,7 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddOrderScreen()),
+            MaterialPageRoute(builder: (context) => const AddOrderScreen()),
           );
         },
         shape: RoundedRectangleBorder(
@@ -151,13 +168,14 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
   }
 
   Widget _buildContent(OrderState state) {
-    // Loading pertama kali
-    if (state.isLoading) {
-      return Center(child: CircularProgressIndicator(color: primaryColor));
+    if (state.isLoading && state.filteredOrders.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(color: primaryColor),
+      );
     }
 
     // Error
-    if (state.errorMessage != null) {
+    if (state.errorMessage != null && state.filteredOrders.isEmpty) {
       return Center(
         child: CustomRefreshErrorWidget(
           message: state.errorMessage!,
@@ -174,6 +192,7 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
           state.activeFilter == 0
               ? 'Belum ada pesanan'
               : 'Tidak ada pesanan dengan filter ini',
+          style: TextStyle(color: secondaryColor),
         ),
       );
     }
@@ -184,8 +203,27 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
       backgroundColor: whiteColor,
       onRefresh: () => ref.read(orderViewModelProvider.notifier).refresh(),
       child: ListView.builder(
-        itemCount: state.filteredOrders.length,
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: state.filteredOrders.length + (state.isLoadMore ? 1 : 0),
         itemBuilder: (context, index) {
+          if (index == state.filteredOrders.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24.0),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: primaryColor,
+                    strokeWidth: 2.5,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          // Data normal
           final order = state.filteredOrders[index];
           return ItemPesananWidget(
             order: order,

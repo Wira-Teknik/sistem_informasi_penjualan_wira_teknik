@@ -6,11 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_payment_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_detail_model.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/customer_billing_response_model.dart';
 
 abstract class PaymentRepository {
-  Future<List<CustomerBillingModel>> getCustomerBillings({
+  Future<CustomerBillingResponseModel> getCustomerBillings({
+    int? page,
+    int? limit,
     String? query,
     String? startDate,
     String? endDate,
@@ -28,7 +29,9 @@ class PaymentRepositoryImpl implements PaymentRepository {
   PaymentRepositoryImpl(this._dio);
 
   @override
-  Future<List<CustomerBillingModel>> getCustomerBillings({
+  Future<CustomerBillingResponseModel> getCustomerBillings({
+    int? page,
+    int? limit,
     String? query,
     String? startDate,
     String? endDate,
@@ -40,6 +43,9 @@ class PaymentRepositoryImpl implements PaymentRepository {
           : '/payments';
 
       final Map<String, dynamic> queryParams = {};
+
+      if (page != null) queryParams['page'] = page;
+      if (limit != null) queryParams['limit'] = limit;
 
       if (startDate != null && startDate.isNotEmpty) {
         queryParams['start_date'] = startDate;
@@ -59,7 +65,8 @@ class PaymentRepositoryImpl implements PaymentRepository {
       );
 
       final result = CustomerBillingResponseModel.fromJson(response.data);
-      return result.data;
+
+      return result;
     } on DioException catch (e) {
       debugPrint('ERROR BILLING: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal memuat data tagihan');

@@ -9,6 +9,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/payment
 
 class PaymentState {
   final bool isLoading;
+  final bool isLoadMore;
   final bool isRefreshing;
   final bool isSubmitting;
   final List<PaymentModel> payments;
@@ -19,6 +20,9 @@ class PaymentState {
   final bool isDetailLoading;
   final String? errorMessage;
 
+  final int currentPage;
+  final bool hasReachedMax;
+
   final DateTime? startDate;
   final DateTime? endDate;
   final String name;
@@ -26,6 +30,7 @@ class PaymentState {
 
   const PaymentState({
     this.isLoading = false,
+    this.isLoadMore = false,
     this.isRefreshing = false,
     this.isSubmitting = false,
     this.selectedCustomerDetail,
@@ -34,6 +39,8 @@ class PaymentState {
     this.filteredPayments = const [],
     this.billings = const [],
     this.filteredBillings = const [],
+    this.currentPage = 1,
+    this.hasReachedMax = false,
     this.errorMessage,
     this.startDate,
     this.endDate,
@@ -49,6 +56,7 @@ class PaymentState {
 
   PaymentState copyWith({
     bool? isLoading,
+    bool? isLoadMore,
     bool? isRefreshing,
     bool? isSubmitting,
     List<PaymentModel>? payments,
@@ -58,6 +66,8 @@ class PaymentState {
     CustomerBillingDetailModel? selectedCustomerDetail,
     bool? isDetailLoading,
     String? errorMessage,
+    int? currentPage,
+    bool? hasReachedMax,
     DateTime? startDate,
     DateTime? endDate,
     String? name,
@@ -68,6 +78,7 @@ class PaymentState {
   }) {
     return PaymentState(
       isLoading: isLoading ?? this.isLoading,
+      isLoadMore: isLoadMore ?? this.isLoadMore,
       isRefreshing: isRefreshing ?? this.isRefreshing,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       payments: payments ?? this.payments,
@@ -79,6 +90,8 @@ class PaymentState {
           ? null
           : (selectedCustomerDetail ?? this.selectedCustomerDetail),
       isDetailLoading: isDetailLoading ?? this.isDetailLoading,
+      currentPage: currentPage ?? this.currentPage,
+      hasReachedMax: hasReachedMax ?? this.hasReachedMax,
       startDate: clearFilter ? null : (startDate ?? this.startDate),
       endDate: clearFilter ? null : (endDate ?? this.endDate),
       name: clearFilter ? '' : (name ?? this.name),
@@ -91,6 +104,7 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
   final PaymentRepository _repository;
 
   Timer? _debounceTimer;
+  // ignore: unused_field
   String _lastQuery = '';
   DateTime? _lastFetchTime;
 
@@ -109,10 +123,28 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  Future<void> loadBillings() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+  Future<void> loadBillings({bool isLoadMore = false}) async {
+    if (isLoadMore) {
+      if (state.hasReachedMax ||
+          state.isLoading ||
+          state.isLoadMore ||
+          state.isRefreshing) {
+        return;
+      }
+      state = state.copyWith(isLoadMore: true, clearError: true);
+    } else {
+      state = state.copyWith(
+        isLoading: true,
+        currentPage: 1,
+        hasReachedMax: false,
+        clearError: true,
+      );
+    }
+
     try {
-      final billings = await _repository.getCustomerBillings(
+      final response = await _repository.getCustomerBillings(
+        page: state.currentPage,
+        limit: 20,
         startDate: _formatDate(state.startDate),
         endDate: _formatDate(state.endDate),
         query: state.name.isNotEmpty ? state.name : null,
@@ -120,20 +152,30 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
       );
 
       _lastFetchTime = DateTime.now();
+
+      final newBillings = response.data;
+      final totalPages = response.pagination.totalPages;
+
+      final currentList = isLoadMore
+          ? List<CustomerBillingModel>.from(state.billings)
+          : <CustomerBillingModel>[];
+      currentList.addAll(newBillings);
+
       state = state.copyWith(
         isLoading: false,
-        billings: billings,
-        filteredBillings: List.from(billings),
+        isLoadMore: false,
+        billings: currentList,
+        filteredBillings: List.from(currentList),
+        currentPage: isLoadMore ? state.currentPage + 1 : 2,
+        hasReachedMax: isLoadMore
+            ? (state.currentPage >= totalPages)
+            : (1 >= totalPages),
       );
     } on Exception catch (e) {
       state = state.copyWith(
         isLoading: false,
+        isLoadMore: false,
         errorMessage: e.toString().replaceAll('Exception: ', ''),
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Terjadi kesalahan: $e',
       );
     }
   }
@@ -150,11 +192,6 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
       state = state.copyWith(
         isDetailLoading: false,
         errorMessage: e.toString().replaceAll('Exception: ', ''),
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isDetailLoading: false,
-        errorMessage: 'Terjadi kesalahan: $e',
       );
     }
   }
@@ -192,9 +229,16 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
 
   Future<void> refresh() async {
     _lastFetchTime = null;
-    state = state.copyWith(isRefreshing: true, clearError: true);
+    state = state.copyWith(
+      isRefreshing: true,
+      clearError: true,
+      currentPage: 1,
+      hasReachedMax: false,
+    );
     try {
-      final billings = await _repository.getCustomerBillings(
+      final response = await _repository.getCustomerBillings(
+        page: 1,
+        limit: 20,
         startDate: _formatDate(state.startDate),
         endDate: _formatDate(state.endDate),
         query: state.name.isNotEmpty ? state.name : null,
@@ -202,10 +246,15 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
       );
       _lastFetchTime = DateTime.now();
 
+      final newBillings = response.data;
+      final totalPages = response.pagination.totalPages;
+
       state = state.copyWith(
         isRefreshing: false,
-        billings: billings,
-        filteredBillings: List.from(billings),
+        billings: newBillings,
+        filteredBillings: List.from(newBillings),
+        currentPage: 2,
+        hasReachedMax: 1 >= totalPages,
       );
     } on Exception catch (e) {
       state = state.copyWith(
@@ -220,10 +269,8 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
 
     if (query.isEmpty) {
       _debounceTimer?.cancel();
-      state = state.copyWith(
-        name: '',
-        filteredBillings: List.from(state.billings),
-      );
+      state = state.copyWith(name: '');
+      loadBillings();
       return;
     }
 
@@ -234,24 +281,8 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       state = state.copyWith(name: query);
-      _searchFromApi();
+      loadBillings();
     });
-  }
-
-  Future<void> _searchFromApi() async {
-    try {
-      final billings = await _repository.getCustomerBillings(
-        startDate: _formatDate(state.startDate),
-        endDate: _formatDate(state.endDate),
-        query: state.name,
-        status: state.status.isNotEmpty ? state.status : null,
-      );
-      if (_lastQuery != state.name) return;
-
-      state = state.copyWith(
-        filteredBillings: _filterAndSort(billings, state.name),
-      );
-    } on Exception catch (_) {}
   }
 
   List<CustomerBillingModel> _filterAndSort(

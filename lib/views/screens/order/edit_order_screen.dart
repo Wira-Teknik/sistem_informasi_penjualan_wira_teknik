@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/validators.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/order_viewmodel.dart';
@@ -61,21 +62,11 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
       _addressController.text.trim() != widget.order.recipientAddress;
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.tryParse(widget.order.orderDate) ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      builder: (context, child) => Theme(
-        data: Theme.of(
-          context,
-        ).copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
-        child: child!,
-      ),
-    );
-
+    final picked = await pickCustomDate(context);
     if (picked != null) {
-      _orderDateController.text = DateFormat('yyyy-MM-dd').format(picked);
+      setState(() {
+        _orderDateController.text = DateFormat('yyyy-MM-dd').format(picked);
+      });
     }
   }
 

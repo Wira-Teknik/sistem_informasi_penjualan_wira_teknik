@@ -6,6 +6,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/history
 
 class HistoryTransactionState {
   final bool isLoading;
+  final bool isLoadMore;
   final bool isRefreshing;
   final bool isDownloading;
   final List<HistoryTransactionModel> transactions;
@@ -13,19 +14,24 @@ class HistoryTransactionState {
   final int activeFilter;
   final String? errorMessage;
 
-  // Parameter API Filter
+  final int currentPage;
+  final bool hasReachedMax;
+
   final DateTime? startDate;
   final DateTime? endDate;
-  final String searchQuery; // Menggantikan name/poNo terpisah
-  final String status; // String status langsung
+  final String searchQuery;
+  final String status;
 
   const HistoryTransactionState({
     this.isLoading = false,
+    this.isLoadMore = false,
     this.isRefreshing = false,
     this.isDownloading = false,
     this.transactions = const [],
     this.filteredTransactions = const [],
     this.activeFilter = 0,
+    this.currentPage = 1,
+    this.hasReachedMax = false,
     this.errorMessage,
     this.startDate,
     this.endDate,
@@ -41,6 +47,7 @@ class HistoryTransactionState {
 
   HistoryTransactionState copyWith({
     bool? isLoading,
+    bool? isLoadMore,
     bool? isRefreshing,
     bool? isDownloading,
     List<HistoryTransactionModel>? transactions,
@@ -51,17 +58,21 @@ class HistoryTransactionState {
     String? searchQuery,
     String? status,
     int? activeFilter,
+    int? currentPage,
+    bool? hasReachedMax,
     bool clearError = false,
     bool clearFilter = false,
   }) {
     return HistoryTransactionState(
       isLoading: isLoading ?? this.isLoading,
+      isLoadMore: isLoadMore ?? this.isLoadMore,
       isRefreshing: isRefreshing ?? this.isRefreshing,
       isDownloading: isDownloading ?? this.isDownloading,
       transactions: transactions ?? this.transactions,
       filteredTransactions: filteredTransactions ?? this.filteredTransactions,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-
+      currentPage: currentPage ?? this.currentPage,
+      hasReachedMax: hasReachedMax ?? this.hasReachedMax,
       startDate: clearFilter ? null : (startDate ?? this.startDate),
       endDate: clearFilter ? null : (endDate ?? this.endDate),
       searchQuery: clearFilter ? '' : (searchQuery ?? this.searchQuery),
@@ -76,6 +87,7 @@ class HistoryTransactionViewModel
   final HistoryTransactionRepository _repository;
 
   Timer? _debounceTimer;
+  // ignore: unused_field
   String _lastQuery = '';
 
   HistoryTransactionViewModel(this._repository)
@@ -83,7 +95,6 @@ class HistoryTransactionViewModel
     loadHistory();
   }
 
-  // Pastikan indeks dan nilainya selaras dengan urutan di UI
   static const _filterStatus = {0: null, 1: 'unpaid', 2: 'partial', 3: 'paid'};
 
   List<HistoryTransactionModel> _applyFilter(
@@ -105,41 +116,87 @@ class HistoryTransactionViewModel
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  Future<void> loadHistory() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+  Future<void> loadHistory({bool isLoadMore = false}) async {
+    if (isLoadMore) {
+      if (state.hasReachedMax ||
+          state.isLoading ||
+          state.isLoadMore ||
+          state.isRefreshing) {
+        return;
+      }
+      state = state.copyWith(isLoadMore: true, clearError: true);
+    } else {
+      state = state.copyWith(
+        isLoading: true,
+        currentPage: 1,
+        hasReachedMax: false,
+        clearError: true,
+      );
+    }
+
     try {
-      final transactions = await _repository.getHistory(
+      final response = await _repository.getHistory(
+        page: state.currentPage,
+        limit: 20,
         startDate: _formatDate(state.startDate),
         endDate: _formatDate(state.endDate),
         search: state.searchQuery.isNotEmpty ? state.searchQuery : null,
         status: state.status.isNotEmpty ? state.status : null,
       );
+
+      final newTransactions = response.data;
+      final totalPages = response.pagination.totalPages;
+
+      final currentList = isLoadMore
+          ? List<HistoryTransactionModel>.from(state.transactions)
+          : <HistoryTransactionModel>[];
+      currentList.addAll(newTransactions);
+
       state = state.copyWith(
         isLoading: false,
-        transactions: transactions,
-        filteredTransactions: List.from(transactions),
+        isLoadMore: false,
+        transactions: currentList,
+        filteredTransactions: _applyFilter(currentList, state.activeFilter),
+        currentPage: isLoadMore ? state.currentPage + 1 : 2,
+        hasReachedMax: isLoadMore
+            ? (state.currentPage >= totalPages)
+            : (1 >= totalPages),
       );
     } on Exception catch (e) {
       state = state.copyWith(
         isLoading: false,
+        isLoadMore: false,
         errorMessage: e.toString().replaceAll('Exception: ', ''),
       );
     }
   }
 
   Future<void> refresh() async {
-    state = state.copyWith(isRefreshing: true, clearError: true);
+    state = state.copyWith(
+      isRefreshing: true,
+      clearError: true,
+      currentPage: 1,
+      hasReachedMax: false,
+    );
     try {
-      final transactions = await _repository.getHistory(
+      final response = await _repository.getHistory(
+        page: 1,
+        limit: 20,
         startDate: _formatDate(state.startDate),
         endDate: _formatDate(state.endDate),
         search: state.searchQuery.isNotEmpty ? state.searchQuery : null,
         status: state.status.isNotEmpty ? state.status : null,
       );
+
+      final newTransactions = response.data;
+      final totalPages = response.pagination.totalPages;
+
       state = state.copyWith(
         isRefreshing: false,
-        transactions: transactions,
-        filteredTransactions: List.from(transactions),
+        transactions: newTransactions,
+        filteredTransactions: _applyFilter(newTransactions, state.activeFilter),
+        currentPage: 2,
+        hasReachedMax: 1 >= totalPages,
       );
     } on Exception catch (e) {
       state = state.copyWith(
@@ -149,7 +206,6 @@ class HistoryTransactionViewModel
     }
   }
 
-  // Dipanggil oleh UI Bottom Sheet
   Future<void> applyAdvanceFilter({
     DateTime? startDate,
     DateTime? endDate,
@@ -166,7 +222,6 @@ class HistoryTransactionViewModel
     await loadHistory();
   }
 
-  // Dipanggil oleh UI Bottom Sheet (Tombol Reset)
   Future<void> resetFilter() async {
     state = state.copyWith(clearFilter: true, activeFilter: 0);
     await loadHistory();
@@ -189,6 +244,7 @@ class HistoryTransactionViewModel
         activeFilter: 0,
         filteredTransactions: List.from(state.transactions),
       );
+      loadHistory();
       return;
     }
 
@@ -204,24 +260,8 @@ class HistoryTransactionViewModel
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       state = state.copyWith(searchQuery: query);
-      _searchFromApi();
+      loadHistory();
     });
-  }
-
-  Future<void> _searchFromApi() async {
-    try {
-      final transactions = await _repository.getHistory(
-        startDate: _formatDate(state.startDate),
-        endDate: _formatDate(state.endDate),
-        search: state.searchQuery,
-        status: state.status.isNotEmpty ? state.status : null,
-      );
-      if (_lastQuery != state.searchQuery) return;
-
-      state = state.copyWith(filteredTransactions: List.from(transactions));
-    } on Exception catch (_) {
-      // Abaikan
-    }
   }
 
   Future<String?> exportToExcel() async {

@@ -21,10 +21,32 @@ class PaymentScreen extends ConsumerStatefulWidget {
 class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   final _searchController = TextEditingController();
 
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final state = ref.read(paymentViewModelProvider);
+
+      if (!state.isLoadMore && !state.hasReachedMax && !state.isLoading) {
+        ref
+            .read(paymentViewModelProvider.notifier)
+            .loadBillings(isLoadMore: true);
+      }
+    }
   }
 
   @override
@@ -50,7 +72,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                     initialEndDate: state.endDate,
                     initialStatus: state.status,
                     hasActiveFilter: state.hasActiveFilter,
-
                     customTextFields: [
                       CustomTextfield(
                         controller: nameController,
@@ -59,14 +80,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                         prefixIcon: Icons.badge_outlined,
                       ),
                     ],
-
                     statusOptions: const [
                       {'label': 'All', 'value': ''},
                       {'label': 'Partial', 'value': 'partial'},
                       {'label': 'Paid', 'value': 'paid'},
                       {'label': 'Unpaid', 'value': 'unpaid'},
                     ],
-
                     onApply: (start, end, status) async {
                       await ref
                           .read(paymentViewModelProvider.notifier)
@@ -77,7 +96,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                             name: nameController.text.trim(),
                           );
                     },
-
                     onReset: () async {
                       await ref
                           .read(paymentViewModelProvider.notifier)
@@ -143,11 +161,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   Widget _buildContent(PaymentState state) {
-    if (state.isLoading) {
-      return Center(child: CircularProgressIndicator(color: primaryColor));
+    if (state.isLoading && state.filteredBillings.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(color: primaryColor),
+      );
     }
 
-    if (state.errorMessage != null) {
+    if (state.errorMessage != null && state.filteredBillings.isEmpty) {
       return Center(
         child: CustomRefreshErrorWidget(
           message: state.errorMessage!,
@@ -171,8 +191,26 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       backgroundColor: whiteColor,
       onRefresh: () => ref.read(paymentViewModelProvider.notifier).refresh(),
       child: ListView.builder(
-        itemCount: state.filteredBillings.length,
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: state.filteredBillings.length + (state.isLoadMore ? 1 : 0),
         itemBuilder: (context, index) {
+          if (index == state.filteredBillings.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24.0),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: primaryColor,
+                    strokeWidth: 2.5,
+                  ),
+                ),
+              ),
+            );
+          }
+
           return CustomerBillingCardWidget(
             billing: state.filteredBillings[index],
             formatRupiah: formatRupiah,
