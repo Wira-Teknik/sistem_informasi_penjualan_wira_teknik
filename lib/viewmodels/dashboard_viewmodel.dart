@@ -5,7 +5,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/dashboa
 class DashboardState {
   final bool isLoading;
   final bool isRefreshing;
-  final DashboardModel? data;
+  final DashboardMetricsModel? data;
   final String? errorMessage;
 
   const DashboardState({
@@ -18,7 +18,7 @@ class DashboardState {
   DashboardState copyWith({
     bool? isLoading,
     bool? isRefreshing,
-    DashboardModel? data,
+    DashboardMetricsModel? data,
     String? errorMessage,
     bool clearError = false,
   }) {

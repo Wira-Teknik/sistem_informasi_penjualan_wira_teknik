@@ -10,8 +10,7 @@ class CustomTitleLogoWidget extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          Image.asset('assets/icons/truck_icon.png', width: 33, height: 24),
-          const SizedBox(height: 8),
+          Image.asset('assets/images/banner_mitra.png', width: 120),
           Text(
             "CV.Wira Teknik",
             style: semiBoldTextStyle.copyWith(fontSize: 20),

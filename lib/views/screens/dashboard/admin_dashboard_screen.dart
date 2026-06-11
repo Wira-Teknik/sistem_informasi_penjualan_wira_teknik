@@ -105,7 +105,7 @@ class AdminDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCards(DashboardModel data) {
+  Widget _buildCards(DashboardMetricsModel data) {
     return Wrap(
       direction: Axis.horizontal,
       crossAxisAlignment: WrapCrossAlignment.center,

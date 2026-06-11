@@ -102,7 +102,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCards(DashboardModel data) {
+  Widget _buildCards(DashboardMetricsModel data) {
     return Column(
       children: [
         ItemDashboardOwner(
