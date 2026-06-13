@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/dashboard_activities_response_model.dart';
 
@@ -39,7 +40,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       }
 
       final response = await _dio.get(
-        '/dashboard/activities',
+        '${AppStrings.dashboardEndpoint}/activities',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 

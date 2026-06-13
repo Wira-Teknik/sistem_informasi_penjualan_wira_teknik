@@ -51,7 +51,7 @@ class OrderRepositoryImpl implements OrderRepository {
       if (orderStatus != null) queryParams['order_status'] = orderStatus;
 
       final response = await _dio.get(
-        '/orders',
+        AppStrings.ordersEndpoint,
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
@@ -99,7 +99,7 @@ class OrderRepositoryImpl implements OrderRepository {
   @override
   Future<OrderDetailModel> getOrderDetail(String orderId) async {
     try {
-      final response = await _dio.get('/orders/$orderId');
+      final response = await _dio.get('${AppStrings.ordersEndpoint}/$orderId');
       return OrderDetailModel.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw Exception(e.error ?? 'Gagal memuat detail pesanan');

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/payment_recap_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/payment_recap_detail_response_model.dart';
@@ -69,7 +70,6 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
     String? search,
   }) async {
     try {
-      // Hanya kirim parameter yang tidak kosong
       final queryParams = <String, dynamic>{};
       if (startDate != null && startDate.isNotEmpty) {
         queryParams['start_date'] = startDate;
@@ -82,7 +82,7 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
       }
 
       final response = await _dio.get(
-        '/payment-recap',
+        AppStrings.paymentRecapEndpoint,
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
@@ -104,7 +104,6 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
     try {
       final queryParams = <String, dynamic>{};
 
-      // Masukkan parameter pagination ke query
       if (page != null) queryParams['page'] = page;
       if (limit != null) queryParams['limit'] = limit;
 
@@ -119,7 +118,7 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
       }
 
       final response = await _dio.get(
-        '/payment-recap/detail-pendapatan',
+        '${AppStrings.paymentRecapEndpoint}/detail-pendapatan',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
@@ -155,7 +154,7 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
       }
 
       final response = await _dio.get(
-        '/payment-recap/detail-pesanan',
+        '${AppStrings.paymentRecapEndpoint}/detail-pesanan',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
@@ -191,7 +190,7 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
       }
 
       final response = await _dio.get(
-        '/payment-recap/detail-unpaid',
+        '${AppStrings.paymentRecapEndpoint}/detail-unpaid',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
@@ -227,7 +226,7 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
       }
 
       final response = await _dio.get(
-        '/payment-recap/detail-paid',
+        '${AppStrings.paymentRecapEndpoint}/detail-paid',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 

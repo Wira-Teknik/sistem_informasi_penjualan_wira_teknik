@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/history_transaction_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/history_transaction_repository.dart';
 
@@ -268,7 +269,7 @@ class HistoryTransactionViewModel
     state = state.copyWith(isDownloading: true, clearError: true);
     try {
       final filePath = await _repository.exportHistoryTransaction(
-        endpoint: '/payments/history/export',
+        endpoint: '${AppStrings.paymentEndpoint}/history/export',
         search: state.searchQuery.isNotEmpty ? state.searchQuery : null,
         status: state.status.isNotEmpty ? state.status : null,
         startDate: _formatDate(state.startDate),

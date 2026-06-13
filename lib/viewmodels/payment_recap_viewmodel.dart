@@ -52,7 +52,7 @@ class PaymentRecapViewModel extends StateNotifier<PaymentRecapState> {
   String _lastQuery = '';
 
   PaymentRecapViewModel(this._repository) : super(const PaymentRecapState()) {
-    loadRecap(); // ← load semua data tanpa filter
+    loadRecap();
   }
 
   String? _formatDate(DateTime? date) {

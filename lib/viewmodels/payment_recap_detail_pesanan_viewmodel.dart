@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/payment_recap_detail_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/payment_recap_repository.dart';
 
@@ -243,7 +244,7 @@ class PaymentRecapDetailPesananViewModel
     state = state.copyWith(isDownloading: true, clearError: true);
     try {
       final filePath = await _repository.exportDetail(
-        endpoint: '/payment-recap/detail-pesanan/export',
+        endpoint: '${AppStrings.paymentRecapEndpoint}/detail-pesanan/export',
         startDate: _formatDate(state.startDate),
         endDate: _formatDate(state.endDate),
         search: state.searchQuery.isNotEmpty ? state.searchQuery : null,

@@ -17,6 +17,9 @@ class AppStrings {
   static const shipmentsEndpoint = '/shipments';
   static const attachmentsEndpoint = '/attachments';
   static const dashboardEndpoint = '/dashboard';
+  static const auditEndpoint = '/audit';
+  static const paymentEndpoint = '/payments';
+  static const paymentRecapEndpoint = '/payment-recap';
 
   static const tokenKey = 'token';
   static const userIdKey = 'user_id';

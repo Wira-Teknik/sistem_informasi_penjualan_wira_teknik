@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_payment_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_detail_model.dart';
@@ -39,8 +39,8 @@ class PaymentRepositoryImpl implements PaymentRepository {
   }) async {
     try {
       final endpoint = query != null && query.isNotEmpty
-          ? '/payments/customer/${Uri.encodeComponent(query)}'
-          : '/payments';
+          ? '${AppStrings.paymentEndpoint}/customer/${Uri.encodeComponent(query)}'
+          : AppStrings.paymentEndpoint;
 
       final Map<String, dynamic> queryParams = {};
 
@@ -68,7 +68,6 @@ class PaymentRepositoryImpl implements PaymentRepository {
 
       return result;
     } on DioException catch (e) {
-      debugPrint('ERROR BILLING: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal memuat data tagihan');
     }
   }
@@ -79,12 +78,11 @@ class PaymentRepositoryImpl implements PaymentRepository {
   ) async {
     try {
       final response = await _dio.get(
-        '/payments/customer/${Uri.encodeComponent(customerName)}',
+        '${AppStrings.paymentEndpoint}/customer/${Uri.encodeComponent(customerName)}',
       );
 
       return CustomerBillingDetailModel.fromJson(response.data['data']);
     } on DioException catch (e) {
-      debugPrint('ERROR CUSTOMER DETAIL: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal memuat detail tagihan customer');
     }
   }
@@ -99,7 +97,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
       final formData = FormData.fromMap({
         'payment_date': request.paymentDate,
         'payment_total': request.paymentTotal,
-        'details': detailsJson, // ← JSON string
+        'details': detailsJson,
         'bukti_bayar': await MultipartFile.fromFile(
           request.buktiKirim.path,
           filename: request.buktiKirim.path.split('/').last,
@@ -108,7 +106,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
       });
 
       await _dio.post(
-        '/payments',
+        AppStrings.paymentEndpoint,
         data: formData,
         options: Options(
           sendTimeout: const Duration(minutes: 2),
@@ -116,7 +114,6 @@ class PaymentRepositoryImpl implements PaymentRepository {
         ),
       );
     } on DioException catch (e) {
-      debugPrint('ERROR ADD PAYMENT: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal menyimpan pembayaran');
     }
   }
@@ -134,9 +131,11 @@ class PaymentRepositoryImpl implements PaymentRepository {
   @override
   Future<void> updatePayment(String id, double paymentTotal) async {
     try {
-      await _dio.put('/payments/$id', data: {'payment_total': paymentTotal});
+      await _dio.put(
+        '${AppStrings.paymentEndpoint}/$id',
+        data: {'payment_total': paymentTotal},
+      );
     } on DioException catch (e) {
-      debugPrint('ERROR UPDATE PAYMENT: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal mengubah pembayaran');
     }
   }

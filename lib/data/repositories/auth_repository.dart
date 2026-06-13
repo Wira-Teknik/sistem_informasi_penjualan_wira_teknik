@@ -43,7 +43,6 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  // Baca token + data user yang tersimpan di secure storage
   @override
   Future<LoginResponseModel?> getSavedSession() async {
     try {
@@ -61,10 +60,8 @@ class AuthRepositoryImpl implements AuthRepository {
         return null;
       }
 
-      // ← Cek apakah token sudah expired
       if (JwtUtils.isExpired(token)) {
         debugPrint('TOKEN EXPIRED — hapus sesi');
-        // Hapus semua data tersimpan
         await Future.wait([
           _storage.delete(key: AppStrings.tokenKey),
           _storage.delete(key: AppStrings.userIdKey),
@@ -139,7 +136,6 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 }
 
-// Provider inject Dio dari dioProvider
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final dio = ref.watch(dioProvider);
   return AuthRepositoryImpl(dio);
