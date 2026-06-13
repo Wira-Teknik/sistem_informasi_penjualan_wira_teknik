@@ -1,11 +1,13 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class AppStrings {
   AppStrings._();
 
-  static const appName = 'Wira Teknik';
-  static const baseUrl = 'https://wirateknik.com/api/v1';
-  static const imageUrl = 'https://wirateknik.com';
+  static const appName = 'SIP Wira Teknik';
 
-  // endpoint
+  static String get baseUrl => dotenv.env['API_BASE_URL']!;
+  static String get imageUrl => dotenv.env['IMAGE_URL']!;
+
   static const loginEndpoint = '/auth/login';
   static const forgotPasswordRequestEndpoint = '/auth/forgot-password/request';
   static const verifyCodeEndpoint = '/auth/forgot-password/verify';
@@ -16,7 +18,6 @@ class AppStrings {
   static const attachmentsEndpoint = '/attachments';
   static const dashboardEndpoint = '/dashboard';
 
-  // Secure storage keys
   static const tokenKey = 'token';
   static const userIdKey = 'user_id';
   static const userNameKey = 'user_name';

@@ -54,12 +54,11 @@ class ShipmentRepositoryImpl implements ShipmentRepository {
           filename: request.bonPesanan.path.split('/').last,
           contentType: _getMediaType(request.bonPesanan.path),
         ),
-        if (request.invoiceFile != null)
-          'invoice_file': await MultipartFile.fromFile(
-            request.invoiceFile!.path,
-            filename: request.invoiceFile!.path.split('/').last,
-            contentType: _getMediaType(request.invoiceFile!.path),
-          ),
+        'invoice_file': await MultipartFile.fromFile(
+          request.invoiceFile.path,
+          filename: request.invoiceFile.path.split('/').last,
+          contentType: _getMediaType(request.invoiceFile.path),
+        ),
       });
 
       await _dio.post(

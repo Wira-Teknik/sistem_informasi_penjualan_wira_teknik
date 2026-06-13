@@ -159,16 +159,25 @@ class _CustomerBillingCardWidgetState extends State<CustomerBillingCardWidget> {
                 ),
               ),
             ] else ...[
-              ..._filteredOrders.map((billingOrder) {
-                return _OrderItem(
-                  billingOrder: billingOrder,
-                  formatRupiah: widget.formatRupiah,
-                  formatDate: widget.formatDate,
-                  paymentStatusColor: _paymentStatusColor,
-                  paymentStatusLabel: _paymentStatusLabel,
-                  onTap: () => widget.onOrderTap(billingOrder),
-                );
-              }),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 350),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  itemCount: _filteredOrders.length,
+                  itemBuilder: (context, index) {
+                    final billingOrder = _filteredOrders[index];
+                    return _OrderItem(
+                      billingOrder: billingOrder,
+                      formatRupiah: widget.formatRupiah,
+                      formatDate: widget.formatDate,
+                      paymentStatusColor: _paymentStatusColor,
+                      paymentStatusLabel: _paymentStatusLabel,
+                      onTap: () => widget.onOrderTap(billingOrder),
+                    );
+                  },
+                ),
+              ),
             ],
           ],
         ],

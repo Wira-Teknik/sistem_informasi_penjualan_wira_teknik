@@ -64,7 +64,7 @@ class ShipmentViewModel extends StateNotifier<ShipmentState> {
     required File buktiKirim,
     required File suratJalan,
     required File bonPesanan,
-    File? invoiceFile,
+    required File invoiceFile,
   }) async {
     state = state.copyWith(isSubmitting: true, clearError: true);
 

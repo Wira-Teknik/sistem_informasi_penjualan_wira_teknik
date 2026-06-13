@@ -109,7 +109,7 @@ class _AddDeliveryScreenState extends ConsumerState<AddDeliveryScreen> {
           buktiKirim: _buktiKirim!,
           suratJalan: _suratJalan!,
           bonPesanan: _bonPesanan!,
-          invoiceFile: _invoiceFile,
+          invoiceFile: _invoiceFile!,
         );
 
     if (success && mounted) {
