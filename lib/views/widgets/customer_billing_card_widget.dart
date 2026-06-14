@@ -25,7 +25,7 @@ class CustomerBillingCardWidget extends StatefulWidget {
 }
 
 class _CustomerBillingCardWidgetState extends State<CustomerBillingCardWidget> {
-  bool _isExpanded = true;
+  bool _isExpanded = false;
 
   String _searchQuery = '';
 
@@ -79,15 +79,10 @@ class _CustomerBillingCardWidgetState extends State<CustomerBillingCardWidget> {
                           color: semiSecondaryColor,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Text(
-                        widget.billing.orders
-                            .where(
-                              (o) => o.paymentStatus.toUpperCase() != "PAID",
-                            )
-                            .length
-                            .toString(),
-                        style: boldTextStyle,
+                        "${widget.billing.orders.where((o) => o.paymentStatus.toUpperCase() != "PAID").length} Pesanan",
+                        style: boldTextStyle.copyWith(fontSize: 16),
                       ),
                     ],
                   ),
@@ -118,7 +113,7 @@ class _CustomerBillingCardWidgetState extends State<CustomerBillingCardWidget> {
                             ? Icons.keyboard_arrow_up_rounded
                             : Icons.keyboard_arrow_down_rounded,
                         color: primaryColor,
-                        size: 20,
+                        size: 28,
                       ),
                     ),
                   ],
@@ -151,7 +146,7 @@ class _CustomerBillingCardWidgetState extends State<CustomerBillingCardWidget> {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  'Nomor PO tidak ditemukan',
+                  'Nomor transaksi tidak ditemukan',
                   style: regularTextStyle.copyWith(
                     color: semiSecondaryColor,
                     fontSize: 12,

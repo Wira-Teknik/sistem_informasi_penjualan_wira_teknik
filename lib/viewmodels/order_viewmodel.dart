@@ -20,6 +20,7 @@ class OrderState {
   final String? errorMessage;
   final String? nextTransactionNo;
   final int activeFilter;
+  final String searchQuery;
 
   final DateTime? startDate;
   final DateTime? endDate;
@@ -41,6 +42,7 @@ class OrderState {
     this.errorMessage,
     this.nextTransactionNo,
     this.activeFilter = 0,
+    this.searchQuery = '',
     this.startDate,
     this.endDate,
     this.poNo = '',
@@ -69,6 +71,8 @@ class OrderState {
     String? errorMessage,
     String? nextTransactionNo,
     int? activeFilter,
+    String? searchQuery,
+    bool clearSearchQuery = false,
     DateTime? startDate,
     DateTime? endDate,
     String? poNo,
@@ -94,6 +98,7 @@ class OrderState {
           ? null
           : (nextTransactionNo ?? this.nextTransactionNo),
       activeFilter: activeFilter ?? this.activeFilter,
+      searchQuery: clearSearchQuery ? '' : (searchQuery ?? this.searchQuery),
       startDate: clearFilter ? null : (startDate ?? this.startDate),
       endDate: clearFilter ? null : (endDate ?? this.endDate),
       poNo: clearFilter ? '' : (poNo ?? this.poNo),
@@ -153,6 +158,7 @@ class OrderViewModel extends StateNotifier<OrderState> {
       final response = await _repository.getOrders(
         page: state.currentPage,
         limit: 20,
+        searchQuery: state.searchQuery.isNotEmpty ? state.searchQuery : null,
         startDate: _formatDate(state.startDate),
         endDate: _formatDate(state.endDate),
         poNo: state.poNo.isNotEmpty ? state.poNo : null,
@@ -271,23 +277,14 @@ class OrderViewModel extends StateNotifier<OrderState> {
     _debounceTimer?.cancel();
 
     if (query.isEmpty) {
-      applyAdvanceFilter(
-        startDate: state.startDate,
-        endDate: state.endDate,
-        orderStatus: state.orderStatus,
-        poNo: '',
-        recipientName: '',
-      );
+      state = state.copyWith(clearSearchQuery: true);
+      loadOrders();
       return;
     }
 
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
-      await applyAdvanceFilter(
-        startDate: state.startDate,
-        endDate: state.endDate,
-        orderStatus: state.orderStatus,
-        recipientName: query,
-      );
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      state = state.copyWith(searchQuery: query);
+      loadOrders();
     });
   }
 

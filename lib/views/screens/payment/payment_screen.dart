@@ -6,7 +6,6 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment/detail_payment_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refresh_error_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/customer_billing_card_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/reusable_advance_filter.dart';
@@ -169,10 +168,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
     if (state.errorMessage != null && state.filteredBillings.isEmpty) {
       return Center(
-        child: CustomRefreshErrorWidget(
-          message: state.errorMessage!,
-          onPressed: () =>
-              ref.read(paymentViewModelProvider.notifier).loadBillings(),
+        child: Text(
+          state.errorMessage!,
+          style: regularTextStyle.copyWith(color: semiSecondaryColor),
+          textAlign: TextAlign.center,
         ),
       );
     }

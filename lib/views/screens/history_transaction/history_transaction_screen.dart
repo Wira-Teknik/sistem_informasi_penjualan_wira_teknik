@@ -57,7 +57,6 @@ class _HistoryTransactionScreenState
     return switch (status.toLowerCase()) {
       'paid' => greenColor,
       'partial' => orangeColor,
-      'unpaid' => redColor,
       _ => semiSecondaryColor,
     };
   }
@@ -125,7 +124,6 @@ class _HistoryTransactionScreenState
 
                       statusOptions: const [
                         {'label': 'All', 'value': ''},
-                        {'label': 'Unpaid', 'value': 'unpaid'},
                         {'label': 'Partial', 'value': 'partial'},
                         {'label': 'Paid', 'value': 'paid'},
                       ],
@@ -178,13 +176,40 @@ class _HistoryTransactionScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomTextfield(
-              controller: _searchController,
-              hintText: "Cari nomor PO",
-              prefixIcon: Icons.search,
-              onChanged: (value) => ref
-                  .read(historyTransactionViewModelProvider.notifier)
-                  .search(value),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomTextfield(
+                    controller: _searchController,
+                    hintText: "Cari nomor PO",
+                    prefixIcon: Icons.search,
+                    onChanged: (value) => ref
+                        .read(historyTransactionViewModelProvider.notifier)
+                        .search(value),
+                  ),
+                ),
+                if (_searchController.text.isNotEmpty) ...[
+                  const SizedBox(width: 4),
+                  SizedBox(
+                    height: 28,
+                    width: 28,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: primaryColor,
+                        size: 28,
+                      ),
+                      onPressed: () {
+                        _searchController.clear();
+                        ref
+                            .read(historyTransactionViewModelProvider.notifier)
+                            .search('');
+                      },
+                    ),
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 12),
             FilterHistoryTransactionSection(

@@ -127,13 +127,38 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
         padding: const EdgeInsets.only(left: 20, right: 20, bottom: 2, top: 2),
         child: Column(
           children: [
-            // Search
-            CustomTextfield(
-              controller: _searchController,
-              hintText: "Cari nomor PO, nama perusahaan",
-              prefixIcon: Icons.search,
-              onChanged: (value) =>
-                  ref.read(orderViewModelProvider.notifier).search(value),
+            Row(
+              children: [
+                // Search
+                Expanded(
+                  child: CustomTextfield(
+                    controller: _searchController,
+                    hintText: "Cari nomor PO, nama perusahaan",
+                    prefixIcon: Icons.search,
+                    onChanged: (value) =>
+                        ref.read(orderViewModelProvider.notifier).search(value),
+                  ),
+                ),
+                if (_searchController.text.isNotEmpty) ...[
+                  const SizedBox(width: 4),
+                  SizedBox(
+                    height: 28,
+                    width: 28,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: primaryColor,
+                        size: 28,
+                      ),
+                      onPressed: () {
+                        _searchController.clear();
+                        ref.read(orderViewModelProvider.notifier).search('');
+                      },
+                    ),
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 12),
 

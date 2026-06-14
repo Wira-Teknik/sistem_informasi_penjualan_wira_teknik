@@ -12,7 +12,8 @@ abstract class PaymentRepository {
   Future<CustomerBillingResponseModel> getCustomerBillings({
     int? page,
     int? limit,
-    String? query,
+    String? searchName,
+    String? customerName,
     String? startDate,
     String? endDate,
     String? status,
@@ -32,20 +33,30 @@ class PaymentRepositoryImpl implements PaymentRepository {
   Future<CustomerBillingResponseModel> getCustomerBillings({
     int? page,
     int? limit,
-    String? query,
+    String? searchName,
+    String? customerName,
     String? startDate,
     String? endDate,
     String? status,
   }) async {
     try {
-      final endpoint = query != null && query.isNotEmpty
-          ? '${AppStrings.paymentEndpoint}/customer/${Uri.encodeComponent(query)}'
-          : AppStrings.paymentEndpoint;
+      // Hanya menggunakan satu endpoint utama
+      final endpoint = AppStrings.paymentEndpoint;
 
       final Map<String, dynamic> queryParams = {};
 
       if (page != null) queryParams['page'] = page;
       if (limit != null) queryParams['limit'] = limit;
+
+      // Gabungkan searchName dan customerName agar data pencarian tidak hilang.
+      // Prioritaskan searchName, jika kosong baru gunakan customerName.
+      final queryName = (searchName != null && searchName.isNotEmpty)
+          ? searchName
+          : customerName;
+
+      if (queryName != null && queryName.isNotEmpty) {
+        queryParams['name'] = queryName;
+      }
 
       if (startDate != null && startDate.isNotEmpty) {
         queryParams['start_date'] = startDate;

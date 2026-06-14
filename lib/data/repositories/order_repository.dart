@@ -11,6 +11,7 @@ abstract class OrderRepository {
   Future<OrderResponseModel> getOrders({
     int? page,
     int? limit,
+    String? searchQuery,
     String? startDate,
     String? endDate,
     String? poNo,
@@ -32,6 +33,7 @@ class OrderRepositoryImpl implements OrderRepository {
   Future<OrderResponseModel> getOrders({
     int? page,
     int? limit,
+    String? searchQuery,
     String? startDate,
     String? endDate,
     String? poNo,
@@ -43,6 +45,10 @@ class OrderRepositoryImpl implements OrderRepository {
 
       if (page != null) queryParams['page'] = page;
       if (limit != null) queryParams['limit'] = limit;
+
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        queryParams['search'] = searchQuery;
+      }
 
       if (startDate != null) queryParams['start_date'] = startDate;
       if (endDate != null) queryParams['end_date'] = endDate;

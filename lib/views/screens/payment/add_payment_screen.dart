@@ -98,7 +98,7 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
     setState(() => _selectedOrders = orders);
 
     // Auto-fill total
-    final total = orders.fold<int>(0, (sum, o) => sum + o.remainingBalance);
+    final total = orders.fold<int>(0, (sum, o) => sum + o.unpaidInvoiceTotal);
     if (total > 0) {
       _totalController.text = formatNumberRupiah(total.toString());
     } else {
@@ -191,7 +191,7 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                           formatRupiah(
                             _selectedOrders.fold<int>(
                               0,
-                              (sum, o) => (sum + o.totalAmountToPay).toInt(),
+                              (sum, o) => (sum + o.unpaidInvoiceTotal).toInt(),
                             ),
                           ),
                           style: boldTextStyle.copyWith(

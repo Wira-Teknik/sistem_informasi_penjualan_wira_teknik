@@ -23,6 +23,8 @@ class PaymentState {
   final int currentPage;
   final bool hasReachedMax;
 
+  final String searchQuery;
+
   final DateTime? startDate;
   final DateTime? endDate;
   final String name;
@@ -42,6 +44,7 @@ class PaymentState {
     this.currentPage = 1,
     this.hasReachedMax = false,
     this.errorMessage,
+    this.searchQuery = '',
     this.startDate,
     this.endDate,
     this.name = '',
@@ -68,6 +71,10 @@ class PaymentState {
     String? errorMessage,
     int? currentPage,
     bool? hasReachedMax,
+
+    String? searchQuery,
+    bool clearSearchQuery = false,
+
     DateTime? startDate,
     DateTime? endDate,
     String? name,
@@ -92,6 +99,9 @@ class PaymentState {
       isDetailLoading: isDetailLoading ?? this.isDetailLoading,
       currentPage: currentPage ?? this.currentPage,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
+
+      searchQuery: clearSearchQuery ? '' : (searchQuery ?? this.searchQuery),
+
       startDate: clearFilter ? null : (startDate ?? this.startDate),
       endDate: clearFilter ? null : (endDate ?? this.endDate),
       name: clearFilter ? '' : (name ?? this.name),
@@ -147,10 +157,10 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
         limit: 20,
         startDate: _formatDate(state.startDate),
         endDate: _formatDate(state.endDate),
-        query: state.name.isNotEmpty ? state.name : null,
+        customerName: state.searchQuery.isNotEmpty ? state.searchQuery : null,
+        searchName: state.name.isNotEmpty ? state.name : null,
         status: state.status.isNotEmpty ? state.status : null,
       );
-
       _lastFetchTime = DateTime.now();
 
       final newBillings = response.data;
@@ -241,7 +251,8 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
         limit: 20,
         startDate: _formatDate(state.startDate),
         endDate: _formatDate(state.endDate),
-        query: state.name.isNotEmpty ? state.name : null,
+        customerName: state.searchQuery.isNotEmpty ? state.searchQuery : null,
+        searchName: state.name.isNotEmpty ? state.name : null,
         status: state.status.isNotEmpty ? state.status : null,
       );
       _lastFetchTime = DateTime.now();
@@ -269,7 +280,7 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
 
     if (query.isEmpty) {
       _debounceTimer?.cancel();
-      state = state.copyWith(name: '');
+      state = state.copyWith(clearSearchQuery: true);
       loadBillings();
       return;
     }
@@ -280,7 +291,7 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
 
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      state = state.copyWith(name: query);
+      state = state.copyWith(searchQuery: query);
       loadBillings();
     });
   }

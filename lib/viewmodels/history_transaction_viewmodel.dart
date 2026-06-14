@@ -21,6 +21,7 @@ class HistoryTransactionState {
   final DateTime? startDate;
   final DateTime? endDate;
   final String searchQuery;
+  final String searchQueryAdvance;
   final String status;
 
   const HistoryTransactionState({
@@ -37,13 +38,14 @@ class HistoryTransactionState {
     this.startDate,
     this.endDate,
     this.searchQuery = '',
+    this.searchQueryAdvance = '',
     this.status = '',
   });
 
   bool get hasActiveFilter =>
       startDate != null ||
       endDate != null ||
-      searchQuery.isNotEmpty ||
+      searchQueryAdvance.isNotEmpty ||
       status.isNotEmpty;
 
   HistoryTransactionState copyWith({
@@ -57,6 +59,7 @@ class HistoryTransactionState {
     DateTime? startDate,
     DateTime? endDate,
     String? searchQuery,
+    String? searchQueryAdvance,
     String? status,
     int? activeFilter,
     int? currentPage,
@@ -77,6 +80,9 @@ class HistoryTransactionState {
       startDate: clearFilter ? null : (startDate ?? this.startDate),
       endDate: clearFilter ? null : (endDate ?? this.endDate),
       searchQuery: clearFilter ? '' : (searchQuery ?? this.searchQuery),
+      searchQueryAdvance: clearFilter
+          ? ''
+          : (searchQueryAdvance ?? this.searchQueryAdvance),
       status: clearFilter ? '' : (status ?? this.status),
       activeFilter: clearFilter ? 0 : (activeFilter ?? this.activeFilter),
     );
@@ -89,14 +95,14 @@ class HistoryTransactionViewModel
 
   Timer? _debounceTimer;
   // ignore: unused_field
-  String _lastQuery = '';
+  final String _lastQuery = '';
 
   HistoryTransactionViewModel(this._repository)
     : super(const HistoryTransactionState()) {
     loadHistory();
   }
 
-  static const _filterStatus = {0: null, 1: 'unpaid', 2: 'partial', 3: 'paid'};
+  static const _filterStatus = {0: null, 1: 'partial', 2: 'paid'};
 
   List<HistoryTransactionModel> _applyFilter(
     List<HistoryTransactionModel> transactions,
@@ -216,7 +222,7 @@ class HistoryTransactionViewModel
     state = state.copyWith(
       startDate: startDate,
       endDate: endDate,
-      searchQuery: search ?? '',
+      searchQueryAdvance: search ?? '',
       status: status ?? '',
       activeFilter: 0,
     );
@@ -236,31 +242,18 @@ class HistoryTransactionViewModel
   }
 
   void search(String query) {
-    _lastQuery = query;
+    _debounceTimer?.cancel();
 
     if (query.isEmpty) {
-      _debounceTimer?.cancel();
-      state = state.copyWith(
-        searchQuery: '',
-        activeFilter: 0,
-        filteredTransactions: List.from(state.transactions),
-      );
+      state = state.copyWith(searchQuery: '');
+
       loadHistory();
       return;
     }
 
-    final keyword = query.toLowerCase().trim();
-    final filtered = state.transactions.where((t) {
-      return t.poNo.toLowerCase().contains(keyword) ||
-          t.transactionNo.toLowerCase().contains(keyword) ||
-          t.customerName.toLowerCase().contains(keyword);
-    }).toList();
-
-    state = state.copyWith(filteredTransactions: filtered, activeFilter: 0);
-
-    _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       state = state.copyWith(searchQuery: query);
+
       loadHistory();
     });
   }

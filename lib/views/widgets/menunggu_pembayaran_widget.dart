@@ -247,9 +247,7 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              formatNumberRupiah(
-                                order.unpaidInvoiceTotal.toString(),
-                              ),
+                              formatRupiah(order.unpaidInvoiceTotal),
                               style: boldTextStyle.copyWith(
                                 fontSize: 14,
                                 color: primaryColor,
