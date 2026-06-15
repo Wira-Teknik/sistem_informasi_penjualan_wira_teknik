@@ -20,7 +20,7 @@ class AuditRepositoryImpl implements AuditRepository {
       final response = await _dio.get(
         AppStrings.auditEndpoint,
         queryParameters: query != null && query.isNotEmpty
-            ? {'q': query}
+            ? {'name': query}
             : null,
       );
       final result = AuditResponseModel.fromJson(response.data);
