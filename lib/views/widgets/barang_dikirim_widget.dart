@@ -252,16 +252,16 @@ class _ShippingItemTile extends StatelessWidget {
                             color: whiteColor,
                             iconColor: secondaryColor,
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 16),
                           SizedBox(
-                            width: 24,
+                            width: 28,
                             child: Text(
                               '$quantity',
                               style: boldTextStyle,
                               textAlign: TextAlign.center,
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 16),
                           _QtyButton(
                             icon: Icons.add,
                             onTap: onIncrement,

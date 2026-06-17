@@ -115,7 +115,7 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
                 ),
               ),
             )
-          else if (_order!.orderStatus.toUpperCase() == "PENDING")
+          else if (_orderDetail!.orderStatus.toUpperCase() == "PENDING")
             IconButton(
               onPressed: () async {
                 final updated = await Navigator.push<bool>(
@@ -218,8 +218,9 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
                     ],
 
                     // Tombol buat pengiriman
-                    if (_order!.orderStatus.toUpperCase() != "COMPLETED" &&
-                        _order!.orderStatus.toUpperCase() != "SHIPPED")
+                    if (_orderDetail!.orderStatus.toUpperCase() !=
+                            "COMPLETED" &&
+                        _orderDetail!.orderStatus.toUpperCase() != "SHIPPED")
                       CustomFilledbutton(
                         title: "Buat Pengiriman",
                         iconButton: Icons.edit_note_rounded,
@@ -236,7 +237,7 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
                           if (result == true && mounted) {
                             final updated = await ref
                                 .read(orderViewModelProvider.notifier)
-                                .getOrderDetail(_order!.id);
+                                .getOrderDetail(_orderDetail!.id);
 
                             if (updated != null && mounted) {
                               setState(() => _orderDetail = updated);
@@ -247,7 +248,7 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
                     else ...[
                       const SizedBox(height: 12),
                       Text(
-                        "Status ${_order!.orderStatus} seluruh barang sudah dikirim, tidak dapat membuat pengiriman.",
+                        "Status ${_orderDetail!.orderStatus} seluruh barang sudah dikirim, tidak dapat membuat pengiriman.",
                         textAlign: TextAlign.center,
                         style: regularTextStyle.copyWith(
                           color: semiSecondaryColor,
@@ -304,8 +305,8 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
           ),
           const Spacer(),
           CustomBadge(
-            label: _orderStatusLabel(_order!.orderStatus),
-            badgeColor: _orderStatusColor(_order!.orderStatus),
+            label: _orderStatusLabel(_orderDetail!.orderStatus),
+            badgeColor: _orderStatusColor(_orderDetail!.orderStatus),
           ),
         ],
       ),
@@ -333,12 +334,12 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _order!.recipientName.toUpperCase(),
+                      _orderDetail!.recipientName.toUpperCase(),
                       style: boldTextStyle,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      "No PO: ${_order!.poNo}",
+                      "No PO: ${_orderDetail!.poNo}",
                       style: regularTextStyle.copyWith(
                         fontSize: 12,
                         color: semiSecondaryColor,
@@ -449,9 +450,7 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
             children: [
               Text("Status Sekarang", style: semiBoldTextStyle),
               const Spacer(),
-              _orderDetail!.paymentStatus.toUpperCase() == "PAID"
-                  ? CustomBadge(label: "Paid", badgeColor: greenColor)
-                  : CustomBadge(label: "Unpaid", badgeColor: redColor),
+              _buildPaymentBadge(_orderDetail!.paymentStatus),
             ],
           ),
           const SizedBox(height: 16),
@@ -579,6 +578,17 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildPaymentBadge(String status) {
+    switch (status.toUpperCase()) {
+      case "PAID":
+        return CustomBadge(label: "Paid", badgeColor: greenColor);
+      case "PARTIAL":
+        return CustomBadge(label: "Partial", badgeColor: orangeColor);
+      default:
+        return CustomBadge(label: "Unpaid", badgeColor: redColor);
+    }
   }
 
   // Dekorasi card yang konsisten

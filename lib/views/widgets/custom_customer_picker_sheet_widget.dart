@@ -67,7 +67,12 @@ class _CustomCustomerPickerSheetWidgetState
                 ),
                 const Spacer(),
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () {
+                    ref
+                        .read(customerViewModelProvider.notifier)
+                        .clearFilteredCustomers();
+                    Navigator.pop(context);
+                  },
                   child: Icon(Icons.close_rounded, color: semiSecondaryColor),
                 ),
               ],

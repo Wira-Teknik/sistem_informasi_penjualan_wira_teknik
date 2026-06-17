@@ -178,6 +178,20 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
                               );
 
                               if (success == true && mounted) {
+                                await ref
+                                    .read(paymentViewModelProvider.notifier)
+                                    .getCustomerBillingDetail(
+                                      _billing!.customerName,
+                                    );
+
+                                final latestDetail = ref
+                                    .read(paymentViewModelProvider)
+                                    .selectedCustomerDetail;
+
+                                if (latestDetail != null && mounted) {
+                                  setState(() => _billing = latestDetail);
+                                }
+
                                 // ignore: use_build_context_synchronously
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
