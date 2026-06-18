@@ -45,11 +45,10 @@ class ItemPesananWidget extends StatelessWidget {
   // Label badge
   String _badgeLabel(String status) {
     return switch (status.toLowerCase()) {
-      'pending' => 'Pending',
-      'partial' => 'Partial',
-      'shipped' => 'Shipped',
-      'completed' => 'Completed',
-      // 'dibatal' => 'Dibatalkan',
+      'pending' => 'Tertunda',
+      'partial' => 'Sebagian',
+      'shipped' => 'Dikirim',
+      'completed' => 'Selesai',
       _ => status,
     };
   }

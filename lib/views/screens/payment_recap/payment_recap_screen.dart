@@ -162,7 +162,7 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
           ),
           child: ItemCardRecap(
             iconSource: "assets/icons/total_unpaid_icon.png",
-            title: "TOTAL UNPAID",
+            title: "TOTAL BELUM DIBAYAR",
             value: formatRupiah(data.totalUnpaid),
             valueColor: redColor,
             isArrowIconVisible: true,
@@ -181,7 +181,7 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
           ),
           child: ItemCardRecap(
             iconSource: "assets/icons/total_paid_icon.png",
-            title: "TOTAL PAID",
+            title: "TOTAL BAYAR",
             value: formatRupiah(data.totalPaid),
             valueColor: greenColor,
             isArrowIconVisible: true,

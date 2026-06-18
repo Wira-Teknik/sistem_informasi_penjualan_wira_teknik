@@ -15,9 +15,9 @@ class FilterHistoryTransactionSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> listFilterHistory = [
-      {"name": "All"},
-      {"name": "Partial"},
-      {"name": "Paid"},
+      {"name": "Semua"},
+      {"name": "Dibayar Sebagian"},
+      {"name": "Lunas"},
     ];
 
     return SingleChildScrollView(

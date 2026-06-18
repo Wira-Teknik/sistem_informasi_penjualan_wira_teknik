@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart'; // Pastikan BillingOrderModel dan PaymentModel terimport dari sini
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/payment_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/bukti_pembayaran_dialog_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';

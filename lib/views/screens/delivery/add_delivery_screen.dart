@@ -42,18 +42,11 @@ class _AddDeliveryScreenState extends ConsumerState<AddDeliveryScreen> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      builder: (context, child) => Theme(
-        data: Theme.of(
-          context,
-        ).copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
-        child: child!,
-      ),
+    final picked = await pickCustomDate(
+      context,
+      firstDate: DateTime.parse(widget.order.orderDate),
     );
+
     if (picked != null) {
       _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
     }

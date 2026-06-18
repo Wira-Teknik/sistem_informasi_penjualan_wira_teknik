@@ -79,19 +79,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                         prefixIcon: Icons.badge_outlined,
                       ),
                     ],
-                    statusOptions: const [
-                      {'label': 'All', 'value': ''},
-                      {'label': 'Partial', 'value': 'partial'},
-                      {'label': 'Paid', 'value': 'paid'},
-                      {'label': 'Unpaid', 'value': 'unpaid'},
-                    ],
                     onApply: (start, end, status) async {
                       await ref
                           .read(paymentViewModelProvider.notifier)
                           .applyAdvanceFilter(
                             startDate: start,
                             endDate: end,
-                            status: status,
                             name: nameController.text.trim(),
                           );
                     },

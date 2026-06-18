@@ -583,11 +583,11 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
   Widget _buildPaymentBadge(String status) {
     switch (status.toUpperCase()) {
       case "PAID":
-        return CustomBadge(label: "Paid", badgeColor: greenColor);
+        return CustomBadge(label: "Lunas", badgeColor: greenColor);
       case "PARTIAL":
-        return CustomBadge(label: "Partial", badgeColor: orangeColor);
+        return CustomBadge(label: "Dibayar Sebagian", badgeColor: orangeColor);
       default:
-        return CustomBadge(label: "Unpaid", badgeColor: redColor);
+        return CustomBadge(label: "Belum Dibayar", badgeColor: redColor);
     }
   }
 
@@ -616,10 +616,10 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
   // Label badge order status
   String _orderStatusLabel(String status) {
     return switch (status.toLowerCase()) {
-      'pending' => 'Pending',
-      'partial' => 'Partial',
-      'shipped' => 'Shipped',
-      'completed' => 'Completed',
+      'pending' => 'Tertunda',
+      'partial' => 'Sebagian',
+      'shipped' => 'Dikirim',
+      'completed' => 'Selesai',
       _ => status,
     };
   }

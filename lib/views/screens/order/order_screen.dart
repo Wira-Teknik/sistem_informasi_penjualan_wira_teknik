@@ -88,11 +88,11 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
                       ),
                     ],
                     statusOptions: const [
-                      {'label': 'All', 'value': ''},
-                      {'label': 'Pending', 'value': 'pending'},
-                      {'label': 'Partial', 'value': 'partial'},
-                      {'label': 'Shipped', 'value': 'shipped'},
-                      {'label': 'Completed', 'value': 'completed'},
+                      {'label': 'Semua', 'value': ''},
+                      {'label': 'Tertunda', 'value': 'pending'},
+                      {'label': 'Sebagian', 'value': 'partial'},
+                      {'label': 'Dikirim', 'value': 'shipped'},
+                      {'label': 'Selesai', 'value': 'completed'},
                     ],
                     onApply: (start, end, status) async {
                       await ref

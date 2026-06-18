@@ -123,9 +123,9 @@ class _HistoryTransactionScreenState
                       ],
 
                       statusOptions: const [
-                        {'label': 'All', 'value': ''},
-                        {'label': 'Partial', 'value': 'partial'},
-                        {'label': 'Paid', 'value': 'paid'},
+                        {'label': 'Semua', 'value': ''},
+                        {'label': 'Dibayar Sebagian', 'value': 'partial'},
+                        {'label': 'Lunas', 'value': 'paid'},
                       ],
 
                       onApply: (start, end, status) async {

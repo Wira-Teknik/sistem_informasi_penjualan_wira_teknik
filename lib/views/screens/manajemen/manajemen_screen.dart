@@ -10,8 +10,8 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appb
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
 
-class ProfileScreen extends ConsumerWidget {
-  const ProfileScreen({super.key});
+class ManajemenScreen extends ConsumerWidget {
+  const ManajemenScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,7 +21,7 @@ class ProfileScreen extends ConsumerWidget {
     final email = state.user?.email;
 
     return Scaffold(
-      appBar: CustomAppbar(title: "Profil"),
+      appBar: CustomAppbar(title: "Manajemen"),
       body: Padding(
         padding: const EdgeInsets.only(
           left: 17,

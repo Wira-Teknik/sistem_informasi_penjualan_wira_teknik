@@ -79,7 +79,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
 
   // Pilih tanggal
   Future<void> _pickDate() async {
-    final picked = await pickCustomDate(context);
+    final picked = await pickCustomDate(context, firstDate: DateTime.now());
     if (picked != null) {
       setState(() {
         _selectedDate = picked;

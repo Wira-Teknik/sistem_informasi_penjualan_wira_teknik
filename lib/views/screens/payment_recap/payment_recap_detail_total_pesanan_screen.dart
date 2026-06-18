@@ -32,7 +32,6 @@ class _PaymentRecapDetailTotalPesananScreenState
     extends ConsumerState<PaymentRecapDetailTotalPesananScreen> {
   final _searchController = TextEditingController();
 
-  // 1. Tambahkan Scroll Controller
   final ScrollController _scrollController = ScrollController();
 
   late final _providerKey = (
@@ -43,19 +42,16 @@ class _PaymentRecapDetailTotalPesananScreenState
   @override
   void initState() {
     super.initState();
-    // 2. Pasang listener untuk mendeteksi pergerakan scroll
     _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _scrollController
-        .dispose(); // Wajib di-dispose untuk mencegah kebocoran memori
+    _scrollController.dispose();
     super.dispose();
   }
 
-  // 3. Fungsi untuk memicu loadMore ketika mencapai batas bawah list
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
@@ -63,7 +59,6 @@ class _PaymentRecapDetailTotalPesananScreenState
         paymentRecapDetailPesananViewModelProvider(_providerKey),
       );
 
-      // Jika data belum habis dan tidak sedang loading, tarik data berikutnya
       if (!state.isLoadMore && !state.hasReachedMax && !state.isLoading) {
         ref
             .read(
@@ -222,7 +217,6 @@ class _PaymentRecapDetailTotalPesananScreenState
   }
 
   Widget _buildContent(PaymentRecapDetailPesananState state) {
-    // Tampilkan loading penuh HANYA jika data list kosong (loading awal)
     if (state.isLoading && state.filteredItems.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(color: primaryColor),
@@ -267,13 +261,10 @@ class _PaymentRecapDetailTotalPesananScreenState
     }
 
     return ListView.builder(
-      // 4. Hubungkan controller ke ListView dan izinkan scroll meskipun item sedikit
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      // 5. Tambahkan 1 tempat ekstra untuk indikator loading di paling bawah
       itemCount: state.filteredItems.length + (state.isLoadMore ? 1 : 0),
       itemBuilder: (context, index) {
-        // 6. Indikator loading muncul jika posisi index melebihi batas data aslinya
         if (index == state.filteredItems.length) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 24.0),

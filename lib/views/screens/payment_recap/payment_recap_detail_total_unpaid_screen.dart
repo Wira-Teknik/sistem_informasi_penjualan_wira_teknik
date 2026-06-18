@@ -31,7 +31,6 @@ class _PaymentRecapDetailTotalUnpaidScreenState
     extends ConsumerState<PaymentRecapDetailTotalUnpaidScreen> {
   final _searchController = TextEditingController();
 
-  // 1. Tambahkan Scroll Controller
   final ScrollController _scrollController = ScrollController();
 
   late final _providerKey = (
@@ -42,19 +41,16 @@ class _PaymentRecapDetailTotalUnpaidScreenState
   @override
   void initState() {
     super.initState();
-    // 2. Pasang listener untuk mendeteksi pergerakan scroll
     _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _scrollController
-        .dispose(); // Wajib di-dispose untuk mencegah kebocoran memori
+    _scrollController.dispose();
     super.dispose();
   }
 
-  // 3. Fungsi untuk memicu loadMore ketika mencapai batas bawah list
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
@@ -62,7 +58,6 @@ class _PaymentRecapDetailTotalUnpaidScreenState
         paymentRecapDetailUnpaidViewModelProvider(_providerKey),
       );
 
-      // Jika data belum habis dan tidak sedang loading, tarik data berikutnya
       if (!state.isLoadMore && !state.hasReachedMax && !state.isLoading) {
         ref
             .read(
@@ -104,7 +99,7 @@ class _PaymentRecapDetailTotalUnpaidScreenState
 
     return Scaffold(
       appBar: CustomAppbar(
-        title: 'Detail Total Unpaid',
+        title: 'Detail Total Belum Bayar',
         actions: [
           IconButton(
             onPressed: state.isDownloading ? null : _onDownload,
@@ -167,7 +162,7 @@ class _PaymentRecapDetailTotalUnpaidScreenState
               // Card info
               ItemCardRecap(
                 iconSource: "assets/icons/total_unpaid_icon.png",
-                title: "TOTAL UNPAID",
+                title: "TOTAL BELUM BAYAR",
                 value: formatRupiah(state.data?.totalUnpaid ?? 0),
                 valueColor: redColor,
               ),
@@ -198,7 +193,6 @@ class _PaymentRecapDetailTotalUnpaidScreenState
   }
 
   Widget _buildContent(PaymentRecapDetailUnpaidState state) {
-    // Tampilkan loading penuh HANYA jika data list kosong (loading awal)
     if (state.isLoading && state.filteredItems.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(color: primaryColor),
@@ -243,13 +237,10 @@ class _PaymentRecapDetailTotalUnpaidScreenState
     }
 
     return ListView.builder(
-      // 4. Hubungkan controller ke ListView dan izinkan scroll meskipun item sedikit
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      // 5. Tambahkan 1 tempat ekstra untuk indikator loading di paling bawah
       itemCount: state.filteredItems.length + (state.isLoadMore ? 1 : 0),
       itemBuilder: (context, index) {
-        // 6. Indikator loading muncul jika posisi index melebihi batas data aslinya
         if (index == state.filteredItems.length) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 24.0),

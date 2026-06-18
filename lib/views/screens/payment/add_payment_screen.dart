@@ -41,7 +41,7 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await pickCustomDate(context);
+    final picked = await pickCustomDate(context, firstDate: DateTime.now());
 
     if (picked != null) {
       setState(() {

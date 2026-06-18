@@ -93,15 +93,28 @@ Future<DateTime?> pickCustomDate(
   DateTime? firstDate,
   DateTime? lastDate,
 }) async {
+  final defaultFirstDate = firstDate ?? DateTime(2000);
+  final defaultLastDate = lastDate ?? DateTime(2050);
+  final now = DateTime.now();
+
+  DateTime safeInitialDate = initialDate ?? now;
+  if (safeInitialDate.isBefore(defaultFirstDate)) {
+    safeInitialDate = defaultFirstDate;
+  } else if (safeInitialDate.isAfter(defaultLastDate)) {
+    safeInitialDate = defaultLastDate;
+  }
+
   final picked = await showDatePicker(
     context: context,
-    initialDate: initialDate ?? DateTime.now(),
-    firstDate: firstDate ?? DateTime(2000),
-    lastDate: lastDate ?? DateTime(2050),
+    initialDate: safeInitialDate,
+    firstDate: defaultFirstDate,
+    lastDate: defaultLastDate,
     builder: (context, child) => Theme(
-      data: Theme.of(
-        context,
-      ).copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
+      data: Theme.of(context).copyWith(
+        colorScheme: Theme.of(
+          context,
+        ).colorScheme.copyWith(primary: primaryColor),
+      ),
       child: child!,
     ),
   );

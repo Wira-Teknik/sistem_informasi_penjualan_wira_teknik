@@ -10,7 +10,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/dashboard/a
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/dashboard/owner_dashboard_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/order/order_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment/payment_screen.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/profile/profile_screen.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/manajemen/manajemen_screen.dart';
 
 class BottomNavigation extends ConsumerStatefulWidget {
   const BottomNavigation({super.key});
@@ -25,13 +25,13 @@ class _BottomNavigationState extends ConsumerState<BottomNavigation> {
 
   List<Widget> _getPages(String role) {
     if (role == 'owner') {
-      return const [OwnerDashboardScreen(), AuditScreen(), ProfileScreen()];
+      return const [OwnerDashboardScreen(), AuditScreen(), ManajemenScreen()];
     }
     return const [
       AdminDashboardScreen(),
       OrderScreen(),
       PaymentScreen(),
-      ProfileScreen(),
+      ManajemenScreen(),
     ];
   }
 
@@ -53,8 +53,8 @@ class _BottomNavigationState extends ConsumerState<BottomNavigation> {
       label: 'BAYAR',
     );
     const profile = BottomNavigationBarItem(
-      icon: ImageIcon(AssetImage('assets/icons/profile_icon.png'), size: 18),
-      label: 'PROFIL',
+      icon: ImageIcon(AssetImage('assets/icons/manajemen_icon.png'), size: 18),
+      label: 'MANAJEMEN',
     );
 
     if (role == 'owner') return [dashboard, audit, profile];
@@ -77,7 +77,7 @@ class _BottomNavigationState extends ConsumerState<BottomNavigation> {
           break;
         case 1:
           break;
-        case 2: // Profile — tidak perlu reload
+        case 2:
           break;
       }
     } else {
@@ -90,7 +90,7 @@ class _BottomNavigationState extends ConsumerState<BottomNavigation> {
         case 2:
           ref.read(paymentViewModelProvider.notifier).refresh();
           break;
-        case 3: // Profile — tidak perlu reload
+        case 3:
           break;
       }
     }
