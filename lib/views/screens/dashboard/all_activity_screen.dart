@@ -288,16 +288,15 @@ class _ActivityItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(left: 1, right: 1, top: 1, bottom: 16),
       decoration: BoxDecoration(
         color: whiteColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: semiSecondaryColor.withValues(alpha: 0.15),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: semiSecondaryColor.withValues(alpha: 0.5),
+            blurRadius: 0.5,
           ),
         ],
       ),

@@ -19,10 +19,16 @@ abstract class PaymentRepository {
     String? status,
   });
   Future<CustomerBillingDetailModel> getCustomerBillingDetail(
-    String customerName,
-  );
+    String customerName, {
+    String? startDate,
+    String? endDate,
+  });
   Future<void> addPayment(AddPaymentRequest request);
-  Future<void> updatePayment(String id, double paymentTotal);
+  Future<void> updatePayment(
+    String id,
+    List<String> orderIds,
+    double paymentTotal,
+  );
 }
 
 class PaymentRepositoryImpl implements PaymentRepository {
@@ -40,7 +46,6 @@ class PaymentRepositoryImpl implements PaymentRepository {
     String? status,
   }) async {
     try {
-      // Hanya menggunakan satu endpoint utama
       final endpoint = AppStrings.paymentEndpoint;
 
       final Map<String, dynamic> queryParams = {};
@@ -48,8 +53,6 @@ class PaymentRepositoryImpl implements PaymentRepository {
       if (page != null) queryParams['page'] = page;
       if (limit != null) queryParams['limit'] = limit;
 
-      // Gabungkan searchName dan customerName agar data pencarian tidak hilang.
-      // Prioritaskan searchName, jika kosong baru gunakan customerName.
       final queryName = (searchName != null && searchName.isNotEmpty)
           ? searchName
           : customerName;
@@ -85,11 +88,24 @@ class PaymentRepositoryImpl implements PaymentRepository {
 
   @override
   Future<CustomerBillingDetailModel> getCustomerBillingDetail(
-    String customerName,
-  ) async {
+    String customerName, {
+    String? startDate,
+    String? endDate,
+  }) async {
     try {
+      final Map<String, dynamic> queryParams = {};
+
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+
       final response = await _dio.get(
         '${AppStrings.paymentEndpoint}/customer/${Uri.encodeComponent(customerName)}',
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
       return CustomerBillingDetailModel.fromJson(response.data['data']);
@@ -140,11 +156,20 @@ class PaymentRepositoryImpl implements PaymentRepository {
   }
 
   @override
-  Future<void> updatePayment(String id, double paymentTotal) async {
+  Future<void> updatePayment(
+    String id,
+    List<String> orderIds,
+    double paymentTotal,
+  ) async {
     try {
+      // Bentuk list details secara dinamis berdasarkan jumlah order
+      final List<Map<String, dynamic>> detailsList = orderIds.map((orderId) {
+        return {"order_id": orderId};
+      }).toList();
+
       await _dio.put(
         '${AppStrings.paymentEndpoint}/$id',
-        data: {'payment_total': paymentTotal},
+        data: {"details": detailsList, "payment_total": paymentTotal},
       );
     } on DioException catch (e) {
       throw Exception(e.error ?? 'Gagal mengubah pembayaran');

@@ -7,6 +7,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/validators.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_order_request_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/customer_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/order_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_customer_picker_sheet_widget.dart';
@@ -150,6 +151,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
         .addOrder(request);
 
     if (success && mounted) {
+      ref.read(customerViewModelProvider.notifier).clearFilteredCustomers();
       showSnackbar(context, 'Pesanan berhasil dibuat', isError: false);
       Navigator.pop(context);
     }

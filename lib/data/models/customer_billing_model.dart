@@ -3,24 +3,26 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/models/payment_model
 
 class CustomerBillingModel {
   final String customerName;
+  final int totalUnpaid;
+  final int totalPaid;
+  final int totalPartial;
   final int totalTagihan;
-  final List<BillingOrderModel> orders;
 
   const CustomerBillingModel({
     required this.customerName,
     required this.totalTagihan,
-    required this.orders,
+    required this.totalUnpaid,
+    required this.totalPaid,
+    required this.totalPartial,
   });
 
   factory CustomerBillingModel.fromJson(Map<String, dynamic> json) {
     return CustomerBillingModel(
       customerName: json['customer_name'] ?? '',
+      totalUnpaid: json['total_unpaid'] ?? 0,
+      totalPaid: json['total_paid'] ?? 0,
+      totalPartial: json['total_partial'] ?? 0,
       totalTagihan: json['total_tagihan'] ?? 0,
-      orders: json['orders'] != null
-          ? (json['orders'] as List)
-                .map((e) => BillingOrderModel.fromJson(e))
-                .toList()
-          : [],
     );
   }
 }

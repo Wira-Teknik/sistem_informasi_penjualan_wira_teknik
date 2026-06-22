@@ -13,6 +13,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/confirm_rec
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info_message_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/dokumen_pendukung_dialog.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/edit_shipment_dialog_widget.dart';
 
@@ -115,7 +116,7 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
                 ),
               ),
             )
-          else if (_orderDetail!.orderStatus.toUpperCase() == "PENDING")
+          else if (_orderDetail!.orderStatus.toUpperCase() == "PENDING") ...[
             IconButton(
               onPressed: () async {
                 final updated = await Navigator.push<bool>(
@@ -150,6 +151,81 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
                 size: 20,
               ),
             ),
+            SizedBox(
+              width: 26,
+              height: 26,
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                icon: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: redColor,
+                  size: 26,
+                ),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext dialogContext) {
+                      return AlertDialog(
+                        backgroundColor: whiteColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        title: Text('Hapus Pesanan', style: semiBoldTextStyle),
+                        content: Text(
+                          'Apakah Anda yakin ingin menghapus pesanan ini? Data yang sudah dihapus tidak dapat dikembalikan.',
+                          style: regularTextStyle,
+                        ),
+                        actions: [
+                          Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              CustomFilledbutton(
+                                title: "Batal",
+                                buttonColor: semiSecondaryColor.withValues(
+                                  alpha: 0.3,
+                                ),
+                                buttonTitleSize: 12,
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                              const SizedBox(width: 10),
+                              CustomFilledbutton(
+                                title: "Hapus",
+                                buttonColor: primaryColor,
+                                buttonTitleSize: 12,
+                                onPressed: () async {
+                                  final success = await ref
+                                      .read(orderViewModelProvider.notifier)
+                                      .deleteOrder(_orderDetail!.id);
+
+                                  if (success && dialogContext.mounted) {
+                                    Navigator.pop(dialogContext);
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: CustomInfoMessageWidget(
+                                          color: greenColor,
+                                          message: 'Pesanan berhasil dihapus',
+                                          icons: Icons.done_rounded,
+                                        ),
+                                        backgroundColor: Colors.white,
+                                      ),
+                                    );
+                                    Navigator.pop(context);
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            SizedBox(width: 10),
+          ],
         ],
       ),
       body: (_orderDetail == null)
@@ -483,6 +559,15 @@ class _DetailOrderScreenState extends ConsumerState<DetailOrderScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            _orderDetail!.invoices
+                    .where((e) => e.shipmentId == shipment.id)
+                    .firstOrNull
+                    ?.invoiceNo ??
+                "Belum ada invoice",
+            style: boldTextStyle.copyWith(fontSize: 12),
+          ),
+          const SizedBox(height: 10),
           Row(
             children: [
               if (shipment.shippingStatus.toUpperCase() == "DIKIRIM") ...[

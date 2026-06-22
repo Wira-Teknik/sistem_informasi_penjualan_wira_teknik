@@ -79,6 +79,16 @@ class _PaymentRecapDetailTotalPesananScreenState
     };
   }
 
+  String _orderStatusLabel(String status) {
+    return switch (status.toLowerCase()) {
+      'pending' => 'Tertunda',
+      'partial' => 'Sebagian',
+      'shipped' => 'Dikirim',
+      'completed' => 'Selesai',
+      _ => status,
+    };
+  }
+
   Future<void> _onDownload() async {
     final filePath = await ref
         .read(paymentRecapDetailPesananViewModelProvider(_providerKey).notifier)
@@ -287,7 +297,7 @@ class _PaymentRecapDetailTotalPesananScreenState
           namaKonsumen: item.customerName,
           tanggal: item.date,
           jumlahTotal: formatRupiah(item.totalAmount),
-          badgeName: item.orderStatus,
+          badgeName: _orderStatusLabel(item.orderStatus),
           badgeColor: _orderStatusColor(item.orderStatus),
         );
       },

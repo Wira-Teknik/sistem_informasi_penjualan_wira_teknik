@@ -393,6 +393,33 @@ class OrderViewModel extends StateNotifier<OrderState> {
     }
   }
 
+  Future<bool> deleteOrder(String id) async {
+    state = state.copyWith(isSubmitting: true, clearError: true);
+
+    try {
+      await _repository.deleteOrder(id);
+
+      final updatedOrders = state.orders.where((o) => o.id != id).toList();
+      final updatedFiltered = state.filteredOrders
+          .where((o) => o.id != id)
+          .toList();
+
+      state = state.copyWith(
+        isSubmitting: false,
+        orders: updatedOrders,
+        filteredOrders: updatedFiltered,
+      );
+
+      return true;
+    } on Exception catch (e) {
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return false;
+    }
+  }
+
   void _updateOrderLocally(OrderModel updatedOrder) {
     final updatedList = state.orders.map((o) {
       return o.id == updatedOrder.id ? updatedOrder : o;

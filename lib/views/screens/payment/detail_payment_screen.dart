@@ -8,6 +8,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_bill
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/payment/add_payment_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info_message_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
@@ -221,16 +222,36 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
                 SliverPersistentHeader(
                   pinned: true,
                   delegate: StickyHeaderDelegate(
-                    height: 155.0,
+                    height: 175.0,
                     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Aktivitas Pesanan",
+                                style: boldTextStyle.copyWith(fontSize: 18),
+                              ),
+
+                              const Spacer(),
+                              CustomBadge(
+                                label: "${_filteredOrders.length} Pesanan",
+                                badgeColor: primaryColor,
+                              ),
+                            ],
+                          ),
                           Text(
-                            "Aktivitas Pesanan",
-                            style: boldTextStyle.copyWith(fontSize: 18),
+                            paymentState.startDate != null
+                                ? "${formatDateDisplay(paymentState.startDate)} - ${formatDateDisplay(paymentState.endDate)}"
+                                : "Semua periode",
+                            style: mediumTextStyle.copyWith(
+                              color: semiSecondaryColor,
+                              fontSize: 12,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           CustomTextfield(
@@ -276,8 +297,6 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
                               child: OrderPaymentCard(
                                 billingOrder: _filteredOrders[index],
                                 formatRupiah: formatRupiah,
-                                paymentStatusColor: _paymentStatusColor,
-                                paymentStatusLabel: _paymentStatusLabel,
                               ),
                             );
                           },
@@ -297,37 +316,19 @@ class _DetailPaymentScreenState extends ConsumerState<DetailPaymentScreen> {
   String get _overallStatus {
     final orders = _billing!.orders;
     if (orders.every((o) => o.paymentStatus.toLowerCase() == 'paid')) {
-      return 'Paid';
+      return 'Lunas';
     } else if (orders.every((o) => o.paymentStatus.toLowerCase() == 'unpaid')) {
-      return 'Unpaid';
+      return 'Belum Dibayar';
     }
-    return 'Partial';
+    return 'Dibayar Sebagian';
   }
 
   Color get _overallStatusColor {
     return switch (_overallStatus) {
-      'Paid' => greenColor,
-      'Unpaid' => redColor,
-      'Partial' => orangeColor,
+      'Lunas' => greenColor,
+      'Belum Dibayar' => redColor,
+      'Dibayar Sebagian' => orangeColor,
       _ => semiSecondaryColor,
-    };
-  }
-
-  Color _paymentStatusColor(String status) {
-    return switch (status.toLowerCase()) {
-      'paid' => greenColor,
-      'partial' => orangeColor,
-      'unpaid' => redColor,
-      _ => semiSecondaryColor,
-    };
-  }
-
-  String _paymentStatusLabel(String status) {
-    return switch (status.toLowerCase()) {
-      'paid' => 'Paid',
-      'partial' => 'Partial',
-      'unpaid' => 'Unpaid',
-      _ => status,
     };
   }
 

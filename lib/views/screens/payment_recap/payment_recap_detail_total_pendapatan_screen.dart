@@ -80,6 +80,15 @@ class _PaymentRecapDetailTotalPendapatanScreenState
     };
   }
 
+  String _pendapatanStatusLabel(String status) {
+    return switch (status.toLowerCase()) {
+      'paid' => 'Lunas',
+      'partial' => 'Dibayar Sebagian',
+      'unpaid' => 'Belum Dibayar',
+      _ => status,
+    };
+  }
+
   Future<void> _onDownload() async {
     final filePath = await ref
         .read(
@@ -292,7 +301,7 @@ class _PaymentRecapDetailTotalPendapatanScreenState
           namaKonsumen: item.customerName,
           tanggal: item.date,
           jumlahTotal: formatRupiah(item.totalAmount),
-          badgeName: item.paymentStatus,
+          badgeName: _pendapatanStatusLabel(item.paymentStatus),
           badgeColor: _paymentStatusColor(item.paymentStatus),
         );
       },

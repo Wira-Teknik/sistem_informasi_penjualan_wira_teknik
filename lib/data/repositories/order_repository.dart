@@ -22,6 +22,7 @@ abstract class OrderRepository {
   Future<void> addOrder(AddOrderRequest request);
   Future<NextTrxModel> getNextTransactionNo();
   Future<OrderDetailModel> getOrderDetail(String orderId);
+  Future<void> deleteOrder(String id);
 }
 
 class OrderRepositoryImpl implements OrderRepository {
@@ -109,6 +110,15 @@ class OrderRepositoryImpl implements OrderRepository {
       return OrderDetailModel.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw Exception(e.error ?? 'Gagal memuat detail pesanan');
+    }
+  }
+
+  @override
+  Future<void> deleteOrder(String id) async {
+    try {
+      await _dio.delete('${AppStrings.ordersEndpoint}/$id');
+    } on DioException catch (e) {
+      throw Exception(e.error ?? 'Gagal menghapus pesanan');
     }
   }
 }

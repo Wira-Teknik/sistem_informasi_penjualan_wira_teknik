@@ -18,19 +18,9 @@ class CustomerBillingCardWidget extends StatelessWidget {
     required this.onOrderTap,
   });
 
-  int get _paidCount => billing.orders
-      .where((o) => o.paymentStatus.toUpperCase() == 'PAID')
-      .length;
-
-  int get _partialCount => billing.orders
-      .where((o) => o.paymentStatus.toUpperCase() == 'PARTIAL')
-      .length;
-
-  int get _unpaidCount => billing.orders
-      .where((o) => o.paymentStatus.toUpperCase() == 'UNPAID')
-      .length;
-
-  int get _totalOrders => billing.orders.length;
+  int get _totalOrders {
+    return billing.totalPaid + billing.totalUnpaid + billing.totalPartial;
+  }
 
   bool get _isLunas => billing.totalTagihan == 0;
 
@@ -55,16 +45,14 @@ class CustomerBillingCardWidget extends StatelessWidget {
         );
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
+        margin: const EdgeInsets.only(left: 1, right: 1, top: 1, bottom: 16),
         decoration: BoxDecoration(
           color: whiteColor,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: semiSecondaryColor.withValues(alpha: 0.08)),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: semiSecondaryColor.withValues(alpha: 0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: semiSecondaryColor.withValues(alpha: 0.5),
+              blurRadius: 0.5,
             ),
           ],
         ),
@@ -205,27 +193,24 @@ class CustomerBillingCardWidget extends StatelessWidget {
                   Expanded(
                     child: _StatusChip(
                       label: 'Lunas',
-                      count: _paidCount,
+                      count: billing.totalPaid,
                       color: greenColor,
-                      icon: Icons.check_circle_outline_rounded,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: _StatusChip(
                       label: 'Sebagian',
-                      count: _partialCount,
+                      count: billing.totalPartial,
                       color: yellowColor,
-                      icon: Icons.pie_chart_outline_rounded,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: _StatusChip(
                       label: 'Belum Bayar',
-                      count: _unpaidCount,
+                      count: billing.totalUnpaid,
                       color: redColor,
-                      icon: Icons.error_outline_rounded,
                     ),
                   ),
                 ],
@@ -242,13 +227,11 @@ class _StatusChip extends StatelessWidget {
   final String label;
   final int count;
   final Color color;
-  final IconData icon;
 
   const _StatusChip({
     required this.label,
     required this.count,
     required this.color,
-    required this.icon,
   });
 
   @override
@@ -261,16 +244,9 @@ class _StatusChip extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 13, color: color),
-              const SizedBox(width: 4),
-              Text(
-                '$count',
-                style: boldTextStyle.copyWith(fontSize: 14, color: color),
-              ),
-            ],
+          Text(
+            '$count',
+            style: boldTextStyle.copyWith(fontSize: 14, color: color),
           ),
           const SizedBox(height: 2),
           Text(

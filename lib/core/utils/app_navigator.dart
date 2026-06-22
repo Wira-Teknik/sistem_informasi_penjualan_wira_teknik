@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// GlobalKey yang bisa diakses dari mana saja termasuk interceptor
 class AppNavigator {
   AppNavigator._();
 

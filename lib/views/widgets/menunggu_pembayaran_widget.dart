@@ -226,7 +226,7 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                order.transactionNo,
+                                order.poNo,
                                 style: boldTextStyle.copyWith(fontSize: 13),
                               ),
                               const SizedBox(height: 10),

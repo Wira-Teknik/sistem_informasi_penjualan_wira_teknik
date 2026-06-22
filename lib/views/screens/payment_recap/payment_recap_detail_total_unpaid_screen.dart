@@ -99,7 +99,7 @@ class _PaymentRecapDetailTotalUnpaidScreenState
 
     return Scaffold(
       appBar: CustomAppbar(
-        title: 'Detail Total Belum Bayar',
+        title: 'Detail Total Belum Dibayar',
         actions: [
           IconButton(
             onPressed: state.isDownloading ? null : _onDownload,

@@ -192,8 +192,17 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
 
   Future<void> getCustomerBillingDetail(String customerName) async {
     state = state.copyWith(isDetailLoading: true, clearError: true);
+
     try {
-      final detail = await _repository.getCustomerBillingDetail(customerName);
+      final formattedStart = state.startDate?.toIso8601String().split('T')[0];
+      final formattedEnd = state.endDate?.toIso8601String().split('T')[0];
+
+      final detail = await _repository.getCustomerBillingDetail(
+        customerName,
+        startDate: formattedStart,
+        endDate: formattedEnd,
+      );
+
       state = state.copyWith(
         isDetailLoading: false,
         selectedCustomerDetail: detail,
@@ -339,10 +348,14 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
     }
   }
 
-  Future<bool> updatePayment(String id, double paymentTotal) async {
+  Future<bool> updatePayment(
+    String id,
+    List<String> orderIds,
+    double paymentTotal,
+  ) async {
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
-      await _repository.updatePayment(id, paymentTotal);
+      await _repository.updatePayment(id, orderIds, paymentTotal);
       _lastFetchTime = null;
       state = state.copyWith(isSubmitting: false);
       await loadBillings();

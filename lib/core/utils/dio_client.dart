@@ -6,13 +6,11 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_string
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/app_navigator.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/login_viewmodel.dart';
 
-// Provider token — baca dari secure storage
 final tokenProvider = FutureProvider<String?>((ref) async {
   const storage = FlutterSecureStorage();
   return await storage.read(key: 'token');
 });
 
-// Instance Dio terpusat dengan interceptor
 class DioClient {
   DioClient._();
 
@@ -31,15 +29,14 @@ class DioClient {
 
     dio.interceptors.addAll([
       _LogInterceptor(),
+      ...extraInterceptors,
       _ErrorInterceptor(),
-      ...extraInterceptors, // AuthInterceptor masuk dari sini
     ]);
 
     return dio;
   }
 }
 
-// Log tiap request & response - aktif hanya di debug mode
 class _LogInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -61,7 +58,6 @@ class _LogInterceptor extends Interceptor {
   }
 }
 
-// Konversi semua DioException ke pesan yang user-friendly
 class _ErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
@@ -74,7 +70,6 @@ class _ErrorInterceptor extends Interceptor {
       _ => 'Terjadi kesalahan, coba lagi',
     };
 
-    // Lempar sebagai exception biasa supaya ViewModel bisa catch
     handler.reject(
       DioException(
         requestOptions: err.requestOptions,
@@ -99,7 +94,6 @@ class _ErrorInterceptor extends Interceptor {
   }
 }
 
-// AuthInterceptor menerima ref dengan benar dari dioProvider
 class AuthInterceptor extends Interceptor {
   final Ref _ref;
 
@@ -126,10 +120,11 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode == 401) {
+    final isLoginRequest = err.requestOptions.path.contains('login');
+
+    if (err.response?.statusCode == 401 && !isLoginRequest) {
       debugPrint('⚠️ TOKEN EXPIRED — logout & redirect ke login');
 
-      // 1. Hapus token dari storage
       const storage = FlutterSecureStorage();
       await Future.wait([
         storage.delete(key: AppStrings.tokenKey),
@@ -139,13 +134,10 @@ class AuthInterceptor extends Interceptor {
         storage.delete(key: AppStrings.userRoleKey),
       ]);
 
-      // 2. Reset state viewmodel
       _ref.read(loginViewModelProvider.notifier).resetState();
 
-      // 3. Navigasi ke login — batalkan semua request sebelumnya
       AppNavigator.goToLogin();
 
-      // 4. Reject request agar tidak lanjut ke handler berikutnya
       handler.reject(
         DioException(
           requestOptions: err.requestOptions,
@@ -161,7 +153,6 @@ class AuthInterceptor extends Interceptor {
   }
 }
 
-// Provider Dio - satu instance untuk semua repository
 final dioProvider = Provider<Dio>(
   (ref) => DioClient.createDio([AuthInterceptor(ref)]),
 );

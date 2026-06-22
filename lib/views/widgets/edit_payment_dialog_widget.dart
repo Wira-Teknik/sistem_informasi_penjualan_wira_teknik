@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/payment_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info_message_widget.dart';
@@ -12,12 +13,18 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_text
 
 class EditPaymentDialogWidget extends ConsumerStatefulWidget {
   final String paymentId;
+  final String orderId;
+  final String invoiceNo;
+  final List<PaymentModel> relatedPayments;
   final double currentTotal;
   final VoidCallback onSuccess;
 
   const EditPaymentDialogWidget({
     super.key,
     required this.paymentId,
+    required this.orderId,
+    required this.invoiceNo,
+    required this.relatedPayments,
     required this.currentTotal,
     required this.onSuccess,
   });
@@ -44,7 +51,6 @@ class _EditPaymentDialogWidgetState
     if (!_formKey.currentState!.validate()) return;
 
     final newTotal = double.tryParse(_totalController.text.replaceAll('.', ''));
-
     if (newTotal == null || newTotal <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -59,9 +65,10 @@ class _EditPaymentDialogWidgetState
       return;
     }
 
+    // Kirim ID Order sebagai List (karena API meminta array)
     final success = await ref
         .read(paymentViewModelProvider.notifier)
-        .updatePayment(widget.paymentId, newTotal);
+        .updatePayment(widget.paymentId, [widget.orderId], newTotal);
 
     if (success && context.mounted) {
       Navigator.pop(context);
@@ -88,6 +95,7 @@ class _EditPaymentDialogWidgetState
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         backgroundColor: whiteColor,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Form(
@@ -99,7 +107,11 @@ class _EditPaymentDialogWidgetState
                 // Header
                 Row(
                   children: [
-                    Icon(Icons.edit_outlined, color: primaryColor, size: 20),
+                    const Icon(
+                      Icons.edit_outlined,
+                      color: primaryColor,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Edit Pembayaran',
@@ -109,7 +121,7 @@ class _EditPaymentDialogWidgetState
                     if (!state.isSubmitting)
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: Icon(
+                        child: const Icon(
                           Icons.close_rounded,
                           color: semiSecondaryColor,
                           size: 20,
@@ -119,66 +131,69 @@ class _EditPaymentDialogWidgetState
                 ),
                 const SizedBox(height: 16),
 
-                // Info total sebelumnya
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: semiSecondaryColor.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total sebelumnya',
-                        style: regularTextStyle.copyWith(
-                          fontSize: 12,
-                          color: semiSecondaryColor,
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Konteks Invoice
+                        Text(
+                          'Terkait Invoice:',
+                          style: regularTextStyle.copyWith(
+                            fontSize: 12,
+                            color: semiSecondaryColor,
+                          ),
                         ),
-                      ),
-                      Text(
-                        formatNumberRupiah(
-                          widget.currentTotal.toInt().toString(),
+                        Text(
+                          widget.invoiceNo,
+                          style: boldTextStyle.copyWith(
+                            fontSize: 14,
+                            color: primaryColor,
+                          ),
                         ),
-                        style: semiBoldTextStyle.copyWith(fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                // Input total baru
-                Text(
-                  'Total Baru',
-                  style: semiBoldTextStyle.copyWith(fontSize: 13),
-                ),
-                const SizedBox(height: 6),
-                CustomTextfield(
-                  controller: _totalController,
-                  keyboardType: TextInputType.number,
-                  prefixIcon: Icons.money_outlined,
-                  hintText: '0',
-                  onChanged: (value) {
-                    final formatted = formatNumberRupiah(value);
-                    if (formatted != value) {
-                      _totalController.value = TextEditingValue(
-                        text: formatted,
-                        selection: TextSelection.collapsed(
-                          offset: formatted.length,
+                        // Input total baru
+                        Text(
+                          'Ubah Nominal',
+                          style: semiBoldTextStyle.copyWith(fontSize: 13),
                         ),
-                      );
-                    }
-                  },
-                  validator: (v) {
-                    if (v == null || v.isEmpty) {
-                      return 'Total wajib diisi';
-                    }
-                    final val = double.tryParse(v.replaceAll('.', ''));
-                    if (val == null || val <= 0) {
-                      return 'Total harus lebih dari 0';
-                    }
-                    return null;
-                  },
+                        const SizedBox(height: 6),
+                        CustomTextfield(
+                          controller: _totalController,
+                          keyboardType: TextInputType.number,
+                          prefixIcon: Icons.money_outlined,
+                          hintText: '0',
+                          onChanged: (value) {
+                            final formatted = formatNumberRupiah(value);
+                            if (formatted != value) {
+                              _totalController.value = TextEditingValue(
+                                text: formatted,
+                                selection: TextSelection.collapsed(
+                                  offset: formatted.length,
+                                ),
+                              );
+                            }
+                          },
+                          validator: (v) {
+                            if (v == null || v.isEmpty) {
+                              return 'Total wajib diisi';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+
+                        // List Riwayat Pembayaran (Context)
+                        Text(
+                          'Riwayat Pembayaran Invoice Ini',
+                          style: semiBoldTextStyle.copyWith(fontSize: 13),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildRelatedPaymentsList(),
+                      ],
+                    ),
+                  ),
                 ),
 
                 // Error dari API
@@ -228,6 +243,70 @@ class _EditPaymentDialogWidgetState
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  // Menampilkan list data yang terkait dengan invoice_no nya
+  Widget _buildRelatedPaymentsList() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: semiSecondaryColor.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListView.separated(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: widget.relatedPayments.length,
+        separatorBuilder: (_, _) => Divider(
+          height: 1,
+          color: semiSecondaryColor.withValues(alpha: 0.1),
+        ),
+        itemBuilder: (context, index) {
+          final payment = widget.relatedPayments[index];
+          final isEditingThis = payment.paymentId == widget.paymentId;
+
+          return Container(
+            color: isEditingThis
+                ? primaryColor.withValues(alpha: 0.05)
+                : Colors.transparent,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        payment.paymentDate,
+                        style: boldTextStyle.copyWith(
+                          fontSize: 12,
+                          color: isEditingThis ? primaryColor : secondaryColor,
+                        ),
+                      ),
+                      if (isEditingThis)
+                        Text(
+                          "Sedang diubah",
+                          style: regularTextStyle.copyWith(
+                            fontSize: 10,
+                            color: primaryColor,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Text(
+                  formatRupiah(payment.allocatedAmount),
+                  style: boldTextStyle.copyWith(
+                    fontSize: 12,
+                    color: isEditingThis ? primaryColor : semiSecondaryColor,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

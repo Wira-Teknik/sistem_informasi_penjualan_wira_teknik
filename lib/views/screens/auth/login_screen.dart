@@ -39,14 +39,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is Map && args['expired'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: CustomInfoMessageWidget(
               color: orangeColor,
               message: 'Sesi Anda telah berakhir, silakan login kembali',
               icons: Icons.lock_clock_outlined,
             ),
             backgroundColor: whiteColor,
-            duration: const Duration(seconds: 4),
+            duration: Duration(seconds: 4),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -56,6 +56,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   // action on login press
   Future<void> _onLoginPressed() async {
+    FocusScope.of(context).unfocus();
+
     if (!_formKey.currentState!.validate()) return;
 
     await ref
@@ -67,9 +69,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(loginViewModelProvider);
 
-    // Navigasi otomatis saat login berhasil
     ref.listen<LoginState>(loginViewModelProvider, (previous, next) {
-      if (next.isSuccess) {
+      if (next.isSuccess && previous?.isSuccess != true) {
         Navigator.pushNamedAndRemoveUntil(
           context,
           '/bottom_navigation',

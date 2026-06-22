@@ -99,7 +99,7 @@ class _PaymentRecapDetailTotalPaidScreenState
 
     return Scaffold(
       appBar: CustomAppbar(
-        title: 'Detail Total Lunas',
+        title: 'Detail Total Bayar',
         actions: [
           IconButton(
             onPressed: state.isDownloading ? null : _onDownload,

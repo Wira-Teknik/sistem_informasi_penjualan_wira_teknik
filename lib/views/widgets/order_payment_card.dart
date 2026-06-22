@@ -4,6 +4,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_cons
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/payment_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/bukti_pembayaran_dialog_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
@@ -12,15 +13,11 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/item_invoic
 class OrderPaymentCard extends ConsumerStatefulWidget {
   final BillingOrderModel billingOrder;
   final String Function(int) formatRupiah;
-  final Color Function(String) paymentStatusColor;
-  final String Function(String) paymentStatusLabel;
 
   const OrderPaymentCard({
     super.key,
     required this.billingOrder,
     required this.formatRupiah,
-    required this.paymentStatusColor,
-    required this.paymentStatusLabel,
   });
 
   @override
@@ -30,6 +27,9 @@ class OrderPaymentCard extends ConsumerStatefulWidget {
 class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
   @override
   Widget build(BuildContext context) {
+    final customerDetail = ref
+        .watch(paymentViewModelProvider)
+        .selectedCustomerDetail;
     return Container(
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 24),
@@ -62,14 +62,7 @@ class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
                 ),
               ),
               const SizedBox(width: 8),
-              CustomBadge(
-                label: widget.paymentStatusLabel(
-                  widget.billingOrder.paymentStatus,
-                ),
-                badgeColor: widget.paymentStatusColor(
-                  widget.billingOrder.paymentStatus,
-                ),
-              ),
+              _buildPaymentBadge(widget.billingOrder.paymentStatus),
             ],
           ),
           const SizedBox(height: 10),
@@ -124,15 +117,38 @@ class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
             ),
             const SizedBox(height: 8),
 
-            ...widget.billingOrder.payments.map(
-              (payment) => ItemInvoiceWidget(
+            ...widget.billingOrder.payments.map((payment) {
+              final currentDetail = payment.details.firstWhere(
+                (detail) => detail.allocatedAmount == payment.allocatedAmount,
+                orElse: () => payment.details.first,
+              );
+
+              final invoiceNo = currentDetail.invoiceNo;
+
+              final relatedPayments = widget.billingOrder.payments.where((p) {
+                return p.details.any(
+                  (d) =>
+                      d.invoiceNo == invoiceNo &&
+                      d.allocatedAmount == p.allocatedAmount,
+                );
+              }).toList();
+
+              return ItemInvoiceWidget(
                 paymentId: payment.paymentId,
+                orderId: widget.billingOrder.id,
+                invoiceNo: invoiceNo,
                 paymentTotal: payment.allocatedAmount,
                 paymentDate: payment.paymentDate,
                 formatRupiah: widget.formatRupiah,
                 paymentStatus: widget.billingOrder.paymentStatus,
-              ),
-            ),
+                relatedPayments: relatedPayments,
+                onRefreshTapped: () {
+                  ref
+                      .read(paymentViewModelProvider.notifier)
+                      .getCustomerBillingDetail(customerDetail!.customerName);
+                },
+              );
+            }),
           ],
 
           const SizedBox(height: 10),
@@ -183,6 +199,17 @@ class _OrderPaymentCardState extends ConsumerState<OrderPaymentCard> {
         ],
       ),
     );
+  }
+
+  Widget _buildPaymentBadge(String status) {
+    switch (status.toUpperCase()) {
+      case "PAID":
+        return CustomBadge(label: "Lunas", badgeColor: greenColor);
+      case "PARTIAL":
+        return CustomBadge(label: "Dibayar Sebagian", badgeColor: orangeColor);
+      default:
+        return CustomBadge(label: "Belum Dibayar", badgeColor: redColor);
+    }
   }
 
   void _showBuktiPembayaranDialog(
