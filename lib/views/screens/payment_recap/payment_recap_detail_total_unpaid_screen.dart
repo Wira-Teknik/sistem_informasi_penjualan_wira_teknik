@@ -152,7 +152,7 @@ class _PaymentRecapDetailTotalUnpaidScreenState
                   ),
                   const Spacer(),
                   CustomBadge(
-                    label: "${state.data?.totalCount ?? 0} Orders",
+                    label: "${state.data?.totalCount ?? 0} Pesanan",
                     badgeColor: redColor,
                   ),
                 ],
@@ -263,7 +263,7 @@ class _PaymentRecapDetailTotalUnpaidScreenState
           namaKonsumen: item.customerName,
           tanggal: item.date,
           jumlahTotal: formatRupiah(item.totalAmount),
-          badgeName: item.paymentStatus,
+          badgeName: "Belum Dibayar",
           badgeColor: redColor,
         );
       },

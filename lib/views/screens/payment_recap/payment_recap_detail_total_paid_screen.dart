@@ -152,7 +152,7 @@ class _PaymentRecapDetailTotalPaidScreenState
                   ),
                   const Spacer(),
                   CustomBadge(
-                    label: "${state.data?.totalCount ?? 0} Orders",
+                    label: "${state.data?.totalCount ?? 0} Pesanan",
                     badgeColor: greenColor,
                   ),
                 ],
@@ -263,7 +263,7 @@ class _PaymentRecapDetailTotalPaidScreenState
           namaKonsumen: item.customerName,
           tanggal: item.date,
           jumlahTotal: formatRupiah(item.totalAmount),
-          badgeName: item.paymentStatus,
+          badgeName: "Lunas",
           badgeColor: greenColor,
         );
       },

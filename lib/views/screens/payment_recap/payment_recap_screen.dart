@@ -141,7 +141,7 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
           child: ItemCardRecap(
             iconSource: "assets/icons/rekap_pesanan_icon.png",
             title: "TOTAL PESANAN",
-            value: "${data.totalPesananCount} Orders",
+            value: "${data.totalPesananCount} PESANAN",
             valueColor: secondaryColor,
             isArrowIconVisible: true,
             arrowIconColor: secondaryColor,
@@ -282,7 +282,7 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    "Lunas (Paid)",
+                    "Bayar (Lunas)",
                     style: mediumTextStyle.copyWith(color: semiSecondaryColor),
                   ),
                   const Spacer(),
@@ -310,7 +310,7 @@ class _PaymentRecapScreenState extends ConsumerState<PaymentRecapScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    "Piutang (Unpaid)",
+                    "Belum Dibayar",
                     style: mediumTextStyle.copyWith(color: semiSecondaryColor),
                   ),
                   const Spacer(),

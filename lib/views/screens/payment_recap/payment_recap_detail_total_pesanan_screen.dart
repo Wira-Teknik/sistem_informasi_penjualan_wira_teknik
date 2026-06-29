@@ -173,7 +173,7 @@ class _PaymentRecapDetailTotalPesananScreenState
                   ),
                   const Spacer(),
                   CustomBadge(
-                    label: "${state.data?.totalPesananCount ?? 0} Orders",
+                    label: "${state.data?.totalPesananCount ?? 0} Pesanan",
                     badgeColor: semiSecondaryColor,
                   ),
                 ],

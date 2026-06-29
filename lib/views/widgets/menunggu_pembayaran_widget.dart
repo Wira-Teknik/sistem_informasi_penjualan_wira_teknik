@@ -74,6 +74,14 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
     };
   }
 
+  String _paymentStatus(String status) {
+    return switch (status.toLowerCase()) {
+      'unpaid' => "Belum Dibayar",
+      'partial' => "Dibayar Sebagian",
+      _ => "Belum Dibayar",
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -257,7 +265,7 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
                             SizedBox(
                               height: 28,
                               child: CustomBadge(
-                                label: order.paymentStatus,
+                                label: _paymentStatus(order.paymentStatus),
                                 badgeColor: _paymentStatusColor(
                                   order.paymentStatus,
                                 ),
