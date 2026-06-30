@@ -83,12 +83,14 @@ class _ErrorInterceptor extends Interceptor {
   String _handleStatusCode(Response? response) {
     return switch (response?.statusCode) {
       400 => response?.data?['message'] ?? 'Request tidak valid',
-      401 => 'Email atau password salah',
-      403 => 'Akses ditolak',
-      404 => 'Data tidak ditemukan',
-      413 => 'Ukuran file gambar terlalu besar. Harap kompres gambar Anda.',
+      401 => response?.data?['message'] ?? 'Username atau password salah',
+      403 => response?.data?['message'] ?? 'Akses ditolak',
+      404 => response?.data?['message'] ?? 'Data tidak ditemukan',
+      413 =>
+        response?.data?['message'] ??
+            'Ukuran file gambar terlalu besar. Harap kompres gambar Anda.',
       422 => response?.data?['message'] ?? 'Data tidak valid',
-      500 => 'Terjadi kesalahan pada server',
+      500 => response?.data?['message'] ?? 'Terjadi kesalahan pada server',
       _ => 'Terjadi kesalahan (${response?.statusCode})',
     };
   }

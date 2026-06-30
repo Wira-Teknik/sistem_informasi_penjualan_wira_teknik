@@ -33,6 +33,14 @@ class _CustomCustomerPickerSheetWidgetState
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(customerViewModelProvider.notifier).clearFilteredCustomers();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final state = ref.watch(customerViewModelProvider);
 
