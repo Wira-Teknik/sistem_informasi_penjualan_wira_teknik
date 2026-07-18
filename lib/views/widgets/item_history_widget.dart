@@ -35,19 +35,25 @@ class ItemHistoryWidget extends StatelessWidget {
         children: [
           // Header — transaction no, po no, badge status
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "${item.transactionNo} | ${item.poNo}",
-                      style: semiBoldTextStyle.copyWith(
-                        fontSize: 12,
-                        color: primaryColor,
+                    SizedBox(
+                      width: 100,
+                      child: Text(
+                        "${item.transactionNo} #${item.poNo}",
+                        style: semiBoldTextStyle.copyWith(
+                          fontSize: 12,
+                          color: primaryColor,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 4),
                     Text(
                       item.customerName.toUpperCase(),
                       style: boldTextStyle.copyWith(fontSize: 16),
@@ -58,7 +64,7 @@ class ItemHistoryWidget extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               CustomBadge(
-                label: item.paymentStatus,
+                label: _paymentStatusLabel(item.paymentStatus.toLowerCase()),
                 badgeColor: paymentStatusColor(item.paymentStatus),
               ),
             ],
@@ -110,5 +116,14 @@ class ItemHistoryWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _paymentStatusLabel(String status) {
+    return switch (status.toLowerCase()) {
+      'paid' => 'Lunas',
+      'partial' => 'Dibayar Sebagian',
+      'unpaid' => 'Belum Bayar',
+      _ => status,
+    };
   }
 }

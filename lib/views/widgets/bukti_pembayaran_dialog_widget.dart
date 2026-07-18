@@ -30,7 +30,7 @@ class _BuktiPembayaranDialogWidgetState
     super.initState();
     // Load semua attachment tiap payment saat dialog dibuka
     for (final payment in widget.payments) {
-      _loadAttachment(payment.id);
+      _loadAttachment(payment.paymentId);
     }
   }
 
@@ -116,11 +116,11 @@ class _BuktiPembayaranDialogWidgetState
                   final payment = widget.payments[index];
                   return _PaymentBuktiSection(
                     payment: payment,
-                    attachments: _attachmentsMap[payment.id] ?? [],
-                    isLoading: _loadingMap[payment.id] ?? true,
-                    errorMessage: _errorMap[payment.id],
+                    attachments: _attachmentsMap[payment.paymentId] ?? [],
+                    isLoading: _loadingMap[payment.paymentId] ?? true,
+                    errorMessage: _errorMap[payment.paymentId],
                     formatRupiah: formatRupiah,
-                    onRetry: () => _loadAttachment(payment.id),
+                    onRetry: () => _loadAttachment(payment.paymentId),
                     onImageTap: (url) => _showFullImage(context, url),
                   );
                 },
@@ -243,18 +243,10 @@ class _PaymentBuktiSection extends StatelessWidget {
                     payment.paymentDate,
                     style: semiBoldTextStyle.copyWith(fontSize: 12),
                   ),
-
-                  Text(
-                    '${payment.details.length} invoice dialokasikan',
-                    style: regularTextStyle.copyWith(
-                      fontSize: 11,
-                      color: semiSecondaryColor,
-                    ),
-                  ),
                 ],
               ),
               Text(
-                formatRupiah(payment.paymentTotal.toInt()),
+                formatRupiah(payment.allocatedAmount.toInt()),
                 style: boldTextStyle.copyWith(
                   color: primaryColor,
                   fontSize: 13,

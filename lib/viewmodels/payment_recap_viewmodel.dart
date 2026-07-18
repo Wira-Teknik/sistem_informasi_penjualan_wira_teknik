@@ -30,6 +30,7 @@ class PaymentRecapState {
     String? errorMessage,
     DateTime? startDate,
     DateTime? endDate,
+    bool clearDate = false,
     String? searchQuery,
     bool clearError = false,
   }) {
@@ -38,8 +39,8 @@ class PaymentRecapState {
       isRefreshing: isRefreshing ?? this.isRefreshing,
       data: data ?? this.data,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
+      startDate: clearDate ? null : (startDate ?? this.startDate),
+      endDate: clearDate ? null : (endDate ?? this.endDate),
       searchQuery: searchQuery ?? this.searchQuery,
     );
   }
@@ -52,7 +53,7 @@ class PaymentRecapViewModel extends StateNotifier<PaymentRecapState> {
   String _lastQuery = '';
 
   PaymentRecapViewModel(this._repository) : super(const PaymentRecapState()) {
-    loadRecap(); // ← load semua data tanpa filter
+    loadRecap();
   }
 
   String? _formatDate(DateTime? date) {
@@ -94,10 +95,19 @@ class PaymentRecapViewModel extends StateNotifier<PaymentRecapState> {
     }
   }
 
-  // Update date range dan reload
-  void setDateRange(DateTime? start, DateTime? end) {
-    state = state.copyWith(startDate: start, endDate: end);
-    loadRecap();
+  Future<void> resetFilter() async {
+    state = state.copyWith(startDate: null, endDate: null);
+    await loadRecap();
+  }
+
+  Future<void> setDateRange(DateTime? start, DateTime? end) async {
+    state = state.copyWith(
+      startDate: start,
+      endDate: end,
+      clearDate: start == null && end == null,
+    );
+
+    await loadRecap();
   }
 
   // Search dengan debounce

@@ -188,6 +188,11 @@ class CustomerViewModel extends StateNotifier<CustomerState> {
   void clearMessages() {
     state = state.copyWith(clearError: true, clearSuccess: true);
   }
+
+  void clearFilteredCustomers() {
+    state = state.copyWith(filteredCustomers: []);
+    loadCustomers();
+  }
 }
 
 final customerViewModelProvider =

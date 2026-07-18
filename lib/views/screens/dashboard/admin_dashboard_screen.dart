@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
@@ -30,9 +31,18 @@ class AdminDashboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Selamat datang Admin!",
-                style: mediumTextStyle.copyWith(color: semiSecondaryColor),
+              Row(
+                children: [
+                  Text(
+                    "Selamat datang Admin!",
+                    style: mediumTextStyle.copyWith(color: semiSecondaryColor),
+                  ),
+                  const Spacer(),
+                  Text(
+                    DateFormat('MMMM yyy').format(DateTime.now()),
+                    style: mediumTextStyle.copyWith(color: semiSecondaryColor),
+                  ),
+                ],
               ),
               Text("Dashboard", style: boldTextStyle.copyWith(fontSize: 24)),
               const SizedBox(height: 20),
@@ -105,7 +115,7 @@ class AdminDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCards(DashboardModel data) {
+  Widget _buildCards(DashboardMetricsModel data) {
     return Wrap(
       direction: Axis.horizontal,
       crossAxisAlignment: WrapCrossAlignment.center,

@@ -8,6 +8,10 @@ import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/activity_viewm
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_refresh_error_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/reusable_advance_filter.dart';
+
+// PASTIKAN MENGIMPOR WIDGET ReusableAdvanceFilter DI SINI
+// import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/reusable_advance_filter.dart';
 
 class AllActivityScreen extends ConsumerStatefulWidget {
   const AllActivityScreen({super.key});
@@ -18,11 +22,32 @@ class AllActivityScreen extends ConsumerStatefulWidget {
 
 class _AllActivityScreenState extends ConsumerState<AllActivityScreen> {
   final _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final state = ref.read(activityViewModelProvider);
+
+      if (!state.isLoadMore && !state.hasReachedMax && !state.isLoading) {
+        ref
+            .read(activityViewModelProvider.notifier)
+            .loadActivities(isLoadMore: true);
+      }
+    }
   }
 
   String _formatDate(String dateStr) {
@@ -34,11 +59,37 @@ class _AllActivityScreenState extends ConsumerState<AllActivityScreen> {
     }
   }
 
-  // Kelompokkan aktivitas berdasarkan tanggal
-  Map<String, List<ActivityModel>> _groupByDate(
-    List<ActivityModel> activities,
+  void _showAdvanceFilter(ActivityState state) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return ReusableAdvanceFilter(
+          title: 'Filter Aktivitas',
+          showDateRange: true,
+          initialStartDate: state.startDate,
+          initialEndDate: state.endDate,
+          hasActiveFilter: state.startDate != null && state.endDate != null,
+          onApply: (startDate, endDate, status) async {
+            ref
+                .read(activityViewModelProvider.notifier)
+                .setDateFilter(startDate, endDate);
+          },
+          onReset: () async {
+            ref
+                .read(activityViewModelProvider.notifier)
+                .setDateFilter(null, null);
+          },
+        );
+      },
+    );
+  }
+
+  Map<String, List<DashboardActivityItemModel>> _groupByDate(
+    List<DashboardActivityItemModel> activities,
   ) {
-    final Map<String, List<ActivityModel>> grouped = {};
+    final Map<String, List<DashboardActivityItemModel>> grouped = {};
     for (final activity in activities) {
       final date = _formatDate(activity.date);
       grouped.putIfAbsent(date, () => []).add(activity);
@@ -51,21 +102,44 @@ class _AllActivityScreenState extends ConsumerState<AllActivityScreen> {
     final state = ref.watch(activityViewModelProvider);
 
     return Scaffold(
-      appBar: CustomAppbar(title: 'Semua Aktivitas'),
-      body: Column(
-        children: [
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: CustomTextfield(
-              controller: _searchController,
-              hintText: 'Cari aktivitas',
-              prefixIcon: Icons.search,
-              onChanged: (value) =>
-                  ref.read(activityViewModelProvider.notifier).search(value),
+      appBar: CustomAppbar(
+        title: 'Semua Aktivitas',
+        actions: [
+          IconButton(
+            onPressed: () => _showAdvanceFilter(state),
+            icon: Icon(
+              Icons.filter_list_rounded,
+              size: 28,
+              color: state.hasActiveFilter ? primaryColor : secondaryColor,
             ),
           ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Bagian Search & Tombol Filter
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: CustomTextfield(
+                    controller: _searchController,
+                    hintText: 'Cari aktivitas',
+                    prefixIcon: Icons.search,
+                    onChanged: (value) => ref
+                        .read(activityViewModelProvider.notifier)
+                        .search(value),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
 
+          // Konten Utama
           Expanded(child: _buildContent(state)),
         ],
       ),
@@ -73,13 +147,13 @@ class _AllActivityScreenState extends ConsumerState<AllActivityScreen> {
   }
 
   Widget _buildContent(ActivityState state) {
-    // Loading
-    if (state.isLoading) {
-      return Center(child: CircularProgressIndicator(color: primaryColor));
+    if (state.isLoading && state.filteredActivities.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(color: primaryColor),
+      );
     }
 
-    // Error
-    if (state.errorMessage != null) {
+    if (state.errorMessage != null && state.filteredActivities.isEmpty) {
       return CustomRefreshErrorWidget(
         message: state.errorMessage!,
         onPressed: () =>
@@ -87,7 +161,6 @@ class _AllActivityScreenState extends ConsumerState<AllActivityScreen> {
       );
     }
 
-    // Kosong
     if (state.filteredActivities.isEmpty) {
       return Center(
         child: Column(
@@ -100,7 +173,7 @@ class _AllActivityScreenState extends ConsumerState<AllActivityScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              _searchController.text.isNotEmpty
+              _searchController.text.isNotEmpty || state.startDate != null
                   ? 'Aktivitas tidak ditemukan'
                   : 'Belum ada aktivitas',
               style: regularTextStyle.copyWith(color: semiSecondaryColor),
@@ -110,7 +183,6 @@ class _AllActivityScreenState extends ConsumerState<AllActivityScreen> {
       );
     }
 
-    // Kelompokkan berdasarkan tanggal
     final grouped = _groupByDate(state.filteredActivities);
 
     return RefreshIndicator(
@@ -118,9 +190,27 @@ class _AllActivityScreenState extends ConsumerState<AllActivityScreen> {
       backgroundColor: whiteColor,
       onRefresh: () => ref.read(activityViewModelProvider.notifier).refresh(),
       child: ListView.builder(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
-        itemCount: grouped.length,
+        itemCount: grouped.length + (state.isLoadMore ? 1 : 0),
         itemBuilder: (context, index) {
+          if (index == grouped.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24.0),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: primaryColor,
+                    strokeWidth: 2.5,
+                  ),
+                ),
+              ),
+            );
+          }
+
           final date = grouped.keys.elementAt(index);
           final activities = grouped[date]!;
 
@@ -174,11 +264,10 @@ class _AllActivityScreenState extends ConsumerState<AllActivityScreen> {
 }
 
 class _ActivityItem extends StatelessWidget {
-  final ActivityModel activity;
+  final DashboardActivityItemModel activity;
 
   const _ActivityItem({required this.activity});
 
-  // Ikon berdasarkan judul aktivitas
   IconData _getIcon(String title) {
     final t = title.toLowerCase();
     if (t.contains('pengiriman')) return Icons.local_shipping_outlined;
@@ -199,16 +288,15 @@ class _ActivityItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(left: 1, right: 1, top: 1, bottom: 16),
       decoration: BoxDecoration(
         color: whiteColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: semiSecondaryColor.withValues(alpha: 0.15),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: semiSecondaryColor.withValues(alpha: 0.5),
+            blurRadius: 0.5,
           ),
         ],
       ),

@@ -1,3 +1,4 @@
+import 'dart:async'; // Wajib di-import untuk menggunakan Timer
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/dashboard_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/dashboard_repository.dart';
@@ -5,7 +6,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/dashboa
 class DashboardState {
   final bool isLoading;
   final bool isRefreshing;
-  final DashboardModel? data;
+  final DashboardMetricsModel? data;
   final String? errorMessage;
 
   const DashboardState({
@@ -18,7 +19,7 @@ class DashboardState {
   DashboardState copyWith({
     bool? isLoading,
     bool? isRefreshing,
-    DashboardModel? data,
+    DashboardMetricsModel? data,
     String? errorMessage,
     bool clearError = false,
   }) {
@@ -33,9 +34,24 @@ class DashboardState {
 
 class DashboardViewModel extends StateNotifier<DashboardState> {
   final DashboardRepository _repository;
+  Timer? _pollingTimer;
 
   DashboardViewModel(this._repository) : super(const DashboardState()) {
     loadDashboard();
+    _startAutoRefresh();
+  }
+
+  void _startAutoRefresh() {
+    _pollingTimer = Timer.periodic(const Duration(minutes: 10), (timer) {
+      _silentRefresh();
+    });
+  }
+
+  Future<void> _silentRefresh() async {
+    try {
+      final data = await _repository.getDashboard();
+      state = state.copyWith(data: data, clearError: true);
+    } on Exception catch (_) {}
   }
 
   Future<void> loadDashboard() async {
@@ -62,6 +78,12 @@ class DashboardViewModel extends StateNotifier<DashboardState> {
         errorMessage: e.toString().replaceAll('Exception: ', ''),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
   }
 }
 

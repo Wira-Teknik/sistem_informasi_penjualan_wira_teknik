@@ -17,6 +17,10 @@ abstract class ShipmentRepository {
     required String category,
   });
   Future<List<AttachmentModel>> getAttachments(String shipmentId);
+  Future<void> updateShipment(
+    String shipmentId,
+    List<Map<String, dynamic>> items,
+  );
 }
 
 class ShipmentRepositoryImpl implements ShipmentRepository {
@@ -50,23 +54,20 @@ class ShipmentRepositoryImpl implements ShipmentRepository {
           filename: request.bonPesanan.path.split('/').last,
           contentType: _getMediaType(request.bonPesanan.path),
         ),
-        if (request.invoiceFile != null)
-          'invoice_file': await MultipartFile.fromFile(
-            request.invoiceFile!.path,
-            filename: request.invoiceFile!.path.split('/').last,
-            contentType: _getMediaType(request.invoiceFile!.path),
-          ),
+        'invoice_file': await MultipartFile.fromFile(
+          request.invoiceFile.path,
+          filename: request.invoiceFile.path.split('/').last,
+          contentType: _getMediaType(request.invoiceFile.path),
+        ),
       });
 
       await _dio.post(
-        '/shipments',
+        AppStrings.shipmentsEndpoint,
         data: formData,
-        // ← Override timeout khusus untuk upload file
         options: Options(
-          sendTimeout: const Duration(minutes: 2), // kirim file ke server
-          receiveTimeout: const Duration(minutes: 2), // tunggu response server
+          sendTimeout: const Duration(minutes: 2),
+          receiveTimeout: const Duration(minutes: 2),
         ),
-        // ← Monitor progress upload
         onSendProgress: (sent, total) {
           if (total != -1) {
             final percent = (sent / total * 100).toStringAsFixed(0);
@@ -93,7 +94,7 @@ class ShipmentRepositoryImpl implements ShipmentRepository {
   @override
   Future<void> confirmReceived(String shipmentId) async {
     try {
-      await _dio.patch('/shipments/$shipmentId/received');
+      await _dio.patch('${AppStrings.shipmentsEndpoint}/$shipmentId/received');
     } on DioException catch (e) {
       debugPrint('ERROR CONFIRM: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal konfirmasi penerimaan');
@@ -118,7 +119,7 @@ class ShipmentRepositoryImpl implements ShipmentRepository {
       });
 
       await _dio.post(
-        '/attachments',
+        AppStrings.attachmentsEndpoint,
         data: formData,
         options: Options(
           sendTimeout: const Duration(minutes: 2),
@@ -142,6 +143,22 @@ class ShipmentRepositoryImpl implements ShipmentRepository {
     } on DioException catch (e) {
       debugPrint('ERROR GET ATTACHMENTS: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal memuat dokumen');
+    }
+  }
+
+  @override
+  Future<void> updateShipment(
+    String shipmentId,
+    List<Map<String, dynamic>> items,
+  ) async {
+    try {
+      await _dio.put(
+        '${AppStrings.shipmentsEndpoint}/$shipmentId',
+        data: {'items': items},
+      );
+    } on DioException catch (e) {
+      debugPrint('ERROR UPDATE SHIPMENT: ${e.response?.data}');
+      throw Exception(e.error ?? 'Gagal mengubah pengiriman');
     }
   }
 }

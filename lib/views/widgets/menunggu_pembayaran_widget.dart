@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_detail_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_badge.dart';
 
 class MenungguPembayaranWidget extends StatefulWidget {
-  final CustomerBillingModel billing;
-  final ValueChanged<List<OrderModel>> onOrdersChanged;
+  final CustomerBillingDetailModel billingDetail;
+  final ValueChanged<List<BillingOrderModel>> onOrdersChanged;
 
   const MenungguPembayaranWidget({
     super.key,
-    required this.billing,
+    required this.billingDetail,
     required this.onOrdersChanged,
   });
 
@@ -22,30 +22,22 @@ class MenungguPembayaranWidget extends StatefulWidget {
 }
 
 class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
-  late Map<String, bool> _selected;
+  Map<String, bool> _selected = {};
 
-  // 1. Order yang siap ditagihkan (Belum lunas, sudah dikirim, dan punya invoice yang belum lunas)
-  List<OrderModel> get _unpaidOrders => widget.billing.orders.where((o) {
-    final isNotPaid = o.paymentStatus.toLowerCase() != 'paid';
-    final hasShipment = o.shipments.isNotEmpty;
-    final hasUnpaidInvoice = o.shipments.any(
-      (s) =>
-          s.invoice != null && s.invoice!.paymentStatus.toLowerCase() != 'paid',
-    );
+  List<BillingOrderModel> get _unpaidOrders =>
+      widget.billingDetail.orders.where((o) {
+        return o.unpaidInvoiceTotal > 0;
+      }).toList();
 
-    return isNotPaid && hasShipment && hasUnpaidInvoice;
-  }).toList();
-
-  // 2. Fungsi baru: Cek apakah ada order yang belum lunas TAPI belum dikirim sama sekali
-  bool get _hasUnshippedUnpaidOrders => widget.billing.orders.any(
-    (o) => o.paymentStatus.toLowerCase() != 'paid' && o.shipments.isEmpty,
+  bool get _hasUnshippedUnpaidOrders => widget.billingDetail.orders.any(
+    (o) => o.remainingBalance > 0 && o.unpaidInvoiceTotal == 0,
   );
 
   @override
   void initState() {
     super.initState();
-    // Default semua dipilih
     _selected = {for (final o in _unpaidOrders) o.id: true};
+
     WidgetsBinding.instance.addPostFrameCallback((_) => _notifyParent());
   }
 
@@ -56,7 +48,8 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
     widget.onOrdersChanged(selectedOrders);
   }
 
-  bool get _isAllSelected => _selected.values.every((v) => v == true);
+  bool get _isAllSelected =>
+      _selected.values.every((v) => v == true) && _selected.isNotEmpty;
 
   void _toggleAll() {
     setState(() {
@@ -78,6 +71,14 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
       'unpaid' => redColor,
       'partial' => orangeColor,
       _ => semiSecondaryColor,
+    };
+  }
+
+  String _paymentStatus(String status) {
+    return switch (status.toLowerCase()) {
+      'unpaid' => "Belum Dibayar",
+      'partial' => "Dibayar Sebagian",
+      _ => "Belum Dibayar",
     };
   }
 
@@ -145,7 +146,6 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
 
           Divider(height: 1, color: semiSecondaryColor.withValues(alpha: 0.1)),
 
-          // Kosong
           if (_unpaidOrders.isEmpty)
             Padding(
               padding: const EdgeInsets.all(24),
@@ -154,7 +154,6 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      // Jika ada order yang nunggak pengiriman, pesannya beda
                       _hasUnshippedUnpaidOrders
                           ? 'Belum ada tagihan yang bisa dibayar'
                           : 'Semua pesanan sudah lunas',
@@ -162,7 +161,6 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
                       textAlign: TextAlign.center,
                     ),
 
-                    // Tampilkan penjelasan tambahan khusus jika barang belum dikirim
                     if (_hasUnshippedUnpaidOrders)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0),
@@ -180,105 +178,107 @@ class _MenungguPembayaranWidgetState extends State<MenungguPembayaranWidget> {
               ),
             ),
 
-          // List order
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _unpaidOrders.length,
-            separatorBuilder: (_, _) => Divider(
-              height: 1,
-              color: semiSecondaryColor.withValues(alpha: 0.1),
-            ),
-            itemBuilder: (context, index) {
-              final order = _unpaidOrders[index];
-              final isSelected = _selected[order.id] ?? false;
+          if (_unpaidOrders.isNotEmpty)
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _unpaidOrders.length,
+              separatorBuilder: (_, _) => Divider(
+                height: 1,
+                color: semiSecondaryColor.withValues(alpha: 0.1),
+              ),
+              itemBuilder: (context, index) {
+                final order = _unpaidOrders[index];
+                final isSelected = _selected[order.id] ?? false;
 
-              return GestureDetector(
-                onTap: () => _toggleItem(order.id, !isSelected),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      // Checkbox
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          color: isSelected ? primaryColor : Colors.transparent,
-                          border: Border.all(
+                return GestureDetector(
+                  onTap: () => _toggleItem(order.id, !isSelected),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      children: [
+                        // Checkbox
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
                             color: isSelected
                                 ? primaryColor
-                                : semiSecondaryColor.withValues(alpha: 0.3),
-                            width: 2,
+                                : Colors.transparent,
+                            border: Border.all(
+                              color: isSelected
+                                  ? primaryColor
+                                  : semiSecondaryColor.withValues(alpha: 0.3),
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                          borderRadius: BorderRadius.circular(6),
+                          child: isSelected
+                              ? const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 14,
+                                )
+                              : null,
                         ),
-                        child: isSelected
-                            ? const Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 14,
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 12),
+                        const SizedBox(width: 12),
 
-                      // Info order
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        // Info order
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                order.poNo,
+                                style: boldTextStyle.copyWith(fontSize: 13),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                order.orderDate,
+                                style: regularTextStyle.copyWith(
+                                  fontSize: 11,
+                                  color: semiSecondaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Status & sisa tagihan
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              order.transactionNo,
-                              style: boldTextStyle.copyWith(fontSize: 13),
+                              formatRupiah(order.unpaidInvoiceTotal),
+                              style: boldTextStyle.copyWith(
+                                fontSize: 14,
+                                color: primaryColor,
+                              ),
                             ),
-                            const SizedBox(height: 10),
-                            Text(
-                              order.orderDate,
-                              style: regularTextStyle.copyWith(
-                                fontSize: 11,
-                                color: semiSecondaryColor,
+                            const SizedBox(height: 4),
+                            SizedBox(
+                              height: 28,
+                              child: CustomBadge(
+                                label: _paymentStatus(order.paymentStatus),
+                                badgeColor: _paymentStatusColor(
+                                  order.paymentStatus,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-
-                      // Status & sisa tagihan
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            formatRupiah(order.remainingBalance),
-                            style: boldTextStyle.copyWith(
-                              fontSize: 14,
-                              color: primaryColor,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          SizedBox(
-                            height: 28,
-                            child: CustomBadge(
-                              label: order.paymentStatus,
-                              badgeColor: _paymentStatusColor(
-                                order.paymentStatus,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
+                );
+              },
+            ),
         ],
       ),
     );

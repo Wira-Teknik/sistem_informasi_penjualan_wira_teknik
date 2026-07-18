@@ -31,15 +31,41 @@ class _PaymentRecapDetailTotalPaidScreenState
     extends ConsumerState<PaymentRecapDetailTotalPaidScreen> {
   final _searchController = TextEditingController();
 
+  final ScrollController _scrollController = ScrollController();
+
   late final _providerKey = (
     startDate: widget.startDate,
     endDate: widget.endDate,
   );
 
   @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final state = ref.read(
+        paymentRecapDetailPaidViewModelProvider(_providerKey),
+      );
+
+      if (!state.isLoadMore && !state.hasReachedMax && !state.isLoading) {
+        ref
+            .read(
+              paymentRecapDetailPaidViewModelProvider(_providerKey).notifier,
+            )
+            .loadDetail(isLoadMore: true);
+      }
+    }
   }
 
   Future<void> _onDownload() async {
@@ -73,12 +99,12 @@ class _PaymentRecapDetailTotalPaidScreenState
 
     return Scaffold(
       appBar: CustomAppbar(
-        title: 'Detail Total Paid',
+        title: 'Detail Total Bayar',
         actions: [
           IconButton(
             onPressed: state.isDownloading ? null : _onDownload,
             icon: state.isDownloading
-                ? SizedBox(
+                ? const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
@@ -126,7 +152,7 @@ class _PaymentRecapDetailTotalPaidScreenState
                   ),
                   const Spacer(),
                   CustomBadge(
-                    label: "${state.data?.totalCount ?? 0} Orders",
+                    label: "${state.data?.totalCount ?? 0} Pesanan",
                     badgeColor: greenColor,
                   ),
                 ],
@@ -136,7 +162,7 @@ class _PaymentRecapDetailTotalPaidScreenState
               // Card info
               ItemCardRecap(
                 iconSource: "assets/icons/total_paid_icon.png",
-                title: "TOTAL PAID",
+                title: "TOTAL LUNAS",
                 value: formatRupiah(state.data?.totalPaid ?? 0),
                 valueColor: greenColor,
               ),
@@ -167,11 +193,13 @@ class _PaymentRecapDetailTotalPaidScreenState
   }
 
   Widget _buildContent(PaymentRecapDetailPaidState state) {
-    if (state.isLoading) {
-      return Center(child: CircularProgressIndicator(color: primaryColor));
+    if (state.isLoading && state.filteredItems.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(color: primaryColor),
+      );
     }
 
-    if (state.errorMessage != null) {
+    if (state.errorMessage != null && state.filteredItems.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -209,15 +237,33 @@ class _PaymentRecapDetailTotalPaidScreenState
     }
 
     return ListView.builder(
-      itemCount: state.filteredItems.length,
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: state.filteredItems.length + (state.isLoadMore ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == state.filteredItems.length) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24.0),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: primaryColor,
+                  strokeWidth: 2.5,
+                ),
+              ),
+            ),
+          );
+        }
+
         final item = state.filteredItems[index];
         return ItemRecapWidget(
           noPO: item.poNo,
           namaKonsumen: item.customerName,
           tanggal: item.date,
           jumlahTotal: formatRupiah(item.totalAmount),
-          badgeName: item.paymentStatus,
+          badgeName: "Lunas",
           badgeColor: greenColor,
         );
       },

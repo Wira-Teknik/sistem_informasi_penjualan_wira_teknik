@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/app_navigator.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/auth/email_sender_screen.dart';
@@ -9,7 +10,9 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/auth/verify
 import 'package:sistem_informasi_penjualan_wira_teknik/views/screens/splash/splash_screen.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/bottom_navigation.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   runApp(const ProviderScope(child: MainApp()));
 }
 
@@ -21,7 +24,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData(scaffoldBackgroundColor: backgroundColor),
       debugShowCheckedModeBanner: false,
-      title: 'Wira Teknik',
+      title: 'SIP Wira Teknik',
       navigatorKey: AppNavigator.navigatorKey,
       initialRoute: '/splash',
       routes: {

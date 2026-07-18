@@ -15,10 +15,9 @@ class FilterHistoryTransactionSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> listFilterHistory = [
-      {"name": "All"},
-      {"name": "Unpaid"},
-      {"name": "Partial"},
-      {"name": "Paid"},
+      {"name": "Semua"},
+      {"name": "Dibayar Sebagian"},
+      {"name": "Lunas"},
     ];
 
     return SingleChildScrollView(
@@ -28,14 +27,12 @@ class FilterHistoryTransactionSection extends StatelessWidget {
         children: listFilterHistory.asMap().entries.map((entry) {
           final index = entry.key;
           final e = entry.value;
-          // Cek status terpilih berdasarkan index dari ViewModel
           final isSelected = activeFilter == index;
 
           return Padding(
             padding: const EdgeInsets.only(right: 4),
             child: FilterChip(
               onSelected: (value) {
-                // Trigger fungsi callback dengan membawa nilai index
                 onFilterChanged(index);
               },
               label: Text(

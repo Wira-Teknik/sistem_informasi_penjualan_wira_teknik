@@ -27,28 +27,7 @@ class HistoryTransactionModel {
         customerName: json['customer_name'] ?? '',
         adminName: json['admin_name'] ?? '',
         createdAt: json['created_at'] ?? '',
-        totalAmount: json['total_amount'] ?? 0,
+        totalAmount: (json['total_amount'] as num?)?.toInt() ?? 0,
         paymentStatus: json['payment_status'] ?? '',
-      );
-}
-
-class HistoryTransactionResponseModel {
-  final bool success;
-  final String message;
-  final List<HistoryTransactionModel> data;
-
-  const HistoryTransactionResponseModel({
-    required this.success,
-    required this.message,
-    required this.data,
-  });
-
-  factory HistoryTransactionResponseModel.fromJson(Map<String, dynamic> json) =>
-      HistoryTransactionResponseModel(
-        success: json['success'] ?? false,
-        message: json['message'] ?? '',
-        data: (json['data'] as List? ?? [])
-            .map((e) => HistoryTransactionModel.fromJson(e))
-            .toList(),
       );
 }

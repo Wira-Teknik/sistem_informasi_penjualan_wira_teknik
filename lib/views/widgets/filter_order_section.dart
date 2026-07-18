@@ -15,11 +15,11 @@ class FilterOrderSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> listFilterOrder = [
-      {"name": "All"},
-      {"name": "Pending"},
-      {"name": "Partial"},
-      {"name": "Shipped"},
-      {"name": "Completed"},
+      {"name": "Semua"},
+      {"name": "Tertunda"},
+      {"name": "Sebagian"},
+      {"name": "Dikirim"},
+      {"name": "Selesai"},
     ];
 
     return SingleChildScrollView(

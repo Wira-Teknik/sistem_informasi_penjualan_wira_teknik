@@ -2,42 +2,55 @@ import 'dart:async';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_payment_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_detail_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/payment_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/repositories/payment_repository.dart';
 
 class PaymentState {
   final bool isLoading;
+  final bool isLoadMore;
   final bool isRefreshing;
   final bool isSubmitting;
   final List<PaymentModel> payments;
   final List<PaymentModel> filteredPayments;
   final List<CustomerBillingModel> billings;
   final List<CustomerBillingModel> filteredBillings;
+  final CustomerBillingDetailModel? selectedCustomerDetail;
+  final bool isDetailLoading;
   final String? errorMessage;
 
-  // --- Parameter Advance Filter ---
+  final int currentPage;
+  final bool hasReachedMax;
+
+  final String searchQuery;
+
   final DateTime? startDate;
   final DateTime? endDate;
-  final String name; // Input nama dari filter
-  final String status; // Input status dari filter
+  final String name;
+  final String status;
 
   const PaymentState({
     this.isLoading = false,
+    this.isLoadMore = false,
     this.isRefreshing = false,
     this.isSubmitting = false,
+    this.selectedCustomerDetail,
+    this.isDetailLoading = false,
     this.payments = const [],
     this.filteredPayments = const [],
     this.billings = const [],
     this.filteredBillings = const [],
+    this.currentPage = 1,
+    this.hasReachedMax = false,
     this.errorMessage,
+    this.searchQuery = '',
     this.startDate,
     this.endDate,
     this.name = '',
     this.status = '',
   });
 
-  // Getter untuk indikator badge merah di Appbar
   bool get hasActiveFilter =>
       startDate != null ||
       endDate != null ||
@@ -46,22 +59,33 @@ class PaymentState {
 
   PaymentState copyWith({
     bool? isLoading,
+    bool? isLoadMore,
     bool? isRefreshing,
     bool? isSubmitting,
     List<PaymentModel>? payments,
     List<PaymentModel>? filteredPayments,
     List<CustomerBillingModel>? billings,
     List<CustomerBillingModel>? filteredBillings,
+    CustomerBillingDetailModel? selectedCustomerDetail,
+    bool? isDetailLoading,
     String? errorMessage,
+    int? currentPage,
+    bool? hasReachedMax,
+
+    String? searchQuery,
+    bool clearSearchQuery = false,
+
     DateTime? startDate,
     DateTime? endDate,
     String? name,
     String? status,
     bool clearError = false,
-    bool clearFilter = false, // True jika tekan tombol Reset
+    bool clearFilter = false,
+    bool clearSelectedDetail = false,
   }) {
     return PaymentState(
       isLoading: isLoading ?? this.isLoading,
+      isLoadMore: isLoadMore ?? this.isLoadMore,
       isRefreshing: isRefreshing ?? this.isRefreshing,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       payments: payments ?? this.payments,
@@ -69,7 +93,15 @@ class PaymentState {
       billings: billings ?? this.billings,
       filteredBillings: filteredBillings ?? this.filteredBillings,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      // Jika clearFilter true, reset semua parameter filter
+      selectedCustomerDetail: clearSelectedDetail
+          ? null
+          : (selectedCustomerDetail ?? this.selectedCustomerDetail),
+      isDetailLoading: isDetailLoading ?? this.isDetailLoading,
+      currentPage: currentPage ?? this.currentPage,
+      hasReachedMax: hasReachedMax ?? this.hasReachedMax,
+
+      searchQuery: clearSearchQuery ? '' : (searchQuery ?? this.searchQuery),
+
       startDate: clearFilter ? null : (startDate ?? this.startDate),
       endDate: clearFilter ? null : (endDate ?? this.endDate),
       name: clearFilter ? '' : (name ?? this.name),
@@ -82,6 +114,7 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
   final PaymentRepository _repository;
 
   Timer? _debounceTimer;
+  // ignore: unused_field
   String _lastQuery = '';
   DateTime? _lastFetchTime;
 
@@ -95,53 +128,104 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
     loadBillings();
   }
 
-  // Helper konversi tanggal
   String? _formatDate(DateTime? date) {
     if (date == null) return null;
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  // Mengambil data dari API berdasarkan filter aktif di State
-  Future<void> loadBillings() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+  Future<void> loadBillings({bool isLoadMore = false}) async {
+    if (isLoadMore) {
+      if (state.hasReachedMax ||
+          state.isLoading ||
+          state.isLoadMore ||
+          state.isRefreshing) {
+        return;
+      }
+      state = state.copyWith(isLoadMore: true, clearError: true);
+    } else {
+      state = state.copyWith(
+        isLoading: true,
+        currentPage: 1,
+        hasReachedMax: false,
+        clearError: true,
+      );
+    }
+
     try {
-      // Pastikan Repository kamu (searchCustomerBilling) sudah mendukung parameter ini
-      final billings = await _repository.searchCustomerBilling(
+      final response = await _repository.getCustomerBillings(
+        page: state.currentPage,
+        limit: 20,
         startDate: _formatDate(state.startDate),
         endDate: _formatDate(state.endDate),
-        query: state.name.isNotEmpty
-            ? state.name
-            : null, // Memakai name dari filter
+        customerName: state.searchQuery.isNotEmpty ? state.searchQuery : null,
+        searchName: state.name.isNotEmpty ? state.name : null,
         status: state.status.isNotEmpty ? state.status : null,
       );
-
       _lastFetchTime = DateTime.now();
+
+      final newBillings = response.data;
+      final totalPages = response.pagination.totalPages;
+
+      final currentList = isLoadMore
+          ? List<CustomerBillingModel>.from(state.billings)
+          : <CustomerBillingModel>[];
+      currentList.addAll(newBillings);
+
       state = state.copyWith(
         isLoading: false,
-        billings: billings,
-        filteredBillings: List.from(billings),
+        isLoadMore: false,
+        billings: currentList,
+        filteredBillings: List.from(currentList),
+        currentPage: isLoadMore ? state.currentPage + 1 : 2,
+        hasReachedMax: isLoadMore
+            ? (state.currentPage >= totalPages)
+            : (1 >= totalPages),
       );
     } on Exception catch (e) {
       state = state.copyWith(
         isLoading: false,
+        isLoadMore: false,
         errorMessage: e.toString().replaceAll('Exception: ', ''),
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Terjadi kesalahan: $e',
       );
     }
   }
 
-  // Dipanggil saat klik "Terapkan Filter" di Bottom Sheet
+  Future<void> getCustomerBillingDetail(String customerName) async {
+    state = state.copyWith(isDetailLoading: true, clearError: true);
+
+    try {
+      final formattedStart = state.startDate?.toIso8601String().split('T')[0];
+      final formattedEnd = state.endDate?.toIso8601String().split('T')[0];
+
+      final detail = await _repository.getCustomerBillingDetail(
+        customerName,
+        startDate: formattedStart,
+        endDate: formattedEnd,
+      );
+
+      state = state.copyWith(
+        isDetailLoading: false,
+        selectedCustomerDetail: detail,
+      );
+    } on Exception catch (e) {
+      state = state.copyWith(
+        isDetailLoading: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+    }
+  }
+
+  void clearSelectedCustomer() {
+    state = state.copyWith(clearSelectedDetail: true);
+  }
+
   Future<void> applyAdvanceFilter({
     DateTime? startDate,
     DateTime? endDate,
     String? name,
     String? status,
   }) async {
-    _lastFetchTime = null; // paksa API hit
+    _lastFetchTime = null;
     state = state.copyWith(
       startDate: startDate,
       endDate: endDate,
@@ -151,35 +235,46 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
     await loadBillings();
   }
 
-  // Dipanggil saat klik "Reset" di Bottom Sheet
   Future<void> resetFilter() async {
-    _lastFetchTime = null; // paksa API hit
+    _lastFetchTime = null;
     state = state.copyWith(clearFilter: true);
     await loadBillings();
   }
 
   Future<void> loadIfNeeded() async {
-    // Jika cache kadaluwarsa atau ada filter yang nyala, panggil ulang
     if (!_isCacheExpired && !state.hasActiveFilter) return;
     await loadBillings();
   }
 
   Future<void> refresh() async {
     _lastFetchTime = null;
-    state = state.copyWith(isRefreshing: true, clearError: true);
+    state = state.copyWith(
+      isRefreshing: true,
+      clearError: true,
+      currentPage: 1,
+      hasReachedMax: false,
+    );
     try {
-      final billings = await _repository.searchCustomerBilling(
+      final response = await _repository.getCustomerBillings(
+        page: 1,
+        limit: 20,
         startDate: _formatDate(state.startDate),
         endDate: _formatDate(state.endDate),
-        query: state.name.isNotEmpty ? state.name : null,
+        customerName: state.searchQuery.isNotEmpty ? state.searchQuery : null,
+        searchName: state.name.isNotEmpty ? state.name : null,
         status: state.status.isNotEmpty ? state.status : null,
       );
       _lastFetchTime = DateTime.now();
 
+      final newBillings = response.data;
+      final totalPages = response.pagination.totalPages;
+
       state = state.copyWith(
         isRefreshing: false,
-        billings: billings,
-        filteredBillings: List.from(billings),
+        billings: newBillings,
+        filteredBillings: List.from(newBillings),
+        currentPage: 2,
+        hasReachedMax: 1 >= totalPages,
       );
     } on Exception catch (e) {
       state = state.copyWith(
@@ -189,49 +284,25 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
     }
   }
 
-  // --- Fungsi pencarian realtime (Debounce TextField Halaman Utama) ---
   void search(String query) {
     _lastQuery = query;
 
     if (query.isEmpty) {
       _debounceTimer?.cancel();
-      // Reset filter nama ke kosong dan tampilkan ulang data (opsional: tanpa hit API jika cache ada)
-      state = state.copyWith(
-        name: '',
-        filteredBillings: List.from(state.billings),
-      );
+      state = state.copyWith(clearSearchQuery: true);
+      loadBillings();
       return;
     }
 
-    // Filter lokal sementara menunggu respon API
     state = state.copyWith(
       filteredBillings: _filterAndSort(state.billings, query),
     );
 
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      // Set value 'name' pada state dan hit API
-      state = state.copyWith(name: query);
-      _searchFromApi();
+      state = state.copyWith(searchQuery: query);
+      loadBillings();
     });
-  }
-
-  Future<void> _searchFromApi() async {
-    try {
-      final billings = await _repository.searchCustomerBilling(
-        startDate: _formatDate(state.startDate),
-        endDate: _formatDate(state.endDate),
-        query: state.name,
-        status: state.status.isNotEmpty ? state.status : null,
-      );
-      if (_lastQuery != state.name) return;
-
-      state = state.copyWith(
-        filteredBillings: _filterAndSort(billings, state.name),
-      );
-    } on Exception catch (_) {
-      // Gagal ambil API, abaikan.
-    }
   }
 
   List<CustomerBillingModel> _filterAndSort(
@@ -277,10 +348,14 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
     }
   }
 
-  Future<bool> updatePayment(String id, double paymentTotal) async {
+  Future<bool> updatePayment(
+    String id,
+    List<String> orderIds,
+    double paymentTotal,
+  ) async {
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
-      await _repository.updatePayment(id, paymentTotal);
+      await _repository.updatePayment(id, orderIds, paymentTotal);
       _lastFetchTime = null;
       state = state.copyWith(isSubmitting: false);
       await loadBillings();

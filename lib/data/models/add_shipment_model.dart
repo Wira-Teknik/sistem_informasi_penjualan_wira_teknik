@@ -22,7 +22,7 @@ class AddShipmentRequest {
   final File buktiKirim; // required
   final File suratJalan; // required
   final File bonPesanan; // required
-  final File? invoiceFile; // optional
+  final File invoiceFile; // optional
 
   const AddShipmentRequest({
     required this.orderId,
@@ -31,6 +31,6 @@ class AddShipmentRequest {
     required this.buktiKirim,
     required this.suratJalan,
     required this.bonPesanan,
-    this.invoiceFile,
+    required this.invoiceFile,
   });
 }

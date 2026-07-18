@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/audit_model.dart';
 
@@ -17,9 +18,9 @@ class AuditRepositoryImpl implements AuditRepository {
   Future<List<AuditModel>> getAudit({String? query}) async {
     try {
       final response = await _dio.get(
-        '/audit',
+        AppStrings.auditEndpoint,
         queryParameters: query != null && query.isNotEmpty
-            ? {'q': query}
+            ? {'name': query}
             : null,
       );
       final result = AuditResponseModel.fromJson(response.data);

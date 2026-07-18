@@ -4,9 +4,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/payment_recap_detail_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/payment_recap_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/payment_recap_detail_response_model.dart';
 
 abstract class PaymentRecapRepository {
   Future<PaymentRecapModel> getRecap({
@@ -15,25 +16,33 @@ abstract class PaymentRecapRepository {
     String? search,
   });
 
-  Future<PaymentRecapDetailPendapatanModel> getDetailPendapatan({
+  Future<PaymentRecapDetailPendapatanResponseModel> getDetailPendapatan({
+    int? page,
+    int? limit,
     String? startDate,
     String? endDate,
     String? search,
   });
 
-  Future<PaymentRecapDetailPesananModel> getDetailPesanan({
+  Future<PaymentRecapDetailPesananResponseModel> getDetailPesanan({
+    int? page,
+    int? limit,
     String? startDate,
     String? endDate,
     String? search,
   });
 
-  Future<PaymentRecapDetailUnpaidModel> getDetailUnpaid({
+  Future<PaymentRecapDetailUnpaidResponseModel> getDetailUnpaid({
+    int? page,
+    int? limit,
     String? startDate,
     String? endDate,
     String? search,
   });
 
-  Future<PaymentRecapDetailPaidModel> getDetailPaid({
+  Future<PaymentRecapDetailPaidResponseModel> getDetailPaid({
+    int? page,
+    int? limit,
     String? startDate,
     String? endDate,
     String? search,
@@ -61,7 +70,6 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
     String? search,
   }) async {
     try {
-      // Hanya kirim parameter yang tidak kosong
       final queryParams = <String, dynamic>{};
       if (startDate != null && startDate.isNotEmpty) {
         queryParams['start_date'] = startDate;
@@ -74,7 +82,7 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
       }
 
       final response = await _dio.get(
-        '/payment-recap',
+        AppStrings.paymentRecapEndpoint,
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
@@ -86,13 +94,19 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
   }
 
   @override
-  Future<PaymentRecapDetailPendapatanModel> getDetailPendapatan({
+  Future<PaymentRecapDetailPendapatanResponseModel> getDetailPendapatan({
+    int? page,
+    int? limit,
     String? startDate,
     String? endDate,
     String? search,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
+
+      if (page != null) queryParams['page'] = page;
+      if (limit != null) queryParams['limit'] = limit;
+
       if (startDate != null && startDate.isNotEmpty) {
         queryParams['start_date'] = startDate;
       }
@@ -104,11 +118,11 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
       }
 
       final response = await _dio.get(
-        '/payment-recap/detail-pendapatan',
+        '${AppStrings.paymentRecapEndpoint}/detail-pendapatan',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
-      return PaymentRecapDetailPendapatanModel.fromJson(response.data);
+      return PaymentRecapDetailPendapatanResponseModel.fromJson(response.data);
     } on DioException catch (e) {
       debugPrint('ERROR DETAIL PENDAPATAN: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal memuat detail pendapatan');
@@ -116,13 +130,19 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
   }
 
   @override
-  Future<PaymentRecapDetailPesananModel> getDetailPesanan({
+  Future<PaymentRecapDetailPesananResponseModel> getDetailPesanan({
+    int? page,
+    int? limit,
     String? startDate,
     String? endDate,
     String? search,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
+
+      if (page != null) queryParams['page'] = page;
+      if (limit != null) queryParams['limit'] = limit;
+
       if (startDate != null && startDate.isNotEmpty) {
         queryParams['start_date'] = startDate;
       }
@@ -134,11 +154,11 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
       }
 
       final response = await _dio.get(
-        '/payment-recap/detail-pesanan',
+        '${AppStrings.paymentRecapEndpoint}/detail-pesanan',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
-      return PaymentRecapDetailPesananModel.fromJson(response.data);
+      return PaymentRecapDetailPesananResponseModel.fromJson(response.data);
     } on DioException catch (e) {
       debugPrint('ERROR DETAIL PESANAN: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal memuat detail pesanan');
@@ -146,13 +166,19 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
   }
 
   @override
-  Future<PaymentRecapDetailUnpaidModel> getDetailUnpaid({
+  Future<PaymentRecapDetailUnpaidResponseModel> getDetailUnpaid({
+    int? page,
+    int? limit,
     String? startDate,
     String? endDate,
     String? search,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
+
+      if (page != null) queryParams['page'] = page;
+      if (limit != null) queryParams['limit'] = limit;
+
       if (startDate != null && startDate.isNotEmpty) {
         queryParams['start_date'] = startDate;
       }
@@ -164,11 +190,11 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
       }
 
       final response = await _dio.get(
-        '/payment-recap/detail-unpaid',
+        '${AppStrings.paymentRecapEndpoint}/detail-unpaid',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
-      return PaymentRecapDetailUnpaidModel.fromJson(response.data);
+      return PaymentRecapDetailUnpaidResponseModel.fromJson(response.data);
     } on DioException catch (e) {
       debugPrint('ERROR DETAIL UNPAID: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal memuat detail unpaid');
@@ -176,13 +202,19 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
   }
 
   @override
-  Future<PaymentRecapDetailPaidModel> getDetailPaid({
+  Future<PaymentRecapDetailPaidResponseModel> getDetailPaid({
+    int? page,
+    int? limit,
     String? startDate,
     String? endDate,
     String? search,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
+
+      if (page != null) queryParams['page'] = page;
+      if (limit != null) queryParams['limit'] = limit;
+
       if (startDate != null && startDate.isNotEmpty) {
         queryParams['start_date'] = startDate;
       }
@@ -194,11 +226,11 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
       }
 
       final response = await _dio.get(
-        '/payment-recap/detail-paid',
+        '${AppStrings.paymentRecapEndpoint}/detail-paid',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
-      return PaymentRecapDetailPaidModel.fromJson(response.data);
+      return PaymentRecapDetailPaidResponseModel.fromJson(response.data);
     } on DioException catch (e) {
       debugPrint('ERROR DETAIL PAID: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal memuat detail paid');
@@ -229,11 +261,9 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
         queryParams['status'] = status;
       }
 
-      // Ambil direktori penyimpanan
       final dir = await getApplicationDocumentsDirectory();
       final filePath = '${dir.path}/$fileName';
 
-      // Download file sebagai bytes
       await _dio
           .get(
             endpoint,
@@ -248,7 +278,7 @@ class PaymentRecapRepositoryImpl implements PaymentRecapRepository {
             await file.writeAsBytes(response.data);
           });
 
-      return filePath; // ← return path untuk dibuka di UI
+      return filePath;
     } on DioException catch (e) {
       debugPrint('ERROR EXPORT: ${e.response?.data}');
       throw Exception(e.error ?? 'Gagal mengunduh file');

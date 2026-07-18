@@ -12,7 +12,12 @@ class FilterRecapTotalPendapatanSection extends StatelessWidget {
     required this.onFilterChanged,
   });
 
-  static const List<String> _filters = ['All', 'Unpaid', 'Partial', 'Paid'];
+  static const List<String> _filters = [
+    'Semua',
+    'Belum Dibayar',
+    'Dibayar Sebagian',
+    'Lunas',
+  ];
 
   @override
   Widget build(BuildContext context) {

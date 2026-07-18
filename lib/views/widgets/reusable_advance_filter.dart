@@ -10,16 +10,10 @@ class ReusableAdvanceFilter extends StatefulWidget {
   final bool showDateRange;
   final DateTime? initialStartDate;
   final DateTime? initialEndDate;
-
-  // Menerima langsung widget CustomTextfield dari parent
   final List<CustomTextfield> customTextFields;
-
   final List<Map<String, String>> statusOptions;
   final String initialStatus;
   final bool hasActiveFilter;
-
-  // Callback untuk Apply (hanya mengembalikan tanggal & status,
-  // nilai textfield dibaca sendiri oleh parent lewat controllernya)
   final Future<void> Function(
     DateTime? startDate,
     DateTime? endDate,

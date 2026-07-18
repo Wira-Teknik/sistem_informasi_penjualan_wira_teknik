@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/validators.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/login_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/reset_password_viewmodel.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/copyright_text_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info_message_widget.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_textfield.dart';
@@ -174,13 +174,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 const SizedBox(height: 40),
 
                 // copyright
-                Text(
-                  "© 2026 CV.Wira Teknik.",
-                  style: regularTextStyle.copyWith(
-                    color: semiSecondaryColor,
-                    fontSize: 16,
-                  ),
-                ),
+                CopyrightTextWidget(),
               ],
             ),
           ),

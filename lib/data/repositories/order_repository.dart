@@ -5,10 +5,13 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/dio_client.dar
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_order_request_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/next_trx_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_response_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/response/order_response_model.dart';
 
 abstract class OrderRepository {
-  Future<List<OrderModel>> getOrders({
+  Future<OrderResponseModel> getOrders({
+    int? page,
+    int? limit,
+    String? searchQuery,
     String? startDate,
     String? endDate,
     String? poNo,
@@ -18,7 +21,8 @@ abstract class OrderRepository {
   Future<OrderModel> updateOrder(String id, Map<String, dynamic> data);
   Future<void> addOrder(AddOrderRequest request);
   Future<NextTrxModel> getNextTransactionNo();
-  Future<OrderModel> getOrderDetail(String orderId);
+  Future<OrderDetailModel> getOrderDetail(String orderId);
+  Future<void> deleteOrder(String id);
 }
 
 class OrderRepositoryImpl implements OrderRepository {
@@ -27,7 +31,10 @@ class OrderRepositoryImpl implements OrderRepository {
   OrderRepositoryImpl(this._dio);
 
   @override
-  Future<List<OrderModel>> getOrders({
+  Future<OrderResponseModel> getOrders({
+    int? page,
+    int? limit,
+    String? searchQuery,
     String? startDate,
     String? endDate,
     String? poNo,
@@ -36,6 +43,14 @@ class OrderRepositoryImpl implements OrderRepository {
   }) async {
     try {
       final queryParams = <String, dynamic>{};
+
+      if (page != null) queryParams['page'] = page;
+      if (limit != null) queryParams['limit'] = limit;
+
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        queryParams['search'] = searchQuery;
+      }
+
       if (startDate != null) queryParams['start_date'] = startDate;
       if (endDate != null) queryParams['end_date'] = endDate;
       if (poNo != null) queryParams['po_no'] = poNo;
@@ -43,11 +58,13 @@ class OrderRepositoryImpl implements OrderRepository {
       if (orderStatus != null) queryParams['order_status'] = orderStatus;
 
       final response = await _dio.get(
-        '/orders',
+        AppStrings.ordersEndpoint,
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
+
       final result = OrderResponseModel.fromJson(response.data);
-      return result.data;
+
+      return result;
     } on DioException catch (e) {
       throw Exception(e.error ?? 'Gagal memuat data pesanan');
     }
@@ -87,12 +104,21 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   @override
-  Future<OrderModel> getOrderDetail(String orderId) async {
+  Future<OrderDetailModel> getOrderDetail(String orderId) async {
     try {
-      final response = await _dio.get('/orders/$orderId');
-      return OrderModel.fromJson(response.data['data']);
+      final response = await _dio.get('${AppStrings.ordersEndpoint}/$orderId');
+      return OrderDetailModel.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw Exception(e.error ?? 'Gagal memuat detail pesanan');
+    }
+  }
+
+  @override
+  Future<void> deleteOrder(String id) async {
+    try {
+      await _dio.delete('${AppStrings.ordersEndpoint}/$id');
+    } on DioException catch (e) {
+      throw Exception(e.error ?? 'Gagal menghapus pesanan');
     }
   }
 }

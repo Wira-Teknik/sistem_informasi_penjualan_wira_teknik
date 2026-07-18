@@ -7,6 +7,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/validators.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_order_request_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/customer_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/order_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_customer_picker_sheet_widget.dart';
@@ -41,6 +42,9 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
   // Customer yang dipilih
   CustomerModel? _selectedCustomer;
 
+  // ignore: unused_field
+  DateTime? _selectedDate;
+
   // Method auto-fill dari customer yang dipilih
   void _fillFromCustomer(CustomerModel customer) {
     setState(() {
@@ -51,9 +55,6 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
       _addressController.text = customer.customerAddress;
     });
   }
-
-  // ignore: unused_field
-  DateTime? _selectedDate;
 
   @override
   void dispose() {
@@ -79,19 +80,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
 
   // Pilih tanggal
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      builder: (context, child) => Theme(
-        data: Theme.of(
-          context,
-        ).copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
-        child: child!,
-      ),
-    );
-
+    final picked = await pickCustomDate(context, firstDate: DateTime.now());
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
@@ -162,6 +151,7 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
         .addOrder(request);
 
     if (success && mounted) {
+      ref.read(customerViewModelProvider.notifier).clearFilteredCustomers();
       showSnackbar(context, 'Pesanan berhasil dibuat', isError: false);
       Navigator.pop(context);
     }

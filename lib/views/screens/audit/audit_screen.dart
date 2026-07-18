@@ -112,13 +112,13 @@ class _AuditItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(left: 1, right: 1, top: 1, bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: whiteColor,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: semiSecondaryColor.withValues(alpha: 0.5),
             blurRadius: 0.5,
           ),
         ],

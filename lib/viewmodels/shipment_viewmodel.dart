@@ -64,7 +64,7 @@ class ShipmentViewModel extends StateNotifier<ShipmentState> {
     required File buktiKirim,
     required File suratJalan,
     required File bonPesanan,
-    File? invoiceFile,
+    required File invoiceFile,
   }) async {
     state = state.copyWith(isSubmitting: true, clearError: true);
 
@@ -82,6 +82,24 @@ class ShipmentViewModel extends StateNotifier<ShipmentState> {
       );
 
       state = state.copyWith(isSubmitting: false, isSuccess: true);
+      return true;
+    } on Exception catch (e) {
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> updateShipment(
+    String shipmentId,
+    List<Map<String, dynamic>> items,
+  ) async {
+    state = state.copyWith(isSubmitting: true, clearError: true);
+    try {
+      await _repository.updateShipment(shipmentId, items);
+      state = state.copyWith(isSubmitting: false);
       return true;
     } on Exception catch (e) {
       state = state.copyWith(

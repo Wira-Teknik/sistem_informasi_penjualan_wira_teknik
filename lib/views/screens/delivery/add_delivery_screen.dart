@@ -15,7 +15,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_uplo
 import 'package:intl/intl.dart';
 
 class AddDeliveryScreen extends ConsumerStatefulWidget {
-  final OrderModel order;
+  final OrderDetailModel order;
 
   const AddDeliveryScreen({super.key, required this.order});
 
@@ -33,8 +33,6 @@ class _AddDeliveryScreenState extends ConsumerState<AddDeliveryScreen> {
   File? _bonPesanan;
   File? _invoiceFile;
 
-  // Item yang dipilih dari BarangDikirimWidget
-  // key: orderItemId, value: qty yang akan dikirim
   final Map<String, int> _selectedItems = {};
 
   @override
@@ -44,18 +42,11 @@ class _AddDeliveryScreenState extends ConsumerState<AddDeliveryScreen> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      builder: (context, child) => Theme(
-        data: Theme.of(
-          context,
-        ).copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
-        child: child!,
-      ),
+    final picked = await pickCustomDate(
+      context,
+      firstDate: DateTime.parse(widget.order.orderDate),
     );
+
     if (picked != null) {
       _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
     }
@@ -111,7 +102,7 @@ class _AddDeliveryScreenState extends ConsumerState<AddDeliveryScreen> {
           buktiKirim: _buktiKirim!,
           suratJalan: _suratJalan!,
           bonPesanan: _bonPesanan!,
-          invoiceFile: _invoiceFile,
+          invoiceFile: _invoiceFile!,
         );
 
     if (success && mounted) {

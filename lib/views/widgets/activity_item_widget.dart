@@ -4,7 +4,7 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_const
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/dashboard_model.dart';
 
 class ActivityItem extends StatelessWidget {
-  final ActivityModel activity;
+  final DashboardActivityItemModel activity;
 
   const ActivityItem({super.key, required this.activity});
 

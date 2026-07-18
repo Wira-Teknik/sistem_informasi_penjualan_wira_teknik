@@ -5,15 +5,29 @@ import 'package:sistem_informasi_penjualan_wira_teknik/data/models/payment_model
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/edit_payment_dialog_widget.dart';
 
 class ItemInvoiceWidget extends StatefulWidget {
-  final PaymentModel payment;
+  final String paymentId;
+  final String orderId; // Wajib untuk API
+  final String invoiceNo;
+  final int paymentTotal;
+  final String paymentDate;
   final String Function(int) formatRupiah;
   final String paymentStatus;
 
+  // Kirim data riwayat pembayaran untuk invoice ini
+  final List<PaymentModel> relatedPayments;
+  final VoidCallback onRefreshTapped;
+
   const ItemInvoiceWidget({
     super.key,
-    required this.payment,
     required this.formatRupiah,
     required this.paymentStatus,
+    required this.paymentTotal,
+    required this.paymentDate,
+    required this.paymentId,
+    required this.orderId,
+    required this.invoiceNo,
+    required this.relatedPayments,
+    required this.onRefreshTapped,
   });
 
   @override
@@ -23,15 +37,13 @@ class ItemInvoiceWidget extends StatefulWidget {
 class _ItemInvoiceWidgetState extends State<ItemInvoiceWidget> {
   @override
   Widget build(BuildContext context) {
-    final payment = widget.payment;
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           (widget.paymentStatus.toUpperCase() == "PAID")
-              ? SizedBox()
+              ? const SizedBox()
               : SizedBox(
                   width: 18,
                   height: 18,
@@ -39,40 +51,38 @@ class _ItemInvoiceWidgetState extends State<ItemInvoiceWidget> {
                     padding: EdgeInsets.zero,
                     onPressed: () => _showEditPaymentDialog(
                       context,
-                      payment.id,
-                      payment.paymentTotal.toDouble(),
+                      widget.paymentId,
+                      widget.paymentTotal.toDouble(),
                     ),
-                    icon: ImageIcon(
-                      const AssetImage("assets/icons/edit_pengiriman_icon.png"),
+                    icon: const ImageIcon(
+                      AssetImage("assets/icons/edit_pengiriman_icon.png"),
                       size: 18,
                       color: secondaryColor,
                     ),
                   ),
                 ),
           const SizedBox(width: 10),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "TANGGAL BAYAR",
+                  widget.invoiceNo,
                   style: boldTextStyle.copyWith(
                     fontSize: 10,
                     color: semiSecondaryColor.withValues(alpha: 0.5),
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(widget.payment.paymentDate, style: mediumTextStyle),
+                Text(widget.paymentDate, style: mediumTextStyle),
               ],
             ),
           ),
-
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                widget.formatRupiah(payment.paymentTotal.toInt()),
+                widget.formatRupiah(widget.paymentTotal),
                 style: boldTextStyle,
               ),
             ],
@@ -92,11 +102,11 @@ class _ItemInvoiceWidgetState extends State<ItemInvoiceWidget> {
       barrierDismissible: false,
       builder: (context) => EditPaymentDialogWidget(
         paymentId: paymentId,
+        orderId: widget.orderId,
+        invoiceNo: widget.invoiceNo,
+        relatedPayments: widget.relatedPayments,
         currentTotal: currentTotal,
-        onSuccess: () {
-          // Refresh data setelah berhasil edit
-          setState(() {});
-        },
+        onSuccess: widget.onRefreshTapped,
       ),
     );
   }

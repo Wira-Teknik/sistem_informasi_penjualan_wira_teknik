@@ -33,6 +33,14 @@ class _CustomCustomerPickerSheetWidgetState
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(customerViewModelProvider.notifier).clearFilteredCustomers();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final state = ref.watch(customerViewModelProvider);
 
@@ -67,7 +75,12 @@ class _CustomCustomerPickerSheetWidgetState
                 ),
                 const Spacer(),
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () {
+                    ref
+                        .read(customerViewModelProvider.notifier)
+                        .clearFilteredCustomers();
+                    Navigator.pop(context);
+                  },
                   child: Icon(Icons.close_rounded, color: semiSecondaryColor),
                 ),
               ],

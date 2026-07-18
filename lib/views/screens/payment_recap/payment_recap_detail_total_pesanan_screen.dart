@@ -32,15 +32,41 @@ class _PaymentRecapDetailTotalPesananScreenState
     extends ConsumerState<PaymentRecapDetailTotalPesananScreen> {
   final _searchController = TextEditingController();
 
+  final ScrollController _scrollController = ScrollController();
+
   late final _providerKey = (
     startDate: widget.startDate,
     endDate: widget.endDate,
   );
 
   @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final state = ref.read(
+        paymentRecapDetailPesananViewModelProvider(_providerKey),
+      );
+
+      if (!state.isLoadMore && !state.hasReachedMax && !state.isLoading) {
+        ref
+            .read(
+              paymentRecapDetailPesananViewModelProvider(_providerKey).notifier,
+            )
+            .loadDetail(isLoadMore: true);
+      }
+    }
   }
 
   Color _orderStatusColor(String status) {
@@ -50,6 +76,16 @@ class _PaymentRecapDetailTotalPesananScreenState
       'shipped' => yellowColor,
       'completed' => greenColor,
       _ => semiSecondaryColor,
+    };
+  }
+
+  String _orderStatusLabel(String status) {
+    return switch (status.toLowerCase()) {
+      'pending' => 'Tertunda',
+      'partial' => 'Sebagian',
+      'shipped' => 'Dikirim',
+      'completed' => 'Selesai',
+      _ => status,
     };
   }
 
@@ -89,7 +125,7 @@ class _PaymentRecapDetailTotalPesananScreenState
           IconButton(
             onPressed: state.isDownloading ? null : _onDownload,
             icon: state.isDownloading
-                ? SizedBox(
+                ? const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
@@ -137,7 +173,7 @@ class _PaymentRecapDetailTotalPesananScreenState
                   ),
                   const Spacer(),
                   CustomBadge(
-                    label: "${state.data?.totalPesananCount ?? 0} Orders",
+                    label: "${state.data?.totalPesananCount ?? 0} Pesanan",
                     badgeColor: semiSecondaryColor,
                   ),
                 ],
@@ -191,11 +227,13 @@ class _PaymentRecapDetailTotalPesananScreenState
   }
 
   Widget _buildContent(PaymentRecapDetailPesananState state) {
-    if (state.isLoading) {
-      return Center(child: CircularProgressIndicator(color: primaryColor));
+    if (state.isLoading && state.filteredItems.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(color: primaryColor),
+      );
     }
 
-    if (state.errorMessage != null) {
+    if (state.errorMessage != null && state.filteredItems.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -233,15 +271,33 @@ class _PaymentRecapDetailTotalPesananScreenState
     }
 
     return ListView.builder(
-      itemCount: state.filteredItems.length,
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: state.filteredItems.length + (state.isLoadMore ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == state.filteredItems.length) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24.0),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: primaryColor,
+                  strokeWidth: 2.5,
+                ),
+              ),
+            ),
+          );
+        }
+
         final item = state.filteredItems[index];
         return ItemRecapWidget(
           noPO: item.poNo,
           namaKonsumen: item.customerName,
           tanggal: item.date,
           jumlahTotal: formatRupiah(item.totalAmount),
-          badgeName: item.orderStatus,
+          badgeName: _orderStatusLabel(item.orderStatus),
           badgeColor: _orderStatusColor(item.orderStatus),
         );
       },

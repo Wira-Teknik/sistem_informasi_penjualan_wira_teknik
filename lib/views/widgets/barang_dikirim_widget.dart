@@ -1,11 +1,12 @@
 import "package:flutter/material.dart";
 import "package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart";
 import "package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart";
+import "package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart";
 import "package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart";
 
 class BarangDikirimWidget extends StatefulWidget {
-  final List<OrderItemModel> items; // ← dari order.items
-  final ValueChanged<Map<String, int>> onItemsChanged; // ← {orderItemId: qty}
+  final List<OrderItemModel> items;
+  final ValueChanged<Map<String, int>> onItemsChanged;
 
   const BarangDikirimWidget({
     super.key,
@@ -18,21 +19,17 @@ class BarangDikirimWidget extends StatefulWidget {
 }
 
 class _BarangDikirimWidgetState extends State<BarangDikirimWidget> {
-  // Simpan status selected dan qty per item berdasarkan id
   late Map<String, bool> _selected;
   late Map<String, int> _quantities;
 
   @override
   void initState() {
     super.initState();
-    // Default semua dipilih, qty = remainingQty
     _selected = {for (final item in widget.items) item.id: true};
     _quantities = {for (final item in widget.items) item.id: item.remainingQty};
-    // Notify parent dengan data awal
     WidgetsBinding.instance.addPostFrameCallback((_) => _notifyParent());
   }
 
-  // Kirim data ke parent — hanya item yang dipilih
   void _notifyParent() {
     final result = <String, int>{};
     for (final item in widget.items) {
@@ -62,7 +59,7 @@ class _BarangDikirimWidgetState extends State<BarangDikirimWidget> {
 
   void _increment(String id, int maxQty) {
     final current = _quantities[id] ?? 0;
-    if (current >= maxQty) return; // tidak boleh melebihi remainingQty
+    if (current >= maxQty) return;
     setState(() => _quantities[id] = current + 1);
     _notifyParent();
   }
@@ -151,8 +148,10 @@ class _BarangDikirimWidgetState extends State<BarangDikirimWidget> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: widget.items.length,
-            separatorBuilder: (_, _) =>
-                const Divider(height: 1, color: Color(0xFFEEEEEE)),
+            separatorBuilder: (_, _) => Divider(
+              height: 1,
+              color: semiSecondaryColor.withValues(alpha: 0.2),
+            ),
             itemBuilder: (context, index) {
               final item = widget.items[index];
               final isSelected = _selected[item.id] ?? false;
@@ -191,93 +190,94 @@ class _ShippingItemTile extends StatelessWidget {
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
 
-  String _formatRupiah(double value) {
-    return 'Rp ${value.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Checkbox
-          GestureDetector(
-            onTap: () => onChanged(!isSelected),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                color: isSelected ? primaryColor : Colors.transparent,
-                border: Border.all(
-                  color: isSelected
-                      ? primaryColor
-                      : semiSecondaryColor.withValues(alpha: 0.3),
-                  width: 2,
-                ),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: isSelected
-                  ? const Icon(Icons.check, color: whiteColor, size: 14)
-                  : null,
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Info barang
-          Expanded(
-            child: Column(
+    return (quantity != 0)
+        ? Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.productName.toUpperCase(), style: semiBoldTextStyle),
-                const SizedBox(height: 4),
-                Text(
-                  _formatRupiah(item.unitPrice),
-                  style: boldTextStyle.copyWith(
-                    color: primaryColor,
-                    fontSize: 12,
+                // Checkbox
+                GestureDetector(
+                  onTap: () => onChanged(!isSelected),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: isSelected ? primaryColor : Colors.transparent,
+                      border: Border.all(
+                        color: isSelected
+                            ? primaryColor
+                            : semiSecondaryColor.withValues(alpha: 0.3),
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: isSelected
+                        ? const Icon(Icons.check, color: whiteColor, size: 14)
+                        : null,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(width: 12),
 
-                // Quantity control
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    _QtyButton(
-                      icon: Icons.remove,
-                      onTap: onDecrement,
-                      isActive: isSelected,
-                      color: whiteColor,
-                      iconColor: secondaryColor,
-                    ),
-                    const SizedBox(width: 10),
-                    SizedBox(
-                      width: 24,
-                      child: Text(
-                        '$quantity',
-                        style: boldTextStyle,
-                        textAlign: TextAlign.center,
+                // Info barang
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.productName.toUpperCase(),
+                        style: semiBoldTextStyle,
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    _QtyButton(
-                      icon: Icons.add,
-                      onTap: onIncrement,
-                      isActive: isSelected,
-                      color: primaryColor,
-                      iconColor: whiteColor,
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        formatRupiah(item.unitPrice),
+                        style: boldTextStyle.copyWith(
+                          color: primaryColor,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Quantity control
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          _QtyButton(
+                            icon: Icons.remove,
+                            onTap: onDecrement,
+                            isActive: isSelected,
+                            color: whiteColor,
+                            iconColor: secondaryColor,
+                          ),
+                          const SizedBox(width: 16),
+                          SizedBox(
+                            width: 28,
+                            child: Text(
+                              '$quantity',
+                              style: boldTextStyle,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          _QtyButton(
+                            icon: Icons.add,
+                            onTap: onIncrement,
+                            isActive: isSelected,
+                            color: primaryColor,
+                            iconColor: whiteColor,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
+          )
+        : SizedBox();
   }
 }
 

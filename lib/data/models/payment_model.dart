@@ -1,15 +1,17 @@
 class PaymentDetailModel {
   final String id;
-  final String invoiceId;
   final String paymentId;
-  final double allocatedAmount;
+  final String invoiceId;
+  final String invoiceNo;
+  final int allocatedAmount;
   final String createdAt;
   final String updatedAt;
 
   const PaymentDetailModel({
     required this.id,
-    required this.invoiceId,
     required this.paymentId,
+    required this.invoiceId,
+    required this.invoiceNo,
     required this.allocatedAmount,
     required this.createdAt,
     required this.updatedAt,
@@ -18,87 +20,87 @@ class PaymentDetailModel {
   factory PaymentDetailModel.fromJson(Map<String, dynamic> json) =>
       PaymentDetailModel(
         id: json['id'] ?? '',
-        invoiceId: json['invoice_id'] ?? '',
         paymentId: json['payment_id'] ?? '',
-        allocatedAmount: (json['allocated_amount'] as num? ?? 0).toDouble(),
+        invoiceId: json['invoice_id'] ?? '',
+        invoiceNo: json['invoice_no'] ?? '',
+        allocatedAmount: (json['allocated_amount'] as num? ?? 0).toInt(),
         createdAt: json['created_at'] ?? '',
         updatedAt: json['updated_at'] ?? '',
       );
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'invoice_id': invoiceId,
     'payment_id': paymentId,
+    'invoice_id': invoiceId,
+    'invoice_no': invoiceNo,
     'allocated_amount': allocatedAmount,
     'created_at': createdAt,
     'updated_at': updatedAt,
   };
-}
 
-class PaymentModel {
-  final String id;
-  final String paymentDate;
-  final double paymentTotal;
-  final List<PaymentDetailModel> details;
-  final String createdAt;
-  final String updatedAt;
-
-  const PaymentModel({
-    required this.id,
-    required this.paymentDate,
-    required this.paymentTotal,
-    required this.details,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory PaymentModel.fromJson(Map<String, dynamic> json) => PaymentModel(
-    id: json['id'] ?? '',
-    paymentDate: json['payment_date'] ?? '',
-    paymentTotal: (json['payment_total'] as num? ?? 0).toDouble(),
-    details: (json['details'] as List? ?? [])
-        .map((e) => PaymentDetailModel.fromJson(e))
-        .toList(),
-    createdAt: json['created_at'] ?? '',
-    updatedAt: json['updated_at'] ?? '',
-  );
-
-  PaymentModel copyWith({
+  PaymentDetailModel copyWith({
     String? id,
-    String? paymentDate,
-    double? paymentTotal,
-    List<PaymentDetailModel>? details,
+    String? paymentId,
+    String? invoiceId,
+    String? invoiceNo,
+    int? allocatedAmount,
     String? createdAt,
     String? updatedAt,
   }) {
-    return PaymentModel(
+    return PaymentDetailModel(
       id: id ?? this.id,
-      paymentDate: paymentDate ?? this.paymentDate,
-      paymentTotal: paymentTotal ?? this.paymentTotal,
-      details: details ?? this.details,
+      paymentId: paymentId ?? this.paymentId,
+      invoiceId: invoiceId ?? this.invoiceId,
+      invoiceNo: invoiceNo ?? this.invoiceNo,
+      allocatedAmount: allocatedAmount ?? this.allocatedAmount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }
 
-class PaymentResponseModel {
-  final bool success;
-  final String message;
-  final List<PaymentModel> data;
+class PaymentModel {
+  final String paymentId;
+  final String paymentDate;
+  final int allocatedAmount;
+  final List<PaymentDetailModel> details;
 
-  const PaymentResponseModel({
-    required this.success,
-    required this.message,
-    required this.data,
+  const PaymentModel({
+    required this.paymentId,
+    required this.paymentDate,
+    required this.allocatedAmount,
+    this.details = const [],
   });
 
-  factory PaymentResponseModel.fromJson(Map<String, dynamic> json) =>
-      PaymentResponseModel(
-        success: json['success'] ?? false,
-        message: json['message'] ?? '',
-        data: (json['data'] as List? ?? [])
-            .map((e) => PaymentModel.fromJson(e))
-            .toList(),
-      );
+  factory PaymentModel.fromJson(Map<String, dynamic> json) => PaymentModel(
+    paymentId: json['payment_id'] ?? '',
+    paymentDate: json['payment_date'] ?? '',
+    allocatedAmount: (json['allocated_amount'] as num? ?? 0).toInt(),
+    details:
+        (json['details'] as List<dynamic>?)
+            ?.map((e) => PaymentDetailModel.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        const [],
+  );
+
+  Map<String, dynamic> toJson() => {
+    'payment_id': paymentId,
+    'payment_date': paymentDate,
+    'allocated_amount': allocatedAmount,
+    'details': details.map((e) => e.toJson()).toList(),
+  };
+
+  PaymentModel copyWith({
+    String? paymentId,
+    String? paymentDate,
+    int? allocatedAmount,
+    List<PaymentDetailModel>? details,
+  }) {
+    return PaymentModel(
+      paymentId: paymentId ?? this.paymentId,
+      paymentDate: paymentDate ?? this.paymentDate,
+      allocatedAmount: allocatedAmount ?? this.allocatedAmount,
+      details: details ?? this.details,
+    );
+  }
 }

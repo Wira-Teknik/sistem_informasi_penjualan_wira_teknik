@@ -14,7 +14,6 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/filter_reca
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/item_recap_widget.dart';
 
 class PaymentRecapDetailTotalPendapatanScreen extends ConsumerStatefulWidget {
-  // ← Parameter dari payment_recap_screen
   final DateTime? startDate;
   final DateTime? endDate;
 
@@ -33,16 +32,43 @@ class _PaymentRecapDetailTotalPendapatanScreenState
     extends ConsumerState<PaymentRecapDetailTotalPendapatanScreen> {
   final _searchController = TextEditingController();
 
-  // Key provider dengan parameter tanggal dari screen sebelumnya
+  final ScrollController _scrollController = ScrollController();
+
   late final _providerKey = (
     startDate: widget.startDate,
     endDate: widget.endDate,
   );
 
   @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final state = ref.read(
+        paymentRecapDetailPendapatanViewModelProvider(_providerKey),
+      );
+
+      if (!state.isLoadMore && !state.hasReachedMax && !state.isLoading) {
+        ref
+            .read(
+              paymentRecapDetailPendapatanViewModelProvider(
+                _providerKey,
+              ).notifier,
+            )
+            .loadDetail(isLoadMore: true);
+      }
+    }
   }
 
   Color _paymentStatusColor(String status) {
@@ -51,6 +77,15 @@ class _PaymentRecapDetailTotalPendapatanScreenState
       'partial' => orangeColor,
       'unpaid' => redColor,
       _ => semiSecondaryColor,
+    };
+  }
+
+  String _pendapatanStatusLabel(String status) {
+    return switch (status.toLowerCase()) {
+      'paid' => 'Lunas',
+      'partial' => 'Dibayar Sebagian',
+      'unpaid' => 'Belum Dibayar',
+      _ => status,
     };
   }
 
@@ -92,7 +127,7 @@ class _PaymentRecapDetailTotalPendapatanScreenState
           IconButton(
             onPressed: state.isDownloading ? null : _onDownload,
             icon: state.isDownloading
-                ? SizedBox(
+                ? const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
@@ -142,7 +177,7 @@ class _PaymentRecapDetailTotalPendapatanScreenState
                   ),
                   const Spacer(),
                   CustomBadge(
-                    label: "${state.data?.totalPesananCount ?? 0} Orders",
+                    label: "${state.data?.totalPesananCount ?? 0} Pesanan",
                     badgeColor: primaryColor,
                   ),
                 ],
@@ -196,11 +231,13 @@ class _PaymentRecapDetailTotalPendapatanScreenState
   }
 
   Widget _buildContent(PaymentRecapDetailPendapatanState state) {
-    if (state.isLoading) {
-      return Center(child: CircularProgressIndicator(color: primaryColor));
+    if (state.isLoading && state.filteredItems.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(color: primaryColor),
+      );
     }
 
-    if (state.errorMessage != null) {
+    if (state.errorMessage != null && state.filteredItems.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -238,15 +275,33 @@ class _PaymentRecapDetailTotalPendapatanScreenState
     }
 
     return ListView.builder(
-      itemCount: state.filteredItems.length,
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: state.filteredItems.length + (state.isLoadMore ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == state.filteredItems.length) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24.0),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: primaryColor,
+                  strokeWidth: 2.5,
+                ),
+              ),
+            ),
+          );
+        }
+
         final item = state.filteredItems[index];
         return ItemRecapWidget(
           noPO: item.poNo,
           namaKonsumen: item.customerName,
           tanggal: item.date,
           jumlahTotal: formatRupiah(item.totalAmount),
-          badgeName: item.paymentStatus,
+          badgeName: _pendapatanStatusLabel(item.paymentStatus),
           badgeColor: _paymentStatusColor(item.paymentStatus),
         );
       },

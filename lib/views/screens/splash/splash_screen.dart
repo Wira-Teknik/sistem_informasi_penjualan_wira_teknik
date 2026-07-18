@@ -18,20 +18,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       if (next.isLoading) return;
 
       if (next.isTokenExpired) {
-        // Token expired → login dengan pesan
         _navigateToLogin(showExpiredMessage: true);
         return;
       }
 
       if (next.isSuccess) {
-        // Sesi valid → ke dashboard
         Navigator.pushNamedAndRemoveUntil(
           context,
           '/bottom_navigation',
           (route) => false,
         );
       } else {
-        // Belum login → ke login
         _navigateToLogin(showExpiredMessage: false);
       }
     });

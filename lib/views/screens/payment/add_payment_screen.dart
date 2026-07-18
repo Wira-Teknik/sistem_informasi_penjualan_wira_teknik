@@ -6,8 +6,8 @@ import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_cons
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/text_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/utils/functions.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/add_payment_model.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_detail_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/data/models/customer_billing_model.dart';
-import 'package:sistem_informasi_penjualan_wira_teknik/data/models/order_model.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/viewmodels/payment_viewmodel.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_appbar.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_filledbutton.dart';
@@ -17,9 +17,9 @@ import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_uplo
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/menunggu_pembayaran_widget.dart';
 
 class AddPaymentScreen extends ConsumerStatefulWidget {
-  final CustomerBillingModel billing; // ← terima dari DetailPaymentScreen
+  final CustomerBillingDetailModel billingDetail;
 
-  const AddPaymentScreen({super.key, required this.billing});
+  const AddPaymentScreen({super.key, required this.billingDetail});
 
   @override
   ConsumerState<AddPaymentScreen> createState() => _AddPaymentScreenState();
@@ -31,7 +31,7 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
   final _totalController = TextEditingController();
 
   File? _buktiKirim;
-  List<OrderModel> _selectedOrders = [];
+  List<BillingOrderModel> _selectedOrders = [];
 
   @override
   void dispose() {
@@ -41,20 +41,12 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      builder: (context, child) => Theme(
-        data: Theme.of(
-          context,
-        ).copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
-        child: child!,
-      ),
-    );
+    final picked = await pickCustomDate(context, firstDate: DateTime.now());
+
     if (picked != null) {
-      _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+      setState(() {
+        _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+      });
     }
   }
 
@@ -102,12 +94,11 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
     }
   }
 
-  // Auto-fill total dari order yang dipilih
-  void _onOrdersChanged(List<OrderModel> orders) {
+  void _onOrdersChanged(List<BillingOrderModel> orders) {
     setState(() => _selectedOrders = orders);
 
     // Auto-fill total
-    final total = orders.fold<int>(0, (sum, o) => sum + o.remainingBalance);
+    final total = orders.fold<int>(0, (sum, o) => sum + o.unpaidInvoiceTotal);
     if (total > 0) {
       _totalController.text = formatNumberRupiah(total.toString());
     } else {
@@ -173,7 +164,7 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
 
                 // List order menunggu pembayaran
                 MenungguPembayaranWidget(
-                  billing: widget.billing,
+                  billingDetail: widget.billingDetail,
                   onOrdersChanged: _onOrdersChanged,
                 ),
                 const SizedBox(height: 16),
@@ -197,14 +188,10 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                           style: semiBoldTextStyle.copyWith(fontSize: 13),
                         ),
                         Text(
-                          NumberFormat.currency(
-                            locale: 'id_ID',
-                            symbol: 'Rp ',
-                            decimalDigits: 0,
-                          ).format(
+                          formatRupiah(
                             _selectedOrders.fold<int>(
                               0,
-                              (sum, o) => sum + o.remainingBalance,
+                              (sum, o) => (sum + o.unpaidInvoiceTotal).toInt(),
                             ),
                           ),
                           style: boldTextStyle.copyWith(

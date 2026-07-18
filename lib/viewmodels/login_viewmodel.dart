@@ -13,6 +13,8 @@ class LoginState {
   final String? token;
   final bool isTokenExpired;
 
+  final bool isSuccess;
+
   const LoginState({
     this.isLoading = false,
     this.isPasswordVisible = false,
@@ -20,9 +22,8 @@ class LoginState {
     this.user,
     this.token,
     this.isTokenExpired = false,
+    this.isSuccess = false,
   });
-
-  bool get isSuccess => user != null && token != null && !isTokenExpired;
 
   LoginState copyWith({
     bool? isLoading,
@@ -31,6 +32,7 @@ class LoginState {
     UserModel? user,
     String? token,
     bool? isTokenExpired,
+    bool? isSuccess,
     bool clearError = false,
   }) {
     return LoginState(
@@ -40,6 +42,7 @@ class LoginState {
       user: user ?? this.user,
       token: token ?? this.token,
       isTokenExpired: isTokenExpired ?? this.isTokenExpired,
+      isSuccess: isSuccess ?? this.isSuccess,
     );
   }
 }
@@ -58,10 +61,13 @@ class LoginViewModel extends StateNotifier<LoginState> {
     final session = await _authRepository.getSavedSession();
 
     if (session != null) {
-      // Double check token di sisi viewmodel
       if (JwtUtils.isExpired(session.token)) {
         await logout();
-        state = state.copyWith(isLoading: false, isTokenExpired: true);
+        state = state.copyWith(
+          isLoading: false,
+          isTokenExpired: true,
+          isSuccess: false,
+        );
         return;
       }
 
@@ -70,9 +76,10 @@ class LoginViewModel extends StateNotifier<LoginState> {
         user: session.user,
         token: session.token,
         isTokenExpired: false,
+        isSuccess: true,
       );
     } else {
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isLoading: false, isSuccess: false);
     }
   }
 
@@ -87,7 +94,8 @@ class LoginViewModel extends StateNotifier<LoginState> {
   }
 
   Future<void> login(String username, String password) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(isLoading: true, clearError: true, isSuccess: false);
+
     try {
       final result = await _authRepository.login(username, password);
 
@@ -104,10 +112,12 @@ class LoginViewModel extends StateNotifier<LoginState> {
         user: result.user,
         token: result.token,
         isTokenExpired: false,
+        isSuccess: true,
       );
     } on Exception catch (e) {
       state = state.copyWith(
         isLoading: false,
+        isSuccess: false,
         errorMessage: e.toString().replaceAll('Exception: ', ''),
       );
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/app_strings.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/core/constants/color_constant.dart';
 import 'package:sistem_informasi_penjualan_wira_teknik/views/widgets/custom_info_message_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -52,11 +53,11 @@ String formatDate(String dateStr) {
 }
 
 Future<void> openExternalUrl(BuildContext context, String url) async {
-  final uri = Uri.parse(url);
+  final uri = Uri.parse(AppStrings.imageUrl + url);
 
   try {
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
     } else {
       if (!context.mounted) return;
 
@@ -84,4 +85,39 @@ Future<void> openExternalUrl(BuildContext context, String url) async {
       ),
     );
   }
+}
+
+Future<DateTime?> pickCustomDate(
+  BuildContext context, {
+  DateTime? initialDate,
+  DateTime? firstDate,
+  DateTime? lastDate,
+}) async {
+  final defaultFirstDate = firstDate ?? DateTime(2000);
+  final defaultLastDate = lastDate ?? DateTime(2050);
+  final now = DateTime.now();
+
+  DateTime safeInitialDate = initialDate ?? now;
+  if (safeInitialDate.isBefore(defaultFirstDate)) {
+    safeInitialDate = defaultFirstDate;
+  } else if (safeInitialDate.isAfter(defaultLastDate)) {
+    safeInitialDate = defaultLastDate;
+  }
+
+  final picked = await showDatePicker(
+    context: context,
+    initialDate: safeInitialDate,
+    firstDate: defaultFirstDate,
+    lastDate: defaultLastDate,
+    builder: (context, child) => Theme(
+      data: Theme.of(context).copyWith(
+        colorScheme: Theme.of(
+          context,
+        ).colorScheme.copyWith(primary: primaryColor),
+      ),
+      child: child!,
+    ),
+  );
+
+  return picked;
 }

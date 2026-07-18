@@ -13,11 +13,11 @@ class FilterRecapTotalPesananSection extends StatelessWidget {
   });
 
   static const List<String> _filters = [
-    'All',
-    'Pending',
-    'Partial',
-    'Shipped',
-    'Completed',
+    'Semua',
+    'Tertunda',
+    'Sebagian',
+    'Dikirim',
+    'Selesai',
   ];
 
   @override
